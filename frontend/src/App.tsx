@@ -1,10 +1,38 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Footer from './components/layout/Footer';
+import ScrollToTop from './components/layout/ScrollToTop';
+import Home from './pages/Home';
+import { 
+  VidaPage, 
+  EucaristiaPage, 
+  MilagresPage, 
+  MillennialPage, 
+  EspiritualidadePage,
+  SantidadePage
+} from './pages/DetailPages';
+
 export default function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="p-6 rounded-xl shadow bg-white">
-        <h1 className="text-3xl font-bold">Tailwind OK ✅</h1>
-        <p className="text-gray-600 mt-2">React + TS + Tailwind funcionando.</p>
+    <Router>
+      <ScrollToTop />
+      <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-red-500 selection:text-white">
+        <Navbar />
+        
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/vida" element={<VidaPage />} />
+            <Route path="/eucaristia" element={<EucaristiaPage />} />
+            <Route path="/milagres" element={<MilagresPage />} />
+            <Route path="/millennial" element={<MillennialPage />} />
+            <Route path="/espiritualidade" element={<EspiritualidadePage />} />
+            <Route path="/santidade" element={<SantidadePage />} />
+          </Routes>
+        </main>
+
+        <Footer />
       </div>
-    </div>
+    </Router>
   );
 }
