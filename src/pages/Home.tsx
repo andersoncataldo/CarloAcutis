@@ -53,7 +53,7 @@ const Home: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="text-7xl md:text-[12rem] font-black mb-4 tracking-tighter leading-none uppercase italic drop-shadow-2xl"
           >
-            Carlo<span className="text-red-500">.</span>
+            Carlo Acutis<span className="text-red-500">.</span>
           </motion.h1>
           <motion.p 
             initial={{ y: 30, opacity: 0 }}
