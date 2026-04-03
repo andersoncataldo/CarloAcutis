@@ -3,16 +3,17 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { biographyContent } from '../data/biographyContent';
 
-import carloHero from '../assets/carlo_acutis.jpg';
+import carloHero from '../assets/carlo_retrato.jfif'; // High quality portrait
 import carloTech from '../assets/carlo_computador.jpg';
 import eucaristiaImg from '../assets/eucaristia.jpg';
 import tumuloImg from '../assets/túmulo_carlo.png';
+import carloInfancia from '../assets/infancia_carlo.jpg';
 
 const Home: React.FC = () => {
   const { hero } = biographyContent;
 
   const cards = [
-    { title: "Vida & História", path: "/vida", img: carloHero, color: "bg-red-600" },
+    { title: "Vida & História", path: "/vida", img: carloInfancia, color: "bg-red-600" },
     { title: "Eucaristia & Fé", path: "/eucaristia", img: eucaristiaImg, color: "bg-blue-900" },
     { title: "Milagres", path: "/milagres", img: tumuloImg, color: "bg-red-600" },
     { title: "Ciberapóstolo", path: "/millennial", img: carloTech, color: "bg-slate-900" },
@@ -20,31 +21,37 @@ const Home: React.FC = () => {
 
   return (
     <div className="pt-20">
-      {/* Hero Section */}
-      <header className="relative h-[85vh] flex items-center justify-center bg-blue-900 text-white overflow-hidden m-4 rounded-[3rem] md:rounded-[4rem]">
+      {/* Hero Section - Fixed Rendering & HQ Image */}
+      <header className="relative h-[90vh] flex items-center justify-center bg-blue-900 text-white overflow-hidden m-4 rounded-[3rem] md:rounded-[4rem] shadow-2xl">
         <motion.div 
-          initial={{ scale: 1.2, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.4 }}
-          transition={{ duration: 1.5 }}
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.5 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
           className="absolute inset-0"
         >
-          <img src={carloHero} alt="Carlo" className="w-full h-full object-cover mix-blend-overlay" />
+          <img 
+            src={carloHero} 
+            alt="Carlo Acutis Portrait" 
+            className="w-full h-full object-cover object-center mix-blend-overlay scale-105"
+            style={{ imageRendering: 'auto' }}
+          />
         </motion.div>
-        <div className="absolute inset-0 bg-gradient-to-t from-blue-950 via-transparent to-blue-900/50"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-blue-950 via-blue-900/20 to-blue-900/60"></div>
         
         <div className="relative z-10 text-center px-6 max-w-5xl">
           <motion.div 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-600/90 text-white text-[10px] font-black uppercase tracking-[0.3em] mb-8"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.3em] mb-8 shadow-xl shadow-red-600/20"
           >
+            <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
             Millennial Saint
           </motion.div>
           <motion.h1 
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-7xl md:text-[11rem] font-black mb-4 tracking-tighter leading-none uppercase italic"
+            className="text-7xl md:text-[12rem] font-black mb-4 tracking-tighter leading-none uppercase italic drop-shadow-2xl"
           >
             Carlo<span className="text-red-500">.</span>
           </motion.h1>
@@ -52,16 +59,27 @@ const Home: React.FC = () => {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-xl md:text-3xl font-bold mb-10 text-blue-100/80 tracking-tight uppercase italic"
+            className="text-xl md:text-3xl font-bold mb-10 text-blue-100 tracking-tight uppercase italic"
           >
             {hero.subtitle}
           </motion.p>
         </div>
+
+        {/* Dynamic Scroll Hint */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="absolute bottom-12 flex flex-col items-center gap-3"
+        >
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-300">Explorar</span>
+          <div className="w-[1px] h-16 bg-gradient-to-b from-red-500 to-transparent"></div>
+        </motion.div>
       </header>
 
       {/* Interactive Navigation Cards */}
-      <section className="max-w-7xl mx-auto px-6 py-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="max-w-7xl mx-auto px-6 py-32">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {cards.map((card, index) => (
             <motion.div
               key={card.path}
@@ -70,23 +88,23 @@ const Home: React.FC = () => {
               transition={{ delay: index * 0.1 }}
               viewport={{ once: true }}
             >
-              <Link to={card.path} className="group relative block aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-slate-200 shadow-2xl transition-all hover:-translate-y-4">
+              <Link to={card.path} className="group relative block aspect-[4/5] overflow-hidden rounded-[3rem] bg-slate-900 shadow-2xl transition-all hover:-translate-y-4 hover:shadow-red-600/10">
                 <img 
                   src={card.img} 
                   alt={card.title} 
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0 opacity-80 group-hover:opacity-100" 
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110 grayscale group-hover:grayscale-0 opacity-60 group-hover:opacity-100" 
                 />
                 <div className={`absolute inset-0 opacity-20 transition-opacity group-hover:opacity-40 ${card.color}`}></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-90"></div>
                 
-                <div className="absolute bottom-8 left-8 right-8 space-y-2">
-                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-500">Explorar</span>
-                   <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white leading-none">
+                <div className="absolute bottom-10 left-10 right-10 space-y-3">
+                   <span className="text-[10px] font-black uppercase tracking-[0.4em] text-red-500">Discover</span>
+                   <h3 className="text-4xl font-black italic uppercase tracking-tighter text-white leading-none">
                      {card.title}
                    </h3>
                 </div>
                 
-                <div className="absolute top-8 right-8 h-12 w-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute top-10 right-10 h-14 w-14 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white opacity-0 -translate-y-4 transition-all group-hover:opacity-100 group-hover:translate-y-0">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
@@ -98,24 +116,33 @@ const Home: React.FC = () => {
       </section>
 
       {/* Feature Section: Espiritualidade */}
-      <section className="bg-slate-950 text-white py-32 px-6 overflow-hidden">
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
-          <div className="space-y-8">
-            <span className="text-red-500 font-black uppercase tracking-[0.4em] text-xs">Authenticity</span>
-            <h2 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter leading-none">
-              Original <br/> <span className="text-blue-600">vs</span> <br/> Fotocópia
+      <section className="bg-slate-950 text-white py-32 px-6 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-600/5 blur-[120px] rounded-full"></div>
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-24 items-center relative z-10">
+          <div className="space-y-10">
+            <span className="text-red-500 font-black uppercase tracking-[0.4em] text-xs flex items-center gap-4">
+              <span className="w-12 h-[2px] bg-red-600"></span>
+              The Vision
+            </span>
+            <h2 className="text-7xl md:text-9xl font-black uppercase italic tracking-tighter leading-none">
+              Be <br/> <span className="text-blue-600">Original</span>
             </h2>
-            <p className="text-xl text-slate-400 font-medium leading-relaxed italic border-l-2 border-red-600 pl-6">
+            <p className="text-2xl text-slate-400 font-medium leading-relaxed italic border-l-4 border-red-600 pl-8">
               "Todos os homens nascem como originais, mas muitos morrem como fotocópias."
             </p>
-            <Link to="/espiritualidade" className="inline-block bg-white text-slate-950 px-10 py-5 rounded-full font-black uppercase text-xs tracking-widest hover:bg-red-600 hover:text-white transition-all">
+            <Link to="/espiritualidade" className="inline-flex bg-white text-slate-950 px-12 py-6 rounded-full font-black uppercase text-xs tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all shadow-xl hover:shadow-red-600/40">
               Ver Espiritualidade
             </Link>
           </div>
-          <div className="relative">
-             <div className="absolute -inset-4 bg-red-600 rounded-[3rem] rotate-3 opacity-20"></div>
-             <img src={carloHero} className="relative rounded-[3rem] shadow-2xl grayscale brightness-75" alt="Carlo" />
-          </div>
+          <motion.div 
+            initial={{ rotate: 5, scale: 0.9 }}
+            whileInView={{ rotate: 0, scale: 1 }}
+            transition={{ duration: 1 }}
+            className="relative"
+          >
+             <div className="absolute -inset-6 bg-red-600 rounded-[4rem] rotate-3 opacity-10 blur-2xl"></div>
+             <img src={carloHero} className="relative rounded-[4rem] shadow-2xl grayscale contrast-125 brightness-75 border-4 border-white/10" alt="Carlo Portrait" />
+          </motion.div>
         </div>
       </section>
     </div>
