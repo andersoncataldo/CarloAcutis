@@ -1,10 +1,27 @@
+<<<<<<< HEAD
 # Logs
 logs
+=======
+# ===== OS / Editor =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.iml
+
+# ===== Env files =====
+.env
+.env.*
+!.env.example
+
+# ===== Logs =====
+>>>>>>> ae90c20916bb3d085fc42ca9c12ec86a810a0530
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+<<<<<<< HEAD
 lerna-debug.log*
 
 node_modules
@@ -22,3 +39,27 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+=======
+
+# ===== Node / React (frontend) =====
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+
+# ===== Java / Spring (backend) =====
+target/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+# ===== Gradle (se usar) =====
+.gradle/
+build/
+
+# ===== Maven wrappers (opcional manter, mas não ignorar) =====
+# (Não coloque mvnw e .mvn/ aqui - esses arquivos devem ser versionados)
+>>>>>>> ae90c20916bb3d085fc42ca9c12ec86a810a0530

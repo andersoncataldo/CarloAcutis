@@ -5,6 +5,7 @@ import Section from '../components/Section';
 import Timeline from '../components/Timeline';
 
 // Assets
+import carloHero from '../assets/carlo_acutis.jpg';
 import carloTech from '../assets/carlo_computador.jpg';
 import eucaristiaImg from '../assets/eucaristia.jpg';
 import tumuloImg from '../assets/túmulo_carlo.png';
