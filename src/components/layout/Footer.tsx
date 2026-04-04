@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import iconLogo from '../../assets/icon.png';
+import { navLinks } from '../../data/navigation';
 
 const Footer: React.FC = () => {
   const [copied, setCopied] = useState(false);
@@ -11,15 +12,6 @@ const Footer: React.FC = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const navLinks = [
-    { name: "Vida", href: "/vida" },
-    { name: "Eucaristia", href: "/eucaristia" },
-    { name: "Cruz & Partida", href: "/doenca" },
-    { name: "Santo de Jeans", href: "/tumulo" },
-    { name: "Milagres", href: "/milagres" },
-    { name: "Digital", href: "/millennial" },
-  ];
 
   return (
     <footer className="bg-slate-950 text-white pt-24 pb-12 px-6 overflow-hidden relative border-t border-white/5">
@@ -46,12 +38,12 @@ const Footer: React.FC = () => {
         {/* Center Column: Navigation */}
         <div className="md:col-span-3 space-y-8">
           <h4 className="text-xs font-black uppercase tracking-[0.3em] text-red-600">Explorar</h4>
-          <ul className="grid grid-cols-1 gap-4">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-x-8 gap-y-4">
             {navLinks.map((link) => (
               <li key={link.name}>
                 <Link 
                   to={link.href} 
-                  className="text-slate-400 hover:text-white transition-colors font-bold text-sm uppercase tracking-widest"
+                  className="text-slate-400 hover:text-white transition-colors font-bold text-sm uppercase tracking-widest whitespace-nowrap"
                 >
                   {link.name}
                 </Link>
