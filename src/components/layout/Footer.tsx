@@ -15,9 +15,9 @@ const Footer: React.FC = () => {
   const navLinks = [
     { name: "Vida", href: "/vida" },
     { name: "Eucaristia", href: "/eucaristia" },
-    { name: "Nossa Senhora", href: "/nossa-senhora" },
+    { name: "Cruz & Partida", href: "/doenca" },
+    { name: "Santo de Jeans", href: "/tumulo" },
     { name: "Milagres", href: "/milagres" },
-    { name: "Espiritualidade", href: "/espiritualidade" },
     { name: "Digital", href: "/millennial" },
   ];
 

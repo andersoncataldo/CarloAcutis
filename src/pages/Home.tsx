@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { biographyContent } from '../data/biographyContent';
 
-import carloHero from '../assets/carlo_retrato.jfif'; // High quality portrait
+import carloHero from '../assets/carlo_retrato.jfif'; 
 import carloTech from '../assets/carlo_computador.jpg';
 import eucaristiaImg from '../assets/eucaristia.jpg';
 import tumuloImg from '../assets/túmulo_carlo.png';
@@ -15,13 +15,15 @@ const Home: React.FC = () => {
   const cards = [
     { title: "Vida & História", path: "/vida", img: carloInfancia, color: "bg-red-600" },
     { title: "Eucaristia & Fé", path: "/eucaristia", img: eucaristiaImg, color: "bg-blue-900" },
-    { title: "Milagres", path: "/milagres", img: tumuloImg, color: "bg-red-600" },
     { title: "Ciberapóstolo", path: "/millennial", img: carloTech, color: "bg-slate-900" },
+    { title: "Cruz & Partida", path: "/doenca", img: "", color: "bg-slate-700" }, // Placeholder img
+    { title: "Santo de Jeans", path: "/tumulo", img: "", color: "bg-blue-600" }, // Placeholder img
+    { title: "Milagres", path: "/milagres", img: tumuloImg, color: "bg-red-600" },
   ];
 
   return (
     <div className="pt-20">
-      {/* Hero Section - Fixed Rendering & HQ Image */}
+      {/* Hero Section */}
       <header className="relative h-[90vh] flex items-center justify-center bg-blue-900 text-white overflow-hidden m-4 rounded-[3rem] md:rounded-[4rem] shadow-2xl">
         <motion.div 
           initial={{ scale: 1.1, opacity: 0 }}
@@ -33,7 +35,6 @@ const Home: React.FC = () => {
             src={carloHero} 
             alt="Carlo Acutis Portrait" 
             className="w-full h-full object-cover object-center mix-blend-overlay scale-105"
-            style={{ imageRendering: 'auto' }}
           />
         </motion.div>
         <div className="absolute inset-0 bg-gradient-to-t from-blue-950 via-blue-900/20 to-blue-900/60"></div>
@@ -53,7 +54,7 @@ const Home: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="text-7xl md:text-[12rem] font-black mb-4 tracking-tighter leading-none uppercase italic drop-shadow-2xl"
           >
-            Carlo Acutis<span className="text-red-500">.</span>
+            Carlo<span className="text-red-500">.</span>
           </motion.h1>
           <motion.p 
             initial={{ y: 30, opacity: 0 }}
@@ -64,22 +65,11 @@ const Home: React.FC = () => {
             {hero.subtitle}
           </motion.p>
         </div>
-
-        {/* Dynamic Scroll Hint */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="absolute bottom-12 flex flex-col items-center gap-3"
-        >
-          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-blue-300">Explorar</span>
-          <div className="w-[1px] h-16 bg-gradient-to-b from-red-500 to-transparent"></div>
-        </motion.div>
       </header>
 
       {/* Interactive Navigation Cards */}
       <section className="max-w-7xl mx-auto px-6 py-32">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {cards.map((card, index) => (
             <motion.div
               key={card.path}
@@ -89,11 +79,17 @@ const Home: React.FC = () => {
               viewport={{ once: true }}
             >
               <Link to={card.path} className="group relative block aspect-[4/5] overflow-hidden rounded-[3rem] bg-slate-900 shadow-2xl transition-all hover:-translate-y-4 hover:shadow-red-600/10">
-                <img 
-                  src={card.img} 
-                  alt={card.title} 
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110 grayscale group-hover:grayscale-0 opacity-60 group-hover:opacity-100" 
-                />
+                {card.img ? (
+                  <img 
+                    src={card.img} 
+                    alt={card.title} 
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110 grayscale group-hover:grayscale-0 opacity-60 group-hover:opacity-100" 
+                  />
+                ) : (
+                  <div className={`absolute inset-0 ${card.color} opacity-40 flex items-center justify-center`}>
+                    <span className="text-white font-black uppercase tracking-widest opacity-20">Em breve</span>
+                  </div>
+                )}
                 <div className={`absolute inset-0 opacity-20 transition-opacity group-hover:opacity-40 ${card.color}`}></div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-90"></div>
                 
@@ -117,7 +113,6 @@ const Home: React.FC = () => {
 
       {/* Feature Section: Espiritualidade */}
       <section className="bg-slate-950 text-white py-32 px-6 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-blue-600/5 blur-[120px] rounded-full"></div>
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-24 items-center relative z-10">
           <div className="space-y-10">
             <span className="text-red-500 font-black uppercase tracking-[0.4em] text-xs flex items-center gap-4">

@@ -4,17 +4,18 @@ import iconLogo from '../assets/icon.png';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
-  
+
   const links = [
     { name: "Vida", href: "/vida" },
     { name: "Eucaristia", href: "/eucaristia" },
-    { name: "Milagres", href: "/milagres" },
     { name: "Digital", href: "/millennial" },
+    { name: "Cruz", href: "/doenca" },
+    { name: "Túmulo", href: "/tumulo" },
     { name: "Santidade", href: "/santidade" },
   ];
 
   return (
-    <nav className="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl bg-white/80 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] z-50 rounded-full border border-white/20 py-2.5 px-8">
+    <nav className="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl bg-white/80 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] z-50 rounded-full border border-white/20 py-2.5 px-8">
       <div className="flex justify-between items-center">
         <Link to="/" className="flex items-center gap-3 group transition-transform hover:scale-105 active:scale-95">
           <div className="relative">
@@ -29,7 +30,7 @@ const Navbar: React.FC = () => {
             Carlo<span className="text-red-600">.</span>
           </span>
         </Link>
-        <div className="hidden md:flex gap-8">
+        <div className="hidden lg:flex gap-6">
           {links.map((link) => (
             <Link
               key={link.name}

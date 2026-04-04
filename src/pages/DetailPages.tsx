@@ -39,14 +39,20 @@ export const VidaPage = () => {
   const { vida, devocoes } = biographyContent;
   return (
     <div className="pt-24 space-y-12">
-      <PageHeader title="Vida & História" subtitle="O início da jornada" color="bg-red-600" />
+      <PageHeader title="Vida & História" subtitle="Um Garoto Como Você" color="bg-red-600" />
       <Section title={vida.title} className="max-w-7xl">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8">
             <p className="text-2xl leading-relaxed text-slate-700 font-medium border-l-4 border-red-500 pl-6">{vida.content}</p>
             <div className="p-8 bg-blue-50 rounded-[2.5rem] border-2 border-blue-100">
                <h4 className="font-black text-blue-900 uppercase text-xs tracking-widest mb-4">Interesses</h4>
-               <p className="text-slate-600 font-bold">{vida.interests}</p>
+               <div className="flex flex-wrap gap-2">
+                 {vida.interests.map((interest) => (
+                   <span key={interest} className="px-4 py-2 bg-white rounded-xl text-sm font-bold text-blue-900 border border-blue-100 shadow-sm">
+                     {interest}
+                   </span>
+                 ))}
+               </div>
             </div>
           </div>
           <motion.div 
@@ -58,21 +64,6 @@ export const VidaPage = () => {
           </motion.div>
         </div>
       </Section>
-      <div className="max-w-7xl mx-auto px-6 pb-24">
-        <div className="bg-slate-900 text-white p-12 md:p-20 rounded-[4rem] shadow-2xl relative overflow-hidden">
-            <div className="relative z-10">
-                <h4 className="text-4xl md:text-6xl font-black text-red-500 uppercase italic mb-12 tracking-tighter">Devoções do Coração</h4>
-                <div className="grid md:grid-cols-2 gap-8">
-                    {devocoes.saints.map(s => (
-                        <div key={s} className="flex items-center gap-6 p-6 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors">
-                            <span className="text-3xl text-red-600 font-black">#</span>
-                            <span className="text-xl font-bold uppercase tracking-tight">{s}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-      </div>
     </div>
   );
 };
@@ -94,7 +85,6 @@ export const EucaristiaPage = () => {
         </div>
       </Section>
       <section className="bg-red-600 text-white py-24 px-6 m-4 rounded-[4rem] shadow-2xl overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         <div className="max-w-5xl mx-auto space-y-10 relative z-10 text-center md:text-left">
           <span className="text-xs font-black uppercase tracking-[0.5em] opacity-60">Mãe de Deus</span>
           <h2 className="text-5xl md:text-8xl font-black uppercase italic tracking-tighter leading-none">{nossaSenhora.title}</h2>
@@ -192,6 +182,53 @@ export const EspiritualidadePage = () => {
            {espiritualidade.content}
          </p>
       </div>
+    </div>
+  );
+};
+
+export const DoencaPage = () => {
+  const { doencaEMorte } = biographyContent;
+  return (
+    <div className="pt-24 space-y-12 pb-24">
+      <PageHeader title="Cruz & Partida" subtitle="O Sorriso Diante da Cruz" color="bg-slate-900" />
+      <Section title={doencaEMorte.title} className="max-w-7xl">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="space-y-8">
+            <blockquote className="text-3xl font-serif italic text-red-600 leading-tight">"{doencaEMorte.quote}"</blockquote>
+            <p className="text-2xl leading-relaxed text-slate-700 font-medium border-l-4 border-slate-900 pl-6">{doencaEMorte.content}</p>
+          </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative rounded-[3rem] overflow-hidden shadow-2xl bg-slate-200 aspect-square flex items-center justify-center"
+          >
+            <span className="text-slate-400 font-black uppercase tracking-widest">Imagem em breve</span>
+          </motion.div>
+        </div>
+      </Section>
+    </div>
+  );
+};
+
+export const TumbaPage = () => {
+  const { santoDeJeans } = biographyContent;
+  return (
+    <div className="pt-24 space-y-12 pb-24">
+      <PageHeader title="O Santo de Jeans" subtitle="Santidade no Nosso Tempo" color="bg-blue-900" />
+      <Section title={santoDeJeans.title} className="max-w-7xl">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="relative rounded-[3rem] overflow-hidden shadow-2xl bg-slate-200 aspect-[4/3] flex items-center justify-center order-2 lg:order-1"
+          >
+            <span className="text-slate-400 font-black uppercase tracking-widest">Imagem em breve</span>
+          </motion.div>
+          <div className="space-y-8 order-1 lg:order-2">
+            <p className="text-2xl leading-relaxed text-slate-700 font-medium border-r-4 border-blue-600 pr-6 text-right">{santoDeJeans.content}</p>
+          </div>
+        </div>
+      </Section>
     </div>
   );
 };

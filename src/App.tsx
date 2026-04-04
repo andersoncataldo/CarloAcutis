@@ -9,7 +9,9 @@ import {
   MilagresPage, 
   MillennialPage, 
   EspiritualidadePage,
-  SantidadePage
+  SantidadePage,
+  DoencaPage,
+  TumbaPage
 } from './pages/DetailPages';
 
 export default function App() {
@@ -28,6 +30,8 @@ export default function App() {
             <Route path="/millennial" element={<MillennialPage />} />
             <Route path="/espiritualidade" element={<EspiritualidadePage />} />
             <Route path="/santidade" element={<SantidadePage />} />
+            <Route path="/doenca" element={<DoencaPage />} />
+            <Route path="/tumulo" element={<TumbaPage />} />
           </Routes>
         </main>
 
