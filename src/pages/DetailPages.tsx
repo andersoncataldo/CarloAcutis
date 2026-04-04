@@ -36,7 +36,7 @@ const PageHeader: React.FC<{ title: string; subtitle: string; color: string }> =
 );
 
 export const VidaPage = () => {
-  const { vida, devocoes } = biographyContent;
+  const { vida } = biographyContent;
   return (
     <div className="pt-24 space-y-12">
       <PageHeader title="Vida & História" subtitle="Um Garoto Como Você" color="bg-red-600" />
