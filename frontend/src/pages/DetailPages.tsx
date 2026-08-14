@@ -5,169 +5,123 @@ import Section from '../components/Section';
 import Timeline from '../components/Timeline';
 
 // Assets
-import carloHero from '../assets/carlo_acutis.jpg';
-import carloTech from '../assets/carlo_computador.jpg';
-import eucaristiaImg from '../assets/eucaristia.jpg';
+import carloPortrait from '../assets/carlo_retrato.png';
+import carloTech from '../assets/carlo_computador.png';
+import eucaristiaImg from '../assets/eucaristia.png';
 import tumuloImg from '../assets/túmulo_carlo.png';
+import familiaCarlo from '../assets/familiaCarlo.jpg';
+import maeCarlo from '../assets/MaeCarlo.png';
+import petCarlo from '../assets/PetCarlo.png';
+import amigosCarlo from '../assets/AmigosCarlo.jpg';
+import amigosCarlo2 from '../assets/AmigosCarlo2.jpg';
+import saintCarlo from '../assets/saintCarlo.jpeg';
+import milagreBR from '../assets/milagre_BR.png';
+import milagreCR from '../assets/milagre_CR.png';
 
 const PageHeader: React.FC<{ title: string; subtitle: string; color: string }> = ({ title, subtitle, color }) => (
-  <header className={`relative py-32 px-6 ${color} text-white overflow-hidden m-4 rounded-[3rem]`}>
-    <div className="relative z-10 max-w-5xl mx-auto">
+  <header className={`relative py-24 md:py-32 lg:py-48 px-6 md:px-10 ${color} text-white overflow-hidden m-3 md:m-6 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl`}>
+    <div className="relative z-10 max-w-6xl mx-auto text-center md:text-left">
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-black uppercase tracking-[0.3em] mb-8"
+      >
+        Exclusive Session
+      </motion.div>
       <motion.h1 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter"
+        transition={{ delay: 0.1 }}
+        className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black uppercase italic tracking-tighter leading-[0.85] md:leading-none"
       >
         {title}
       </motion.h1>
       <motion.p 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="text-xl md:text-2xl font-bold opacity-80 mt-4 uppercase tracking-widest"
+        transition={{ delay: 0.2 }}
+        className="text-lg md:text-2xl lg:text-3xl font-bold opacity-80 mt-8 md:mt-10 uppercase tracking-widest max-w-3xl mx-auto md:mx-0 leading-tight"
       >
         {subtitle}
       </motion.p>
     </div>
+    {/* Decorative Elements */}
+    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full -mr-64 -mt-64 blur-[120px]"></div>
   </header>
 );
 
-export const VidaPage = () => {
-  const { vida, devocoes } = biographyContent;
+export const VidaLegadoPage = () => {
+  const { infanciaEPais, iniciativaNaFe, animais, amigosEEscola } = biographyContent;
   return (
-    <div className="pt-24 space-y-12">
-      <PageHeader title="Vida & História" subtitle="O início da jornada" color="bg-red-600" />
-      <Section title={vida.title} className="max-w-7xl">
-        <div className="grid lg:grid-cols-2 gap-16">
-          <div className="space-y-8">
-            <p className="text-2xl leading-relaxed text-slate-700 font-medium">{vida.content}</p>
-            <div className="p-8 bg-blue-50 rounded-[2.5rem] border-2 border-blue-100">
-               <h4 className="font-black text-blue-900 uppercase text-xs tracking-widest mb-4">Interesses</h4>
-               <p className="text-slate-600 font-bold">{vida.interests}</p>
-            </div>
-          </div>
-          <div className="bg-slate-900 text-white p-12 rounded-[3rem] shadow-2xl">
-            <h4 className="text-3xl font-black text-red-500 uppercase italic mb-8">Devoções</h4>
-            <ul className="space-y-6">
-              {devocoes.saints.map(s => (
-                <li key={s} className="text-xl font-bold uppercase tracking-tight flex items-center gap-4">
-                  <span className="w-3 h-3 bg-red-600 rounded-full"></span> {s}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </Section>
+    <div className="pt-24 space-y-4">
+      <PageHeader title="Vida e Legado" subtitle="O Início da Jornada e os Valores de Carlo" color="bg-red-600" />
+      <Section id="vida-familiar" title={infanciaEPais.title} content={infanciaEPais.content} image={familiaCarlo} />
+      <Section id="iniciativa-fe" title={iniciativaNaFe.title} content={iniciativaNaFe.content} image={maeCarlo} reverse />
+      <Section id="animais" title={animais.title} content={animais.content} image={petCarlo} />
+      <Section id="amigos-escola" title={amigosEEscola.title} content={amigosEEscola.content} image={amigosCarlo} reverse />
     </div>
   );
 };
 
-export const EucaristiaPage = () => {
-  const { eucaristia, nossaSenhora } = biographyContent;
+export const FeDevocaoPage = () => {
+  const { eucaristia, nossaSenhora, espiritualidade, comunicacao } = biographyContent;
   return (
-    <div className="pt-24 space-y-12">
-      <PageHeader title="Fé & Eucaristia" subtitle="A Rodovia para o Céu" color="bg-blue-900" />
-      <Section title="O Centro de Tudo" className="max-w-7xl">
-        <div className="grid lg:grid-cols-2 gap-12">
-           <div className="space-y-8">
-              <blockquote className="text-4xl font-serif italic text-blue-600 leading-tight">"{eucaristia.quote}"</blockquote>
-              <p className="text-xl text-slate-600 leading-relaxed">{eucaristia.content}</p>
-           </div>
-           <div className="relative rounded-[3rem] overflow-hidden">
-              <img src={eucaristiaImg} className="w-full h-full object-cover" alt="Eucaristia" />
-           </div>
-        </div>
-      </Section>
-      <section className="bg-red-600 text-white py-24 px-6 m-4 rounded-[3rem]">
-        <div className="max-w-5xl mx-auto space-y-8">
-          <h2 className="text-5xl font-black uppercase italic tracking-tighter">Nossa Senhora</h2>
-          <p className="text-3xl font-serif italic">"{nossaSenhora.quote}"</p>
-          <p className="text-xl opacity-90 leading-relaxed">{nossaSenhora.content}</p>
-        </div>
-      </section>
-    </div>
-  );
-};
-
-export const MilagresPage = () => {
-  const { milagres } = biographyContent;
-  return (
-    <div className="pt-24 space-y-12">
-      <PageHeader title="Milagres" subtitle="Sinais de Santidade" color="bg-red-600" />
-      <div className="max-w-7xl mx-auto px-6 grid gap-12 pb-24">
-        <div className="bg-white p-12 rounded-[4rem] border-4 border-slate-100 shadow-xl grid md:grid-cols-2 gap-12 items-center">
-           <div className="space-y-6">
-              <span className="text-red-500 font-black uppercase tracking-widest text-xs italic">Beatificação // Brasil</span>
-              <h3 className="text-5xl font-black italic uppercase tracking-tighter text-blue-950">{milagres.beatificacao.title}</h3>
-              <p className="text-xl text-slate-600 font-medium leading-relaxed">{milagres.beatificacao.description}</p>
-           </div>
-           <div className="bg-slate-100 aspect-video rounded-[3rem] flex items-center justify-center text-8xl">🇧🇷</div>
-        </div>
-        <div className="bg-blue-900 text-white p-12 rounded-[4rem] shadow-2xl grid md:grid-cols-2 gap-12 items-center">
-           <div className="order-2 md:order-1 bg-white/10 aspect-video rounded-[3rem] flex items-center justify-center text-8xl">🇮🇹</div>
-           <div className="order-1 md:order-2 space-y-6">
-              <span className="text-red-500 font-black uppercase tracking-widest text-xs italic">Canonização // Itália</span>
-              <h3 className="text-5xl font-black italic uppercase tracking-tighter">{milagres.canonizacao.title}</h3>
-              <p className="text-xl text-blue-100 font-medium leading-relaxed">{milagres.canonizacao.description}</p>
-           </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export const MillennialPage = () => {
-  const { millennial } = biographyContent;
-  return (
-    <div className="pt-24 space-y-12">
-      <PageHeader title="Ciberapóstolo" subtitle="O Santo da Internet" color="bg-slate-900" />
-      <Section title="Fé na Era Digital" className="max-w-7xl">
-        <div className="grid lg:grid-cols-12 gap-12">
-           <div className="lg:col-span-7 space-y-8">
-              <p className="text-2xl text-slate-700 font-medium leading-relaxed">{millennial.content}</p>
-              <div className="flex flex-wrap gap-4">
-                 {millennial.tech.map(t => (
-                   <span key={t} className="px-6 py-3 bg-red-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest">{t}</span>
-                 ))}
-              </div>
-           </div>
-           <div className="lg:col-span-5">
-              <img src={carloTech} className="rounded-[3rem] shadow-2xl grayscale" alt="Tech" />
-           </div>
-        </div>
-      </Section>
-    </div>
-  );
-};
-
-export const EspiritualidadePage = () => {
-  const { espiritualidade } = biographyContent;
-  return (
-    <div className="pt-24 space-y-12">
-      <PageHeader title="Espiritualidade" subtitle="Ser Original" color="bg-blue-950" />
-      <div className="max-w-4xl mx-auto px-6 py-24 text-center space-y-12">
-         <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter text-red-600 leading-none">
-           "{espiritualidade.quote}"
-         </h2>
-         <p className="text-2xl text-slate-600 font-bold leading-relaxed">
-           {espiritualidade.content}
-         </p>
-      </div>
+    <div className="pt-24 space-y-4">
+      <PageHeader title="Fé e Devoção" subtitle="A Conexão Profunda com o Divino" color="bg-blue-900" />
+      <Section id="eucaristia" title={eucaristia.title} content={eucaristia.content} image={eucaristiaImg} />
+      <Section id="nossa-senhora" title={nossaSenhora.title} content={nossaSenhora.content} image={saintCarlo} reverse />
+      <Section id="espiritualidade" title={espiritualidade.title} content={espiritualidade.content} image={carloPortrait} />
+      <Section id="comunicacao" title={comunicacao.title} content={comunicacao.content} image={carloTech} reverse />
     </div>
   );
 };
 
 export const SantidadePage = () => {
-  const { santidade } = biographyContent;
+  const { millennial, doencaEMorte, santoDeJeans, conexaoBrasil, santidade } = biographyContent;
   return (
-    <div className="pt-24 space-y-12 pb-24">
-      <PageHeader title="Santidade" subtitle="Cronologia da Luz" color="bg-red-600" />
-      <div className="max-w-3xl mx-auto px-6 mt-20">
+    <div className="pt-24 space-y-4">
+      <PageHeader title="Santidade" subtitle="O Caminho para a Glória dos Altares" color="bg-slate-900" />
+      <Section id="millennial" title={millennial.title} content={millennial.content} image={amigosCarlo2} />
+      <Section id="cruz-partida" title={doencaEMorte.title} content={doencaEMorte.content} image={saintCarlo} reverse />
+      <Section id="santo-jeans" title={santoDeJeans.title} content={santoDeJeans.content} image={tumuloImg} />
+      
+      <div id="milagres" className="py-24 max-w-7xl mx-auto px-6">
+        <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter text-blue-950 mb-16 text-center">Sinais do Céu</h2>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="bg-slate-50 p-10 rounded-[3rem] border-2 border-slate-100 shadow-xl">
+            <div className="aspect-video rounded-3xl overflow-hidden mb-8 border-4 border-white shadow-lg">
+               <img 
+                 src={milagreBR} 
+                 className="w-full h-full object-cover" 
+                 alt="Criança sendo curada por intercessão de Carlo Acutis no Brasil" 
+                 loading="lazy"
+                 decoding="async"
+               />
+            </div>
+            <h4 className="text-3xl font-black uppercase italic text-blue-950 mb-4">Brasil: Mattheus</h4>
+            <p className="text-lg text-slate-600 font-medium leading-relaxed">A cura do menino Mattheus em Campo Grande (MS), o primeiro milagre que levou Carlo à beatificação.</p>
+          </div>
+          <div className="bg-blue-950 p-10 rounded-[3rem] text-white shadow-2xl">
+            <div className="aspect-video rounded-3xl overflow-hidden mb-8 border-4 border-blue-900/50 shadow-lg grayscale">
+               <img 
+                 src={milagreCR} 
+                 className="w-full h-full object-cover" 
+                 alt="Mãe rezando no túmulo de Carlo Acutis em Assis" 
+                 loading="lazy"
+                 decoding="async"
+               />
+            </div>
+            <h4 className="text-3xl font-black uppercase italic text-red-600 mb-4">Costa Rica: Valeria</h4>
+            <p className="text-lg text-blue-100/70 leading-relaxed font-medium">O milagre da cura de Valeria, após sua mãe rezar no túmulo de Carlo em Assis, confirmando sua canonização.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-6 py-20">
         <Timeline events={santidade.events} />
       </div>
-      <div className="max-w-6xl mx-auto px-6 mt-32">
-         <img src={tumuloImg} className="w-full rounded-[4rem] shadow-2xl border-8 border-white" alt="Túmulo" />
-      </div>
+
+      <Section id="conexao-brasil" title={conexaoBrasil.title} content={conexaoBrasil.content} image={milagreBR} reverse />
     </div>
   );
 };
