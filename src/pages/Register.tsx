@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
-import api from '../services/api';
+import { supabase } from '../services/supabase';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
-    senhaHash: '',
+    password: '',
     confirmPassword: ''
   });
   const [error, setError] = useState('');
@@ -19,25 +18,30 @@ const Register: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (formData.senhaHash !== formData.confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
       setError('As senhas não coincidem.');
       return;
     }
 
     setLoading(true);
     try {
-      await api.post('/auth/register', {
-        nome: formData.nome,
+      const { error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
-        senhaHash: formData.senhaHash
+        password: formData.password,
+        options: {
+          data: {
+            nome: formData.nome,
+          },
+        },
       });
-      navigate('/login');
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || 'Erro ao criar conta. E-mail já pode estar em uso.');
+
+      if (signUpError) {
+        setError(signUpError.message);
       } else {
-        setError('Ocorreu um erro inesperado.');
+        navigate('/login');
       }
+    } catch (err) {
+      setError('Ocorreu um erro inesperado.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -95,8 +99,8 @@ const Register: React.FC = () => {
               <input 
                 type="password" 
                 required
-                value={formData.senhaHash}
-                onChange={(e) => setFormData({...formData, senhaHash: e.target.value})}
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
                 className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-red-600 focus:bg-white rounded-2xl outline-none transition-all font-medium"
                 placeholder="••••••••"
               />

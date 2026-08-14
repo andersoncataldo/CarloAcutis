@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
-import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { supabase } from '../services/supabase';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -11,7 +9,6 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,15 +17,20 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/login', { email, password });
-      await signIn(response.data.token);
-      navigate('/perfil');
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || 'Credenciais inválidas. Tente novamente.');
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) {
+        setError(authError.message === 'Invalid login credentials' 
+          ? 'Credenciais inválidas. Verifique e-mail e senha.' 
+          : authError.message);
       } else {
-        setError('Ocorreu um erro inesperado.');
+        navigate('/perfil');
       }
+    } catch (err) {
+      setError('Ocorreu um erro inesperado.');
       console.error(err);
     } finally {
       setLoading(false);

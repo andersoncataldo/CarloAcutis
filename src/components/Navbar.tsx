@@ -131,7 +131,7 @@ const Navbar: React.FC = () => {
               className="bg-blue-900 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2"
             >
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              {user.nomeExibicao || user.nome}
+              {user.nome}
             </Link>
           ) : (
             <Link 

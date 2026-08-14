@@ -1,81 +1,96 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import api from '../services/api';
+import { supabase } from '../services/supabase';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
-interface Liga {
+export interface Liga {
   id: number;
   nome: string;
   codigoAcesso: string;
 }
 
-interface User {
-  id: number;
+export interface UserProfile {
+  id: string;
   nome: string;
-  nomeExibicao?: string; // Adding this as it's used in Navbar
   email: string;
   xp: number;
   nivel: string;
-  liga: Liga | null;
+  liga_id: number | null;
+  liga?: Liga | null;
 }
 
 interface AuthContextData {
-  user: User | null;
-  token: string | null;
-  signIn: (token: string) => Promise<void>;
-  signOut: () => void;
+  user: UserProfile | null;
+  authUser: SupabaseUser | null;
   loading: boolean;
+  signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const signOut = useCallback(() => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
+  const fetchProfile = useCallback(async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*, liga:ligas(*)')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Erro ao buscar perfil:', error);
+      } else {
+        setUser(profile as UserProfile);
+      }
+    } catch (err) {
+      console.error('Erro ao conectar ao perfil:', err);
+    }
   }, []);
 
-  const fetchMe = useCallback(async (jwtToken: string) => {
-    try {
-      const response = await api.get('/auth/me', {
-        headers: { Authorization: `Bearer ${jwtToken}` }
-      });
-      setUser(response.data);
-    } catch (err) {
-      console.error("Erro ao validar sessão:", err);
-      signOut();
+  const refreshUser = useCallback(async () => {
+    if (authUser) {
+      await fetchProfile(authUser.id);
     }
-  }, [signOut]);
+  }, [authUser, fetchProfile]);
 
   useEffect(() => {
-    const initAuth = async () => {
-      if (token) {
-        await fetchMe(token);
+    // Session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
       }
       setLoading(false);
+    });
+
+    // Auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setAuthUser(session?.user ?? null);
+      if (session?.user) {
+        await fetchProfile(session.user.id);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
     };
-    initAuth();
-  }, [token, fetchMe]);
+  }, [fetchProfile]);
 
-  const signIn = useCallback(async (jwtToken: string) => {
-    localStorage.setItem('token', jwtToken);
-    setToken(jwtToken);
-    await fetchMe(jwtToken);
-  }, [fetchMe]);
-
-  const refreshUser = useCallback(async () => {
-    if (token) {
-      const response = await api.get('/auth/me');
-      setUser(response.data);
-    }
-  }, [token]);
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setAuthUser(null);
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, signIn, signOut, loading, refreshUser }}>
+    <AuthContext.Provider value={{ user, authUser, loading, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

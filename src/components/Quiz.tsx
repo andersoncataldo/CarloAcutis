@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../services/api';
+import { supabase } from '../services/supabase';
 import { useAuth } from '../context/AuthContext';
 
 interface Pergunta {
   id: number;
-  textoPergunta: string;
-  opcaoA: string;
-  opcaoB: string;
-  opcaoC: string;
-  opcaoD: string;
-  respostaCorreta: string;
+  texto_pergunta: string;
+  opcao_a: string;
+  opcao_b: string;
+  opcao_c: string;
+  opcao_d: string;
 }
 
 interface QuizProps {
@@ -30,9 +29,21 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
 
   useEffect(() => {
     const fetchPerguntas = async () => {
+      setLoading(true);
       try {
-        const response = await api.get(`/quiz/temporada/${temporadaId}/perguntas`);
-        setPerguntas(response.data);
+        const { data, error } = await supabase
+          .from('perguntas')
+          .select('id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d')
+          .eq('temporada_id', temporadaId);
+
+        if (error) {
+          console.error("Erro ao buscar perguntas", error);
+        } else {
+          setPerguntas(data as Pergunta[]);
+          setCurrentIndex(0);
+          setCompleted(false);
+          setScore(0);
+        }
       } catch (err) {
         console.error("Erro ao buscar perguntas", err);
       } finally {
@@ -48,15 +59,19 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
 
     setSelectedOption(opcao);
     try {
-      const response = await api.post(`/quiz/responder`, { 
-        usuarioId: user.id, 
-        perguntaId: perguntas[currentIndex].id,
-        respostaSelecionada: opcao 
+      // Chama a função RPC segura no banco do Supabase para processar a resposta sem expor o gabarito
+      const { data, error } = await supabase.rpc('responder_pergunta', {
+        p_pergunta_id: perguntas[currentIndex].id,
+        p_resposta_selecionada: opcao
       });
 
-      const updatedUser = response.data;
-      const isCorrect = updatedUser.xp > user.xp;
-      
+      if (error) {
+        console.error("Erro RPC:", error);
+        setSelectedOption(null);
+        return;
+      }
+
+      const isCorrect = data.correct;
       setFeedback(isCorrect ? 'correct' : 'wrong');
       if (isCorrect) setScore(prev => prev + 1);
 
@@ -86,7 +101,7 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
       <h3 className="text-4xl font-black italic uppercase text-blue-950">Temporada Concluída!</h3>
       <p className="text-slate-500 font-medium">Você acertou {score} de {perguntas.length} perguntas.</p>
       <div className="text-6xl font-black text-red-600">+{score * 100} XP</div>
-      <button onClick={() => window.location.reload()} className="px-8 py-4 bg-blue-900 text-white rounded-2xl font-black uppercase tracking-widest">Jogar Novamente</button>
+      <button onClick={() => { setCurrentIndex(0); setCompleted(false); setScore(0); }} className="px-8 py-4 bg-blue-900 text-white rounded-2xl font-black uppercase tracking-widest">Jogar Novamente</button>
     </motion.div>
   );
 
@@ -106,22 +121,22 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
         className="bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl border border-slate-100 space-y-10"
       >
         <h2 className="text-2xl md:text-3xl font-black text-blue-950 leading-tight">
-          {perguntaAtual.textoPergunta}
+          {perguntaAtual.texto_pergunta}
         </h2>
 
         <div className="grid gap-4">
           {[
-            { label: 'A', text: perguntaAtual.opcaoA },
-            { label: 'B', text: perguntaAtual.opcaoB },
-            { label: 'C', text: perguntaAtual.opcaoC },
-            { label: 'D', text: perguntaAtual.opcaoD }
+            { label: 'A', text: perguntaAtual.opcao_a },
+            { label: 'B', text: perguntaAtual.opcao_b },
+            { label: 'C', text: perguntaAtual.opcao_c },
+            { label: 'D', text: perguntaAtual.opcao_d }
           ].map((opt) => (
             <button
               key={opt.label}
               onClick={() => handleAnswer(opt.label)}
               disabled={!!feedback}
               className={`group flex items-center gap-6 p-6 rounded-2xl border-2 transition-all text-left ${
-                feedback === 'correct' && opt.label === perguntaAtual.respostaCorreta 
+                feedback === 'correct' && selectedOption === opt.label
                 ? 'bg-green-50 border-green-500' 
                 : feedback === 'wrong' && opt.label === selectedOption
                 ? 'bg-red-50 border-red-500'
@@ -129,7 +144,7 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
               }`}
             >
               <span className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-colors ${
-                feedback === 'correct' && opt.label === perguntaAtual.respostaCorreta
+                feedback === 'correct' && selectedOption === opt.label
                 ? 'bg-green-500 text-white'
                 : feedback === 'wrong' && opt.label === selectedOption
                 ? 'bg-red-500 text-white'

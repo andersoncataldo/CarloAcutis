@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import { supabase } from '../services/supabase';
 
 interface Membro {
-  id: number;
+  id: string;
   nome: string;
   xp: number;
   nivel: string;
@@ -16,30 +16,58 @@ const Profile: React.FC = () => {
   const [ligaNome, setLigaNome] = useState('');
   const [codigoAcesso, setCodigoAcesso] = useState('');
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const fetchRanking = useCallback(async () => {
+    if (!user?.liga_id) return;
     try {
-      const response = await api.get(`/ligas/${user?.liga?.id}/ranking`);
-      setRanking(response.data);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, nome, xp, nivel')
+        .eq('liga_id', user.liga_id)
+        .order('xp', { ascending: false });
+
+      if (error) {
+        console.error("Erro ao buscar ranking", error);
+      } else {
+        setRanking(data as Membro[]);
+      }
     } catch (err) {
       console.error("Erro ao buscar ranking", err);
     }
-  }, [user?.liga?.id]);
+  }, [user?.liga_id]);
 
   useEffect(() => {
-    if (user?.liga) {
+    if (user?.liga_id) {
       fetchRanking();
     }
-  }, [user?.liga, fetchRanking]);
+  }, [user?.liga_id, fetchRanking]);
 
   const handleCriarLiga = async () => {
+    if (!ligaNome.trim() || !user) return;
     setLoading(true);
     try {
-      const res = await api.post('/ligas/criar', { nome: ligaNome });
-      await api.post('/ligas/entrar', { usuarioId: user?.id, codigoAcesso: res.data.codigoAcesso });
+      const codigoGerado = Math.random().toString(36).substring(2, 10).toUpperCase();
+      
+      const { data: novaLiga, error: ligaError } = await supabase
+        .from('ligas')
+        .insert({ nome: ligaNome, codigo_acesso: codigoGerado })
+        .select()
+        .single();
+
+      if (ligaError) throw ligaError;
+
+      const { error: userError } = await supabase
+        .from('profiles')
+        .update({ liga_id: novaLiga.id })
+        .eq('id', user.id);
+
+      if (userError) throw userError;
+
       await refreshUser();
       setLigaNome('');
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Erro ao criar liga");
     } finally {
       setLoading(false);
@@ -47,16 +75,41 @@ const Profile: React.FC = () => {
   };
 
   const handleEntrarLiga = async () => {
+    if (!codigoAcesso.trim() || !user) return;
     setLoading(true);
     try {
-      await api.post('/ligas/entrar', { usuarioId: user?.id, codigoAcesso });
+      const { data: liga, error: ligaError } = await supabase
+        .from('ligas')
+        .select('id')
+        .eq('codigo_acesso', codigoAcesso.trim().toUpperCase())
+        .single();
+
+      if (ligaError || !liga) {
+        alert("Código de liga inválido");
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ liga_id: liga.id })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
       await refreshUser();
       setCodigoAcesso('');
-    } catch {
-      alert("Código inválido ou erro ao entrar");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao entrar na liga");
     } finally {
       setLoading(false);
     }
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (!user) return null;
@@ -117,8 +170,10 @@ const Profile: React.FC = () => {
               <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-4 text-center">
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sua Liga</h4>
                 <div className="text-2xl font-black italic text-blue-950 uppercase">{user.liga.nome}</div>
-                <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                  <span className="text-[10px] block text-slate-400 uppercase font-bold mb-1">Código de Acesso</span>
+                <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => user.liga && copyCode(user.liga.codigoAcesso)}>
+                  <span className="text-[10px] block text-slate-400 uppercase font-bold mb-1">
+                    {copied ? 'Código Copiado!' : 'Clique para copiar o Código'}
+                  </span>
                   <span className="font-mono font-black text-red-600 tracking-wider">{user.liga.codigoAcesso}</span>
                 </div>
               </div>
@@ -149,7 +204,7 @@ const Profile: React.FC = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-12 text-center text-slate-400 italic font-medium">Você ainda não está em uma liga.</div>
+                  <div className="p-12 text-center text-slate-400 italic font-medium">Você ainda não está em uma liga ou a liga não possui membros.</div>
                 )}
               </div>
             </div>
