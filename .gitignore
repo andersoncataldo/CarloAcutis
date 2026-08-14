@@ -40,3 +40,9 @@ coverage/
 *.temp
 *.bak
 *.orig
+
+# ===== Banco de Dados =====
+schema.sql
+
+# arquivos .md
+analise_projeto_carloacutis.md

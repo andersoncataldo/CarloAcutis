@@ -16,7 +16,16 @@ import {
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-900 border-t-red-600 rounded-full animate-spin"></div>
+          <span className="text-xs font-black uppercase tracking-widest text-slate-400">Carregando Sessão...</span>
+        </div>
+      </div>
+    );
+  }
   return user ? <>{children}</> : <Navigate to="/login" />;
 };
 

@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
-    "axios": "^1.14.0",
     "framer-motion": "^12.38.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -32,12 +31,15 @@
     "tailwindcss": "^3.4.17",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4",
-    "vitepress": "^0.1.1"
+    "vite": "^7.2.4"
   },
   "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
   "main": "eslint.config.js",
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "allowScripts": {
+    "esbuild@0.27.2": true,
+    "esbuild@0.21.5": true
+  }
 }

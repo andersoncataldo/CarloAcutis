@@ -43,9 +43,12 @@ const Profile: React.FC = () => {
     }
   }, [user?.liga_id, fetchRanking]);
 
+  const [ligaErrorMsg, setLigaErrorMsg] = useState('');
+
   const handleCriarLiga = async () => {
     if (!ligaNome.trim() || !user) return;
     setLoading(true);
+    setLigaErrorMsg('');
     try {
       const codigoGerado = Math.random().toString(36).substring(2, 10).toUpperCase();
       
@@ -68,7 +71,7 @@ const Profile: React.FC = () => {
       setLigaNome('');
     } catch (err) {
       console.error(err);
-      alert("Erro ao criar liga");
+      setLigaErrorMsg("Não foi possível criar a liga. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -77,6 +80,7 @@ const Profile: React.FC = () => {
   const handleEntrarLiga = async () => {
     if (!codigoAcesso.trim() || !user) return;
     setLoading(true);
+    setLigaErrorMsg('');
     try {
       const { data: liga, error: ligaError } = await supabase
         .from('ligas')
@@ -85,7 +89,7 @@ const Profile: React.FC = () => {
         .single();
 
       if (ligaError || !liga) {
-        alert("Código de liga inválido");
+        setLigaErrorMsg("Código de liga inválido ou não encontrado.");
         return;
       }
 
@@ -100,7 +104,7 @@ const Profile: React.FC = () => {
       setCodigoAcesso('');
     } catch (err) {
       console.error(err);
-      alert("Erro ao entrar na liga");
+      setLigaErrorMsg("Erro ao entrar na liga. Verifique o código e tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -158,12 +162,23 @@ const Profile: React.FC = () => {
             {!user.liga ? (
               <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-6">
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ligas Paroquiais</h4>
+                
+                {ligaErrorMsg && (
+                  <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-xs font-bold">
+                    {ligaErrorMsg}
+                  </div>
+                )}
+
                 <div className="space-y-4">
                   <input type="text" placeholder="Nome da nova Liga" value={ligaNome} onChange={e => setLigaNome(e.target.value)} className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
-                  <button onClick={handleCriarLiga} disabled={loading} className="w-full py-3 bg-blue-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">Criar Liga</button>
+                  <button onClick={handleCriarLiga} disabled={loading} className="w-full py-3 bg-blue-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50">
+                    {loading ? 'Criando...' : 'Criar Liga'}
+                  </button>
                   <div className="relative py-2 text-center"><span className="bg-white px-2 text-[10px] text-slate-300 font-bold uppercase">ou</span><hr className="absolute top-1/2 w-full -z-10 border-slate-100" /></div>
                   <input type="text" placeholder="Código de Acesso" value={codigoAcesso} onChange={e => setCodigoAcesso(e.target.value)} className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-red-600 outline-none" />
-                  <button onClick={handleEntrarLiga} disabled={loading} className="w-full py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">Entrar na Liga</button>
+                  <button onClick={handleEntrarLiga} disabled={loading} className="w-full py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50">
+                    {loading ? 'Verificando...' : 'Entrar na Liga'}
+                  </button>
                 </div>
               </div>
             ) : (

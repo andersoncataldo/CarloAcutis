@@ -54,8 +54,10 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
     fetchPerguntas();
   }, [temporadaId]);
 
+  const [feedbackMsg, setFeedbackMsg] = useState<string>('');
+
   const handleAnswer = async (opcao: string) => {
-    if (feedback || !user) return;
+    if (feedback || selectedOption || !user) return;
 
     setSelectedOption(opcao);
     try {
@@ -72,14 +74,24 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
       }
 
       const isCorrect = data.correct;
+      const isFirstAttempt = data.first_attempt;
+
       setFeedback(isCorrect ? 'correct' : 'wrong');
-      if (isCorrect) setScore(prev => prev + 1);
+      if (isCorrect && isFirstAttempt) {
+        setScore(prev => prev + 1);
+        setFeedbackMsg('Correto! +100 XP');
+      } else if (isCorrect && !isFirstAttempt) {
+        setFeedbackMsg('Correto! (Pergunta já respondida anteriormente)');
+      } else {
+        setFeedbackMsg('Resposta Incorreta');
+      }
 
       await refreshUser();
 
       setTimeout(() => {
         setFeedback(null);
         setSelectedOption(null);
+        setFeedbackMsg('');
         if (currentIndex < perguntas.length - 1) {
           setCurrentIndex(prev => prev + 1);
         } else {
@@ -166,7 +178,7 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
             exit={{ opacity: 0 }}
             className={`text-center font-black uppercase tracking-[0.3em] ${feedback === 'correct' ? 'text-green-500' : 'text-red-600'}`}
           >
-            {feedback === 'correct' ? 'Correto! +100 XP' : 'Resposta Incorreta'}
+            {feedbackMsg}
           </motion.div>
         )}
       </AnimatePresence>

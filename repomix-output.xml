@@ -1,0 +1,2525 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+backend/
+  .gitkeep
+public/
+  _redirects
+  icon.png
+  vercel.json
+  vite.svg
+src/
+  assets/
+    AmigosCarlo.jpg
+    AmigosCarlo2.jpg
+    carlo_acutis.png
+    carlo_computador.png
+    carlo_retrato.png
+    Carlo.jpg
+    eucaristia.png
+    familiaCarlo.jpg
+    icon.png
+    infancia_carlo.png
+    MaeCarlo.png
+    milagre_BR.png
+    milagre_CR.png
+    PetCarlo.png
+    PetCarlo2.jpg
+    react.svg
+    saintCarlo.jpeg
+    túmulo_carlo.png
+  components/
+    layout/
+      Footer.tsx
+      ScrollToTop.tsx
+    Navbar.tsx
+    Quiz.tsx
+    Section.tsx
+    Timeline.tsx
+  context/
+    AuthContext.tsx
+  data/
+    biographyContent.ts
+    navigation.ts
+  pages/
+    DetailPages.tsx
+    Home.tsx
+    Login.tsx
+    Profile.tsx
+    QuizPage.tsx
+    Register.tsx
+  services/
+    api.ts
+    supabase.ts
+  App.css
+  App.tsx
+  index.css
+  main.tsx
+.env.example
+.gitignore
+eslint.config.js
+index.html
+package.json
+postcss.config.js
+README.md
+tailwind.config.js
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+vercel.json
+vite.config.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="backend/.gitkeep">
+
+</file>
+
+<file path="public/_redirects">
+/* /index.html 200
+</file>
+
+<file path="public/vercel.json">
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+</file>
+
+<file path="public/vite.svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
+</file>
+
+<file path="src/assets/react.svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
+</file>
+
+<file path="src/components/Timeline.tsx">
+import React from 'react';
+
+interface Event {
+  date: string;
+  label: string;
+}
+
+interface TimelineProps {
+  events: Event[];
+}
+
+const Timeline: React.FC<TimelineProps> = ({ events }) => {
+  return (
+    <div className="relative border-l-2 border-blue-200 ml-4 py-4">
+      {events.map((event, index) => (
+        <div key={index} className="mb-10 ml-6 relative">
+          <div className="absolute -left-[33px] mt-1.5 h-4 w-4 rounded-full border-2 border-blue-600 bg-white shadow-sm"></div>
+          <span className="block mb-1 text-sm font-semibold leading-none text-blue-600">
+            {event.date}
+          </span>
+          <h3 className="text-xl font-bold text-blue-900">{event.label}</h3>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default Timeline;
+</file>
+
+<file path="src/services/api.ts">
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost:8080/api',
+});
+
+// Interceptor to inject the JWT Token automatically
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export default api;
+</file>
+
+<file path="src/services/supabase.ts">
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://seu-projeto.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sua-anon-key';
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+</file>
+
+<file path="src/App.css">
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+</file>
+
+<file path="src/main.tsx">
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+</file>
+
+<file path=".env.example">
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-chave-anon-aqui
+</file>
+
+<file path="eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+    },
+  },
+])
+</file>
+
+<file path="postcss.config.js">
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+</file>
+
+<file path="tailwind.config.js">
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+</file>
+
+<file path="tsconfig.app.json">
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["src"]
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+</file>
+
+<file path="tsconfig.node.json">
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["vite.config.ts"]
+}
+</file>
+
+<file path="vercel.json">
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+</file>
+
+<file path="vite.config.ts">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+</file>
+
+<file path="src/components/layout/ScrollToTop.tsx">
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
+export default function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    // Se houver uma hash na URL
+    if (hash) {
+      // Pequeno timeout para garantir que o elemento foi renderizado
+      const timeoutId = setTimeout(() => {
+        const id = hash.replace("#", "");
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    } else {
+      // Se não houver hash, rola para o topo
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [pathname, hash]);
+
+  return null;
+}
+</file>
+
+<file path="src/components/Quiz.tsx">
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../services/supabase';
+import { useAuth } from '../context/AuthContext';
+
+interface Pergunta {
+  id: number;
+  texto_pergunta: string;
+  opcao_a: string;
+  opcao_b: string;
+  opcao_c: string;
+  opcao_d: string;
+}
+
+interface QuizProps {
+  temporadaId: number;
+}
+
+const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
+  const [perguntas, setPerguntas] = useState<Pergunta[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [score, setScore] = useState(0);
+  const [completed, setCompleted] = useState(false);
+
+  const { user, refreshUser } = useAuth();
+
+  useEffect(() => {
+    const fetchPerguntas = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('perguntas')
+          .select('id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d')
+          .eq('temporada_id', temporadaId);
+
+        if (error) {
+          console.error("Erro ao buscar perguntas", error);
+        } else {
+          setPerguntas(data as Pergunta[]);
+          setCurrentIndex(0);
+          setCompleted(false);
+          setScore(0);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar perguntas", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPerguntas();
+  }, [temporadaId]);
+
+  const handleAnswer = async (opcao: string) => {
+    if (feedback || !user) return;
+
+    setSelectedOption(opcao);
+    try {
+      // Chama a função RPC segura no banco do Supabase para processar a resposta sem expor o gabarito
+      const { data, error } = await supabase.rpc('responder_pergunta', {
+        p_pergunta_id: perguntas[currentIndex].id,
+        p_resposta_selecionada: opcao
+      });
+
+      if (error) {
+        console.error("Erro RPC:", error);
+        setSelectedOption(null);
+        return;
+      }
+
+      const isCorrect = data.correct;
+      setFeedback(isCorrect ? 'correct' : 'wrong');
+      if (isCorrect) setScore(prev => prev + 1);
+
+      await refreshUser();
+
+      setTimeout(() => {
+        setFeedback(null);
+        setSelectedOption(null);
+        if (currentIndex < perguntas.length - 1) {
+          setCurrentIndex(prev => prev + 1);
+        } else {
+          setCompleted(true);
+        }
+      }, 1500);
+
+    } catch (err) {
+      console.error("Erro ao processar resposta", err);
+      setSelectedOption(null);
+    }
+  };
+
+  if (loading) return <div className="p-20 text-center font-black uppercase tracking-widest text-slate-400">Carregando Questões...</div>;
+  if (perguntas.length === 0) return <div className="p-20 text-center font-black uppercase tracking-widest text-slate-400">Nenhuma pergunta encontrada para esta temporada.</div>;
+
+  if (completed) return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-12 bg-white rounded-[3rem] shadow-2xl text-center space-y-6">
+      <h3 className="text-4xl font-black italic uppercase text-blue-950">Temporada Concluída!</h3>
+      <p className="text-slate-500 font-medium">Você acertou {score} de {perguntas.length} perguntas.</p>
+      <div className="text-6xl font-black text-red-600">+{score * 100} XP</div>
+      <button onClick={() => { setCurrentIndex(0); setCompleted(false); setScore(0); }} className="px-8 py-4 bg-blue-900 text-white rounded-2xl font-black uppercase tracking-widest">Jogar Novamente</button>
+    </motion.div>
+  );
+
+  const perguntaAtual = perguntas[currentIndex];
+
+  return (
+    <div className="w-full max-w-3xl mx-auto space-y-8">
+      <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+        <span>Questão {currentIndex + 1} de {perguntas.length}</span>
+        <span className="text-blue-600">XP Atual: {user?.xp}</span>
+      </div>
+
+      <motion.div 
+        key={currentIndex}
+        initial={{ x: 20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        className="bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl border border-slate-100 space-y-10"
+      >
+        <h2 className="text-2xl md:text-3xl font-black text-blue-950 leading-tight">
+          {perguntaAtual.texto_pergunta}
+        </h2>
+
+        <div className="grid gap-4">
+          {[
+            { label: 'A', text: perguntaAtual.opcao_a },
+            { label: 'B', text: perguntaAtual.opcao_b },
+            { label: 'C', text: perguntaAtual.opcao_c },
+            { label: 'D', text: perguntaAtual.opcao_d }
+          ].map((opt) => (
+            <button
+              key={opt.label}
+              onClick={() => handleAnswer(opt.label)}
+              disabled={!!feedback}
+              className={`group flex items-center gap-6 p-6 rounded-2xl border-2 transition-all text-left ${
+                feedback === 'correct' && selectedOption === opt.label
+                ? 'bg-green-50 border-green-500' 
+                : feedback === 'wrong' && opt.label === selectedOption
+                ? 'bg-red-50 border-red-500'
+                : 'bg-slate-50 border-transparent hover:border-blue-600'
+              }`}
+            >
+              <span className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-colors ${
+                feedback === 'correct' && selectedOption === opt.label
+                ? 'bg-green-500 text-white'
+                : feedback === 'wrong' && opt.label === selectedOption
+                ? 'bg-red-500 text-white'
+                : 'bg-white text-blue-900 group-hover:bg-blue-600 group-hover:text-white shadow-sm'
+              }`}>
+                {opt.label}
+              </span>
+              <span className="font-bold text-slate-700">{opt.text}</span>
+            </button>
+          ))}
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {feedback && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className={`text-center font-black uppercase tracking-[0.3em] ${feedback === 'correct' ? 'text-green-500' : 'text-red-600'}`}
+          >
+            {feedback === 'correct' ? 'Correto! +100 XP' : 'Resposta Incorreta'}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default Quiz;
+</file>
+
+<file path="src/context/AuthContext.tsx">
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '../services/supabase';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
+
+export interface Liga {
+  id: number;
+  nome: string;
+  codigoAcesso: string;
+}
+
+export interface UserProfile {
+  id: string;
+  nome: string;
+  email: string;
+  xp: number;
+  nivel: string;
+  liga_id: number | null;
+  liga?: Liga | null;
+}
+
+interface AuthContextData {
+  user: UserProfile | null;
+  authUser: SupabaseUser | null;
+  loading: boolean;
+  signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProfile = useCallback(async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*, liga:ligas(*)')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Erro ao buscar perfil:', error);
+      } else {
+        setUser(profile as UserProfile);
+      }
+    } catch (err) {
+      console.error('Erro ao conectar ao perfil:', err);
+    }
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    if (authUser) {
+      await fetchProfile(authUser.id);
+    }
+  }, [authUser, fetchProfile]);
+
+  useEffect(() => {
+    // Session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      }
+      setLoading(false);
+    });
+
+    // Auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setAuthUser(session?.user ?? null);
+      if (session?.user) {
+        await fetchProfile(session.user.id);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchProfile]);
+
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setAuthUser(null);
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, authUser, loading, signOut, refreshUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuth = () => useContext(AuthContext);
+</file>
+
+<file path="src/data/navigation.ts">
+export interface NavLink {
+  name: string;
+  href: string;
+  id: string;
+}
+
+export interface NavCategory {
+  title: string;
+  path: string; // Nova rota base para a categoria
+  links: NavLink[];
+}
+
+export const navigation: NavCategory[] = [
+  {
+    title: "Vida e Legado",
+    path: "/vida-legado",
+    links: [
+      { id: "vida-familiar", name: "Família e Fé", href: "/vida-legado#vida-familiar" },
+      { id: "iniciativa-fe", name: "Iniciativa na Fé", href: "/vida-legado#iniciativa-fe" },
+      { id: "animais", name: "Animais e Amigos", href: "/vida-legado#animais" },
+      { id: "amigos-escola", name: "Alegria e Escola", href: "/vida-legado#amigos-escola" },
+    ]
+  },
+  {
+    title: "Fé e Devoção",
+    path: "/fe-devocao",
+    links: [
+      { id: "eucaristia", name: "Eucaristia", href: "/fe-devocao#eucaristia" },
+      { id: "nossa-senhora", name: "Nossa Senhora", href: "/fe-devocao#nossa-senhora" },
+      { id: "espiritualidade", name: "Espiritualidade", href: "/fe-devocao#espiritualidade" },
+      { id: "comunicacao", name: "Santo da Comunicação", href: "/fe-devocao#comunicacao" },
+    ]
+  },
+  {
+    title: "Caminho da Santidade",
+    path: "/santidade",
+    links: [
+      { id: "millennial", name: "Ciberapóstolo", href: "/santidade#millennial" },
+      { id: "cruz-partida", name: "Cruz e Partida", href: "/santidade#cruz-partida" },
+      { id: "santo-jeans", name: "Santo de Jeans", href: "/santidade#santo-jeans" },
+      { id: "milagres", name: "Milagres", href: "/santidade#milagres" },
+      { id: "conexao-brasil", name: "O Brasil e Carlo", href: "/santidade#conexao-brasil" },
+    ]
+  }
+];
+</file>
+
+<file path="src/pages/Login.tsx">
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { supabase } from '../services/supabase';
+
+const Login: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) {
+        setError(authError.message === 'Invalid login credentials' 
+          ? 'Credenciais inválidas. Verifique e-mail e senha.' 
+          : authError.message);
+      } else {
+        navigate('/perfil');
+      }
+    } catch (err) {
+      setError('Ocorreu um erro inesperado.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen pt-32 pb-20 flex items-center justify-center px-6 bg-slate-50">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md bg-white p-10 md:p-12 rounded-[2.5rem] shadow-2xl border border-slate-100"
+      >
+        <div className="text-center mb-10">
+          <h2 className="text-4xl font-black uppercase italic tracking-tighter text-blue-950 mb-2">
+            Entrar<span className="text-red-600">.</span>
+          </h2>
+          <p className="text-slate-500 font-medium">Continue sua jornada de santidade</p>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold uppercase tracking-widest border border-red-100">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">E-mail</label>
+            <input 
+              type="email" 
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-2xl outline-none transition-all font-medium"
+              placeholder="seu@email.com"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">Senha</label>
+            <input 
+              type="password" 
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-2xl outline-none transition-all font-medium"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full py-5 bg-blue-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-xl shadow-blue-900/20 active:scale-95 disabled:opacity-50"
+          >
+            {loading ? 'Carregando...' : 'Acessar Altar Digital'}
+          </button>
+        </form>
+
+        <div className="mt-10 text-center">
+          <p className="text-slate-500 text-sm font-medium">
+            Ainda não é um ciberapóstolo?{' '}
+            <Link to="/cadastro" className="text-red-600 font-black uppercase tracking-widest hover:underline ml-1">
+              Cadastre-se
+            </Link>
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default Login;
+</file>
+
+<file path="src/pages/Profile.tsx">
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../services/supabase';
+
+interface Membro {
+  id: string;
+  nome: string;
+  xp: number;
+  nivel: string;
+}
+
+const Profile: React.FC = () => {
+  const { user, signOut, refreshUser } = useAuth();
+  const [ranking, setRanking] = useState<Membro[]>([]);
+  const [ligaNome, setLigaNome] = useState('');
+  const [codigoAcesso, setCodigoAcesso] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const fetchRanking = useCallback(async () => {
+    if (!user?.liga_id) return;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, nome, xp, nivel')
+        .eq('liga_id', user.liga_id)
+        .order('xp', { ascending: false });
+
+      if (error) {
+        console.error("Erro ao buscar ranking", error);
+      } else {
+        setRanking(data as Membro[]);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar ranking", err);
+    }
+  }, [user?.liga_id]);
+
+  useEffect(() => {
+    if (user?.liga_id) {
+      fetchRanking();
+    }
+  }, [user?.liga_id, fetchRanking]);
+
+  const handleCriarLiga = async () => {
+    if (!ligaNome.trim() || !user) return;
+    setLoading(true);
+    try {
+      const codigoGerado = Math.random().toString(36).substring(2, 10).toUpperCase();
+      
+      const { data: novaLiga, error: ligaError } = await supabase
+        .from('ligas')
+        .insert({ nome: ligaNome, codigo_acesso: codigoGerado })
+        .select()
+        .single();
+
+      if (ligaError) throw ligaError;
+
+      const { error: userError } = await supabase
+        .from('profiles')
+        .update({ liga_id: novaLiga.id })
+        .eq('id', user.id);
+
+      if (userError) throw userError;
+
+      await refreshUser();
+      setLigaNome('');
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao criar liga");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEntrarLiga = async () => {
+    if (!codigoAcesso.trim() || !user) return;
+    setLoading(true);
+    try {
+      const { data: liga, error: ligaError } = await supabase
+        .from('ligas')
+        .select('id')
+        .eq('codigo_acesso', codigoAcesso.trim().toUpperCase())
+        .single();
+
+      if (ligaError || !liga) {
+        alert("Código de liga inválido");
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ liga_id: liga.id })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      await refreshUser();
+      setCodigoAcesso('');
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao entrar na liga");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (!user) return null;
+
+  const currentXp = user.xp % 1000;
+  const progressPercentage = (currentXp / 1000) * 100;
+
+  return (
+    <div className="min-h-screen pt-32 pb-20 px-6 bg-slate-50">
+      <div className="max-w-5xl mx-auto space-y-12">
+        {/* Header Profile */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-blue-900 rounded-[3rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/20 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+              <div className="w-24 h-24 md:w-32 md:h-32 bg-white/10 rounded-full border-4 border-white/20 flex items-center justify-center text-4xl md:text-5xl font-black italic">
+                {user.nome.charAt(0)}
+              </div>
+              <div className="space-y-2">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-500 bg-red-500/10 px-3 py-1 rounded-full">{user.nivel}</span>
+                <h2 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none">{user.nome}</h2>
+                <p className="text-blue-200 font-medium opacity-80">{user.email}</p>
+              </div>
+            </div>
+            <button onClick={signOut} className="px-8 py-3 bg-white/10 hover:bg-red-600 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border border-white/10">Sair</button>
+          </div>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* XP & Progress */}
+          <div className="lg:col-span-1 space-y-8">
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-6">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Seu Progresso</h4>
+              <div className="space-y-4">
+                <div className="flex justify-between items-end">
+                  <span className="text-4xl font-black italic text-blue-950">{user.xp} XP</span>
+                  <span className="text-[10px] font-bold text-blue-600">NÍVEL {Math.floor(user.xp/1000) + 1}</span>
+                </div>
+                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${progressPercentage}%` }} className="h-full bg-gradient-to-r from-blue-600 to-red-600"></motion.div>
+                </div>
+              </div>
+            </div>
+
+            {/* Liga Management */}
+            {!user.liga ? (
+              <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-6">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Ligas Paroquiais</h4>
+                <div className="space-y-4">
+                  <input type="text" placeholder="Nome da nova Liga" value={ligaNome} onChange={e => setLigaNome(e.target.value)} className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
+                  <button onClick={handleCriarLiga} disabled={loading} className="w-full py-3 bg-blue-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">Criar Liga</button>
+                  <div className="relative py-2 text-center"><span className="bg-white px-2 text-[10px] text-slate-300 font-bold uppercase">ou</span><hr className="absolute top-1/2 w-full -z-10 border-slate-100" /></div>
+                  <input type="text" placeholder="Código de Acesso" value={codigoAcesso} onChange={e => setCodigoAcesso(e.target.value)} className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-red-600 outline-none" />
+                  <button onClick={handleEntrarLiga} disabled={loading} className="w-full py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">Entrar na Liga</button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-4 text-center">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sua Liga</h4>
+                <div className="text-2xl font-black italic text-blue-950 uppercase">{user.liga.nome}</div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => user.liga && copyCode(user.liga.codigoAcesso)}>
+                  <span className="text-[10px] block text-slate-400 uppercase font-bold mb-1">
+                    {copied ? 'Código Copiado!' : 'Clique para copiar o Código'}
+                  </span>
+                  <span className="font-mono font-black text-red-600 tracking-wider">{user.liga.codigoAcesso}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Ranking */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden">
+              <div className="p-8 border-b border-slate-50 flex justify-between items-center">
+                <h3 className="text-xl font-black italic uppercase text-blue-950">Ranking da Liga</h3>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{ranking.length} Membros</span>
+              </div>
+              <div className="p-4">
+                {ranking.length > 0 ? (
+                  <div className="space-y-2">
+                    {ranking.map((membro, index) => (
+                      <div key={membro.id} className={`flex items-center justify-between p-4 rounded-2xl ${membro.id === user.id ? 'bg-blue-50 border border-blue-100' : 'hover:bg-slate-50'}`}>
+                        <div className="flex items-center gap-4">
+                          <span className={`w-8 h-8 flex items-center justify-center rounded-full font-black text-sm ${index === 0 ? 'bg-yellow-400 text-white' : 'text-slate-400'}`}>{index + 1}</span>
+                          <div>
+                            <div className="font-bold text-slate-800">{membro.nome}</div>
+                            <div className="text-[9px] font-black uppercase text-blue-600">{membro.nivel}</div>
+                          </div>
+                        </div>
+                        <div className="font-black italic text-blue-950">{membro.xp} XP</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-12 text-center text-slate-400 italic font-medium">Você ainda não está em uma liga ou a liga não possui membros.</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Profile;
+</file>
+
+<file path="src/pages/QuizPage.tsx">
+import React, { useState, useEffect } from 'react';
+import Quiz from '../components/Quiz';
+import { supabase } from '../services/supabase';
+
+interface Temporada {
+  id: number;
+  titulo: string;
+  descricao: string;
+}
+
+const QuizPage: React.FC = () => {
+  const [temporadas, setTemporadas] = useState<Temporada[]>([]);
+  const [selectedTemporadaId, setSelectedTemporadaId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTemporadas = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('temporadas')
+          .select('id, titulo, descricao')
+          .order('id', { ascending: true });
+
+        if (error) {
+          console.error("Erro ao buscar temporadas", error);
+        } else if (data && data.length > 0) {
+          setTemporadas(data);
+          setSelectedTemporadaId(data[0].id);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar temporadas", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTemporadas();
+  }, []);
+
+  return (
+    <div className="pt-24 min-h-screen bg-slate-50">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="text-center mb-12 space-y-4">
+          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-red-600">Desafio de Fé</span>
+          <h1 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter text-blue-950">Quiz Carlo Acutis</h1>
+          <p className="text-slate-500 font-medium max-w-2xl mx-auto italic">Teste seus conhecimentos sobre o Ciberapóstolo e suba de nível na sua jornada de santidade.</p>
+        </div>
+
+        {/* Seleção de Temporadas */}
+        {!loading && temporadas.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-4 mb-12">
+            {temporadas.map((temp) => (
+              <button
+                key={temp.id}
+                onClick={() => setSelectedTemporadaId(temp.id)}
+                className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${
+                  selectedTemporadaId === temp.id
+                    ? 'bg-blue-900 text-white shadow-xl shadow-blue-900/20 scale-105'
+                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                }`}
+              >
+                {temp.titulo}
+              </button>
+            ))}
+          </div>
+        )}
+        
+        {selectedTemporadaId && <Quiz temporadaId={selectedTemporadaId} />}
+      </div>
+    </div>
+  );
+};
+
+export default QuizPage;
+</file>
+
+<file path="src/pages/Register.tsx">
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { supabase } from '../services/supabase';
+
+const Register: React.FC = () => {
+  const [formData, setFormData] = useState({
+    nome: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('As senhas não coincidem.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            nome: formData.nome,
+          },
+        },
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
+      } else {
+        navigate('/login');
+      }
+    } catch (err) {
+      setError('Ocorreu um erro inesperado.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen pt-32 pb-20 flex items-center justify-center px-6 bg-slate-50">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-lg bg-white p-10 md:p-12 rounded-[2.5rem] shadow-2xl border border-slate-100"
+      >
+        <div className="text-center mb-10">
+          <h2 className="text-4xl font-black uppercase italic tracking-tighter text-blue-950 mb-2">
+            Cadastro<span className="text-red-600">.</span>
+          </h2>
+          <p className="text-slate-500 font-medium">Torne-se um original, não uma fotocópia</p>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold uppercase tracking-widest border border-red-100">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">Nome Completo</label>
+            <input 
+              type="text" 
+              required
+              value={formData.nome}
+              onChange={(e) => setFormData({...formData, nome: e.target.value})}
+              className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-red-600 focus:bg-white rounded-2xl outline-none transition-all font-medium"
+              placeholder="Ex: João Missionário"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">E-mail</label>
+            <input 
+              type="email" 
+              required
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-red-600 focus:bg-white rounded-2xl outline-none transition-all font-medium"
+              placeholder="seu@email.com"
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">Senha</label>
+              <input 
+                type="password" 
+                required
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-red-600 focus:bg-white rounded-2xl outline-none transition-all font-medium"
+                placeholder="••••••••"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">Confirmar</label>
+              <input 
+                type="password" 
+                required
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-red-600 focus:bg-white rounded-2xl outline-none transition-all font-medium"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full py-5 bg-red-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-blue-950 transition-all shadow-xl shadow-red-600/20 active:scale-95 disabled:opacity-50"
+          >
+            {loading ? 'Processando...' : 'Iniciar Apostolado'}
+          </button>
+        </form>
+
+        <div className="mt-10 text-center">
+          <p className="text-slate-500 text-sm font-medium">
+            Já possui uma conta?{' '}
+            <Link to="/login" className="text-blue-900 font-black uppercase tracking-widest hover:underline ml-1">
+              Entrar
+            </Link>
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default Register;
+</file>
+
+<file path="src/index.css">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  body {
+    @apply antialiased text-slate-900 bg-white overflow-x-hidden;
+  }
+
+  /* Custom selection color for the brand */
+  ::selection {
+    @apply bg-red-600 text-white;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-8 py-4 bg-red-600 text-white rounded-full font-black uppercase text-xs tracking-widest hover:bg-blue-950 transition-all shadow-lg shadow-red-600/20 active:scale-95;
+  }
+}
+
+/* Custom Scrollbar for a modern look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full hover:bg-red-500 transition-colors;
+}
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO Básico -->
+    <title>Carlo Acutis | O Primeiro Santo Millennial</title>
+    <meta name="description" content="Conheça a vida, o legado e a espiritualidade de Carlo Acutis, o ciberapóstolo da Eucaristia e o primeiro santo da geração millennial." />
+    <meta name="keywords" content="Carlo Acutis, Santo Millennial, Eucaristia, Milagres, Igreja Católica, Ciberapóstolo" />
+    <meta name="author" content="Anderson Viana" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://carloacutis-memorial.vercel.app/" />
+    <meta property="og:title" content="Carlo Acutis | O Primeiro Santo Millennial" />
+    <meta property="og:description" content="Explore a jornada de fé de Carlo Acutis, sua paixão pela tecnologia e seu amor profundo pela Eucaristia." />
+    <meta property="og:image" content="/assets/carlo_retrato.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://carloacutis-memorial.vercel.app/" />
+    <meta property="twitter:title" content="Carlo Acutis | O Primeiro Santo Millennial" />
+    <meta property="twitter:description" content="Explore a jornada de fé de Carlo Acutis, sua paixão pela tecnologia e seu amor profundo pela Eucaristia." />
+    <meta property="twitter:image" content="/assets/carlo_retrato.png" />
+
+    <!-- Favicon e PWA -->
+    <link rel="apple-touch-icon" href="/icon.png" />
+    <meta name="theme-color" content="#dc2626" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="src/data/biographyContent.ts">
+export const biographyContent = {
+  hero: {
+    title: "Carlo Acutis",
+    subtitle: "O Primeiro Santo Millennial",
+    quote: "Estar sempre unido a Jesus, este é o meu projeto de vida.",
+    content: "Conheça a história do 'Influenciador de Deus', um jovem normal que amava videogame, programação e animais, e que transformou a internet em um altar e a Eucaristia em sua rodovia para o céu.\n\nSua vida é um testemunho brilhante de que a santidade é perfeitamente possível no século XXI. Ao unir o mundo digital com uma profunda espiritualidade, ele nos mostra que o caminho para a eternidade pode ser trilhado de calça jeans e tênis, acessando a internet e, acima de tudo, amando o próximo."
+  },
+  infanciaEPais: {
+    id: "vida-familiar",
+    title: "Um Garoto Como Você",
+    content: "Nascido em Londres em 3 de maio de 1991, filho de Andrea Acutis e Antonia Salzano, Carlo cresceu em um ambiente familiar sereno e de boas condições financeiras. A família mudou-se para Milão poucos meses após seu nascimento. Seus pais trabalhavam no ramo corporativo e editorial e, como a própria mãe relata, viviam uma vida muito distante da Igreja. Antonia costumava contar que só havia ido à missa três vezes na vida: no batismo, na crisma e no seu casamento.\n\nNo entanto, a luz de Carlo transformou a casa. Sua profunda vivência espiritual fez com que seus pais, aos poucos, se reconectassem com a fé católica. Ele foi considerado um verdadeiro 'salvador' espiritual para a própria família. Quatro anos após sua morte, cumprindo um sonho profético que Antonia teve com Carlo, nasceram os gêmeos Francesca e Michele, que hoje também seguem com alegria os passos de devoção do irmão mais velho."
+  },
+  iniciativaNaFe: {
+    id: "iniciativa-fe",
+    title: "A Semente da Fé",
+    content: "Engana-se quem pensa que a fé de Carlo veio por uma imposição dos pais. Na verdade, a grande responsável por plantar as primeiras sementes de santidade no coração do menino foi a sua babá polonesa, conhecida carinhosamente como Nanny Beppe. Foi ela quem lhe ensinou as primeiras orações, falou sobre o amor de Jesus, a Virgem Maria e a importância do Anjo da Guarda.\n\nA partir dessas primeiras lições, Carlo desenvolveu uma iniciativa espiritual impressionante para uma criança. Quando caminhava pelas ruas de Milão, ele mesmo puxava a mão da mãe e pedia para entrar nas igrejas pelo caminho só para 'mandar um beijo para Jesus' no sacrário e colher flores para Nossa Senhora. Sua fé era uma resposta pessoal e apaixonada, provando que a amizade com Deus pode começar de forma pura e muito cedo."
+  },
+  animais: {
+    id: "animais",
+    title: "O Amor pela Criação",
+    content: "O amor de Carlo pela obra de Deus era visível em sua enorme paixão pelos animais. Em sua casa, a família convivia com dois gatos, quatro cães e alguns peixes dourados. Ele era extremamente sensível aos bichinhos: sempre que encontrava um animal abandonado na rua, pedia aos pais para levá-lo para casa. Usando suas habilidades com tecnologia, Carlo até gravava e editava vídeos caseiros com seus cachorros em cenas cômicas, atuando como um verdadeiro diretor de cinema para divertir a família.\n\nEle acreditava que os animais também eram muito amados pelo Criador. Certa vez, nas férias, ele viu um garoto matar uma lagartixa sem motivo. Carlo chorou amargamente pela vida do pequeno réptil e só foi consolado quando sua mãe lhe garantiu que a lagartixa estaria feliz no céu. Em outra ocasião, num passeio de barco, ele rezou com muita fé para conseguir ver golfinhos no mar, e seu pedido foi atendido ali mesmo, para a alegria dele e dos avós."
+  },
+  amigosEEscola: {
+    id: "amigos-escola",
+    title: "Alegria e Defesa dos Fracos",
+    content: "No Instituto Leone XIII, escola dirigida pelos jesuítas em Milão, Carlo era uma presença luminosa. Ele era um jovem extremamente talentoso, e seus livros de informática pareciam de nível universitário, mas ele nunca usou isso para se exaltar. Pelo contrário, sua bondade não despertava inveja, mas sim admiração. Ele estava sempre rodeado de amigos e tinha um dom raro para apaziguar brigas.\n\nSua empatia era traduzida em ações. Carlo era um defensor ferrenho contra o bullying, protegendo ativamente colegas com deficiência ou aqueles que sofriam com o divórcio dos pais. O respeito que ele tinha pelas pessoas era tão grande que Mário, o porteiro da escola, lembrava que Carlo fazia questão de cumprimentá-lo todos os dias. Se por acaso precisasse entrar por uma porta secundária, Carlo ia procurá-lo no recreio apenas para pedir desculpas por não ter lhe dado o 'bom dia'."
+  },
+  eucaristia: {
+    id: "eucaristia",
+    title: "A Rodovia para o Céu",
+    content: "Carlo chamava a Eucaristia de sua 'Rodovia para o Céu'. Desde sua Primeira Comunhão, recebida aos 7 anos de idade, ele nunca deixou de ir à Missa um único dia. Antes e depois da celebração, ele passava momentos em profunda adoração silenciosa diante do sacrário, acreditando na premissa de que 'diante do sol, nós nos bronzeamos; diante da Eucaristia, nós nos tornamos santos'.\n\nEle sentia uma urgência enorme de que todos compreendessem esse milagre diário. Foi por isso que, unindo seu amor a Jesus e sua habilidade genial com programação, ele criou um site catalogando os milagres eucarísticos reconhecidos pela Igreja no mundo todo. Esse museu digital já rodou todos os continentes em exposições físicas e continua ajudando milhares de pessoas a reencontrarem a fé na presença real de Cristo."
+  },
+  nossaSenhora: {
+    id: "nossa-senhora",
+    title: "O Rosário e a Mãe de Deus",
+    content: "A devoção de Carlo à Virgem Maria era profunda, filial e muito terna. Ele a considerava a única mulher de sua vida e não passava um dia sequer sem rezar o Santo Rosário. Para ele, desfiar as contas do terço não era apenas uma oração repetitiva, mas um 'encontro romântico' diário com a Mãe do Céu e uma arma espiritual poderosíssima.\n\nEle também nutria um carinho especial pelos santuários marianos, peregrinando com a família a locais sagrados como Lourdes e Fátima. Carlo acreditava fortemente na intercessão de Maria e incentivava todos os seus amigos a recorrerem a ela nos momentos de dificuldade ou tentação, com a certeza absoluta de que a Mãe de Deus nunca desampara os seus filhos."
+  },
+  espiritualidade: {
+    id: "espiritualidade",
+    title: "Original, não Fotocópia",
+    content: "A frase mais famosa de Carlo resume com perfeição a sua visão sobre a vida: 'Todos nascem como originais, mas muitos morrem como fotocópias'. Ele compreendia que Deus dotou cada pessoa com talentos, digitais e uma vocação única, e que o maior erro do ser humano era tentar imitar o comportamento da massa e perder a própria essência para agradar o mundo.\n\nPara não se tornar uma 'fotocópia', Carlo criou o seu próprio 'kit de santidade'. Esse plano diário envolvia a missa, comunhão, rosário, leitura de uma passagem da Bíblia, pequenos sacrifícios pelos amigos e a confissão semanal. Ele via o Sacramento da Reconciliação como um banho restaurador para a alma, essencial para se reerguer com coragem sempre que cometesse alguma falha."
+  },
+  comunicacao: {
+    id: "comunicacao",
+    title: "O Santo da Comunicação",
+    content: "Reconhecido como o 'Santo da Comunicação' e adotado como padroeiro por profissionais católicos da área (Pascom), Carlo entendia a internet como um verdadeiro território de missão. Ele dominava linguagens complexas de programação (C++, Java) e softwares de edição em uma época em que a web ainda engatinhava, usando esses talentos exclusivamente para semear o bem.\n\nEle alertava frequentemente sobre os perigos do ambiente digital, como a perda de tempo e as armadilhas morais de sites ruins. Contudo, mostrava na prática que a rede mundial de computadores, se usada com sabedoria e temperança, poderia construir pontes de evangelização inquebráveis, alcançando corações instantaneamente em lugares onde os missionários demorariam anos para chegar."
+  },
+  millennial: {
+    id: "millennial",
+    title: "O Ciberapóstolo e a Cultura Pop",
+    content: "Apesar de toda a sua dedicação espiritual e maturidade, Carlo era um adolescente típico da geração millennial (nascido na era digital). Ele amava soltar pipa, assistir a filmes, gravar vídeos, e era um grande fã de jogos eletrônicos, divertindo-se muito com franquias famosas como Halo, Super Mario e Pokémon.\n\nNo entanto, o que o diferenciava era a virtude da temperança. Embora amasse o seu PlayStation e fosse muito habilidoso nos jogos contra os amigos, ele impôs a si mesmo uma regra rígida: jogar apenas uma hora por semana. Ele entendia que o tempo era um dom valioso de Deus e não queria desperdiçá-lo diante de uma tela quando poderia usá-lo para estudar, rezar ou ajudar ativamente os moradores de rua."
+  },
+  doencaEMorte: {
+    id: "cruz-partida",
+    title: "O Sorriso Diante da Cruz",
+    content: "No início de outubro de 2006, o que parecia ser apenas uma gripe comum na escola revelou-se algo devastador. Após exames de emergência no hospital, o diagnóstico foi rápido e implacável: leucemia mieloide aguda fulminante (M3). Mesmo diante do choque, a reação do adolescente de 15 anos foi de uma serenidade que impressionou até a equipe médica.\n\nSem perder a paz, Carlo declarou: 'O Senhor me deu um belo despertador. Ofereço todos os meus sofrimentos ao Papa e à Igreja para não ir ao purgatório, mas direto ao paraíso'. Ele não reclamava de dor e, mesmo acamado e sofrendo, preocupava-se mais com o cansaço das enfermeiras do que com o próprio estado. No dia 12 de outubro de 2006, o jovem entregou sua alma, sorrindo."
+  },
+  santoDeJeans: {
+    id: "santo-jeans",
+    title: "A Santidade de Calça Jeans",
+    content: "A imagem de Carlo repousando em seu túmulo em Assis, no Santuário da Espoliação, é um dos maiores símbolos de sua santidade moderna. Seu corpo, preparado para a veneração pública, foi vestido com as roupas que ele mais amava usar em vida: calça jeans, tênis esportivo e um casaco de moletom, trazendo a eternidade para a nossa realidade cotidiana.\n\nVer um santo vestido como qualquer jovem que encontramos na rua quebrou paradigmas dentro da Igreja. Isso entregou uma mensagem visual incrivelmente poderosa: a santidade não exige roupas de época, clausura em mosteiros ou distanciamento da realidade. A santidade é acessível a todos nós, exatamente onde estamos e como somos."
+  },
+  milagres: {
+    id: "milagres",
+    title: "Os Sinais do Céu",
+    content: "A amizade de Carlo com Deus foi confirmada por meio de sinais inquestionáveis. O primeiro milagre reconhecido, que o tornou Beato, ocorreu no Brasil. Em 2013, o menino Mattheus, do Mato Grosso do Sul, sofria de uma má-formação rara no pâncreas e não conseguia se alimentar, estando à beira da morte. Ao tocar em uma relíquia de Carlo durante a missa, o menino pediu para 'parar de vomitar' e foi curado instantaneamente.\n\nO segundo milagre, que garantiu sua canonização, envolveu a jovem Valeria, da Costa Rica. Após um trágico acidente de bicicleta na Itália em 2022, ela sofreu um traumatismo craniano irreversível e os médicos a desenganaram. Sua mãe viajou até Assis e rezou ajoelhada no túmulo de Carlo o dia inteiro. No mesmo dia, Valeria voltou a respirar sozinha e, pouco tempo depois, teve uma recuperação completa e inexplicável."
+  },
+  conexaoBrasil: {
+    id: "conexao-brasil",
+    title: "Carlo e o Coração Brasileiro",
+    content: "A ligação de São Carlo Acutis com o Brasil vai muito além do seu primeiro milagre. O povo brasileiro, conhecido por sua fé calorosa, abraçou rapidamente o carisma do jovem, tornando-se um dos países com a maior devoção ao santo em todo o mundo. Catequistas, escolas e jovens encontraram nele o modelo perfeito para a juventude moderna.\n\nEssa força é tão visível que o Brasil já começou a erguer templos dedicados a ele. A Paróquia Universitária São Carlos Acutis, localizada no campus do Uni Ítalo em São Paulo, é um exemplo maravilhoso de como sua mensagem ressoa. Ela serve como um farol para os universitários, mostrando que a vida acadêmica e o avanço tecnológico podem (e devem) caminhar lado a lado com o amor à Eucaristia."
+  },
+  santidade: {
+    id: "santidade",
+    title: "Cronologia da Luz",
+    events: [
+      { date: "03/05/1991", label: "Nascimento em Londres" },
+      { date: "16/06/1998", label: "Primeira Comunhão" },
+      { date: "12/10/2006", label: "Falece em Monza (Itália), aos 15 anos" },
+      { date: "10/10/2020", label: "Beatificação em Assis" },
+      { date: "07/09/2025", label: "Data prevista para a Canonização" }
+    ]
+  }
+  };
+</file>
+
+<file path="src/App.tsx">
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Navbar from './components/Navbar';
+import Footer from './components/layout/Footer';
+import ScrollToTop from './components/layout/ScrollToTop';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
+import QuizPage from './pages/QuizPage';
+import { 
+  VidaLegadoPage,
+  FeDevocaoPage,
+  SantidadePage
+} from './pages/DetailPages';
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return user ? <>{children}</> : <Navigate to="/login" />;
+};
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <ScrollToTop />
+        <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-red-500 selection:text-white">
+          <Navbar />
+          
+          <main>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/cadastro" element={<Register />} />
+              
+              <Route path="/perfil" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/quiz" element={
+                <ProtectedRoute>
+                  <QuizPage />
+                </ProtectedRoute>
+              } />
+
+              {/* Novas Rotas por Categoria */}
+              <Route path="/vida-legado" element={<VidaLegadoPage />} />
+              <Route path="/fe-devocao" element={<FeDevocaoPage />} />
+              <Route path="/santidade" element={<SantidadePage />} />
+              
+              {/* Fallback para home ou 404 */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+
+          <Footer />
+        </div>
+      </Router>
+    </AuthProvider>
+  );
+}
+</file>
+
+<file path=".gitignore">
+# ===== OS / Editor =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== IDEs =====
+.vscode/
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ===== Env files =====
+.env
+.env.*
+!.env.example
+
+# ===== Logs =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ===== Node / Build =====
+node_modules/
+dist/
+dist-ssr/
+build/
+.vite/
+coverage/
+
+# ===== Misc =====
+*.local
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# ===== Banco de Dados =====
+schema.sql
+
+# arquivos .md
+analise_projeto_carloacutis.md
+</file>
+
+<file path="package.json">
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.3",
+    "axios": "^1.14.0",
+    "framer-motion": "^12.38.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.14.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.23",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^7.2.4",
+    "vitepress": "^0.1.1"
+  },
+  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+  "main": "eslint.config.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+</file>
+
+<file path="src/components/Section.tsx">
+import React from 'react';
+import { motion } from 'framer-motion';
+
+interface SectionProps {
+  id?: string;
+  title: string;
+  content: string;
+  image?: string;
+  reverse?: boolean;
+  className?: string;
+}
+
+const Section: React.FC<SectionProps> = ({ id, title, content, image, reverse, className = "" }) => {
+  // Split content by double newlines for paragraph spacing
+  const paragraphs = content.split('\n\n');
+
+  return (
+    <motion.section 
+      id={id} 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-100px" }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className={`py-16 md:py-24 lg:py-32 px-6 md:px-12 max-w-7xl mx-auto scroll-mt-24 ${className}`}
+    >
+      <div className={`grid lg:grid-cols-2 gap-12 md:gap-20 items-center ${reverse ? 'lg:direction-rtl' : ''}`}>
+        
+        {/* Content Side */}
+        <div className={`space-y-8 ${reverse ? 'lg:order-2' : 'lg:order-1'}`}>
+          <div className="relative inline-block self-start mb-4">
+            <span className="absolute -left-4 md:-left-6 top-0 w-1.5 md:w-2 h-full bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.3)]"></span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase italic tracking-tighter text-blue-950 pl-6 md:pl-8 leading-[0.9]">
+              {title}
+            </h2>
+          </div>
+          
+          <div className="space-y-6">
+            {paragraphs.map((para, idx) => (
+              <p 
+                key={idx}
+                className="text-lg md:text-xl text-slate-600 leading-relaxed font-medium text-justify"
+              >
+                {para}
+              </p>
+            ))}
+          </div>
+        </div>
+
+        {/* Image Side */}
+        {image && (
+          <div className={`relative ${reverse ? 'lg:order-1' : 'lg:order-2'}`}>
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              className="relative aspect-[4/5] md:aspect-square rounded-[2.5rem] md:rounded-[4rem] overflow-hidden shadow-2xl border-4 md:border-8 border-white group"
+            >
+              <img 
+                src={image} 
+                alt={`Imagem ilustrativa de ${title}`} 
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-950/40 via-transparent to-transparent"></div>
+            </motion.div>
+            
+            {/* Abstract background elements */}
+            <div className={`absolute -z-10 w-full h-full border-2 border-red-600/20 rounded-[4rem] transition-transform duration-700 group-hover:rotate-3 ${reverse ? 'top-4 right-4' : 'bottom-4 left-4'}`}></div>
+          </div>
+        )}
+      </div>
+    </motion.section>
+  );
+};
+
+export default Section;
+</file>
+
+<file path="README.md">
+# São Carlo Acutis - Plataforma Web & Gamificada
+
+Plataforma web interativa e educativa dedicada à história, legado, devoção e canonização do **São Carlo Acutis**, o "Padroeiro da Internet". O projeto combina conteúdo biográfico detalhado com um sistema de gamificação contendo quizzes, pontuação de XP, níveis e ligas entre usuários.
+
+---
+
+## 🚀 Tecnologias Utilizadas
+
+### **Front-end**
+- **React 19** & **TypeScript**
+- **Vite** (Build tool e servidor de desenvolvimento ágil)
+- **Tailwind CSS** (Estilização responsiva e moderna)
+- **Framer Motion** (Animações fluidas e dinâmicas)
+- **React Router DOM v7** (Roteamento SPA)
+
+### **Back-end & Banco de Dados**
+- **Supabase**
+  - **Supabase Auth**: Gerenciamento de cadastro, autenticação e sessão de usuários.
+  - **PostgreSQL Database**: Armazenamento de perfis de usuários, XP, níveis e ligas.
+
+---
+
+## ✨ Funcionalidades Principais
+
+### 1. 🔐 Autenticação e Gestão de Usuários
+- Login e Cadastro de novos usuários integrados ao Supabase.
+- Criação automática do perfil do usuário (`profiles`) ao se cadastrar.
+- Proteção de rotas privadas (`/perfil` e `/quiz`).
+
+### 2. 📖 Conteúdo Biográfico & Páginas Temáticas
+- **Página Inicial (`/`)**: Apresentação da vida de Carlo Acutis, linha do tempo interativa e visão geral dos pilares da sua fé.
+- **Vida & Legado (`/vida-legado`)**: Infância, juventude, paixão por computação/tecnologia e testemunho de vida.
+- **Fé & Devoção (`/fe-devocao`)**: Amor à Eucaristia ("Autoestrada para o Céu"), devoção à Virgem Maria e o site dos milagres eucarísticos.
+- **Caminho à Santidade (`/santidade`)**: Processo de beatificação, milagres reconhecidos pela Igreja, canonização e orações.
+
+### 3. 🎯 Quiz Interativo & Gamificação
+- Teste de conhecimentos sobre São Carlo Acutis.
+- Sistema de pontuação e ganho de **XP**.
+- Progressão automática de níveis de devoção com base no acúmulo de XP.
+- Atualização em tempo real do perfil no Supabase.
+
+### 4. 🏆 Ligas & Ranking Social
+- **Criar Liga**: Usuários podem criar ligas personalizadas com código de acesso único gerado automaticamente.
+- **Entrar em Liga**: Possibilidade de ingressar em uma liga existente fornecendo o código de acesso.
+- **Ranking**: Visualização do ranking de membros da mesma liga ordenados por XP.
+
+---
+
+## 📁 Estrutura do Projeto
+
+```text
+frontend/
+├── public/                 # Arquivos estáticos (imagens, ícones)
+├── src/
+│   ├── assets/             # Mídias e imagens da aplicação
+│   ├── components/         # Componentes reutilizáveis de UI
+│   │   ├── layout/         # Componentes de estrutura (Footer, ScrollToTop, etc.)
+│   │   ├── Navbar.tsx      # Barra de navegação responsiva
+│   │   ├── Quiz.tsx        # Lógica e interface do Quiz
+│   │   ├── Section.tsx     # Seções modulares da página
+│   │   └── Timeline.tsx    # Linha do tempo interativa
+│   ├── context/
+│   │   └── AuthContext.tsx # Contexto global de autenticação e dados do usuário (Supabase)
+│   ├── data/
+│   │   ├── biographyContent.ts # Dados estruturados de biografia e histórias
+│   │   └── navigation.ts       # Configurações de rotas e navegação
+│   ├── pages/
+│   │   ├── DetailPages.tsx # Páginas detalhadas (Vida & Legado, Fé, Santidade)
+│   │   ├── Home.tsx        # Página inicial
+│   │   ├── Login.tsx       # Tela de login
+│   │   ├── Profile.tsx     # Painel do perfil, XP e Ligas
+│   │   ├── QuizPage.tsx    # Página do Quiz
+│   │   └── Register.tsx    # Tela de cadastro
+│   ├── services/
+│   │   ├── api.ts          # Cliente HTTP Axios (configuração base)
+│   │   └── supabase.ts     # Inicialização do cliente Supabase
+│   ├── App.tsx             # Definição de rotas e provedores
+│   ├── index.css           # Estilos globais e diretivas Tailwind
+│   └── main.tsx            # Ponto de entrada React
+├── .env.example            # Exemplo de variáveis de ambiente
+├── package.json            # Dependências e scripts do projeto
+├── tailwind.config.js      # Configuração do Tailwind CSS
+└── vite.config.ts          # Configuração do Vite
+```
+
+---
+
+## 🛢️ Estrutura do Banco de Dados (Supabase)
+
+### Tabela `profiles`
+- `id` (uuid, chave primária ligada a `auth.users`)
+- `nome` (text)
+- `email` (text)
+- `xp` (integer)
+- `nivel` (text)
+- `liga_id` (integer, chave estrangeira para `ligas.id`)
+
+### Tabela `ligas`
+- `id` (bigint, chave primária)
+- `nome` (text)
+- `codigo_acesso` (text, código único para entrada)
+- `created_at` (timestamp)
+
+---
+
+## 🛠️ Como Executar o Projeto
+
+### Pré-requisitos
+- **Node.js** (versão 18 ou superior)
+- **npm** (ou yarn/pnpm)
+- Projeto configurado no **Supabase** (com as tabelas `profiles` e `ligas` criadas)
+
+### 1. Clonar o repositório e instalar dependências
+```bash
+git clone <URL_DO_REPOSITORIO>
+cd frontend
+npm install
+```
+
+### 2. Configurar as Variáveis de Ambiente
+Crie um arquivo `.env` na raiz da pasta `frontend/` com base no arquivo `.env.example`:
+
+```env
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-chave-anon-aqui
+```
+
+### 3. Rodar em Ambiente de Desenvolvimento
+```bash
+npm run dev
+```
+Acesse a aplicação em `http://localhost:5173`.
+
+### 4. Construir para Produção
+```bash
+npm run build
+```
+
+---
+
+## 📜 Licença
+
+Este projeto é desenvolvido para fins educativos e de devoção a **São Carlo Acutis**.
+</file>
+
+<file path="src/components/layout/Footer.tsx">
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import iconLogo from '../../assets/icon.png';
+import { navigation } from '../../data/navigation';
+
+const Footer: React.FC = () => {
+  const [copied, setCopied] = useState(false);
+  const email = "andersonvcataldo@gmail.com";
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(email);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <footer className="bg-slate-950 text-white pt-24 pb-12 px-6 overflow-hidden relative border-t border-white/5">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-16">
+        
+        {/* Left Column: Logo & Quote */}
+        <div className="md:col-span-4 space-y-8">
+          <Link to="/" className="flex items-center gap-3 group">
+            <img src={iconLogo} alt="Logo" className="w-12 h-12 object-contain" />
+            <span className="font-black text-3xl tracking-tighter uppercase italic">
+              Carlo<span className="text-red-600">.</span>
+            </span>
+          </Link>
+          <div className="space-y-4">
+            <p className="text-2xl font-serif italic text-blue-200 leading-tight border-l-2 border-red-600 pl-6">
+              "A Eucaristia é a minha rodovia para o céu."
+            </p>
+            <p className="text-slate-500 text-sm font-medium tracking-wide uppercase">
+              Padroeiro da Internet & Influenciador de Deus
+            </p>
+          </div>
+        </div>
+
+        {/* Dynamic Categorized Navigation */}
+        <div className="md:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {navigation.map((category) => (
+            <div key={category.title} className="space-y-6">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600 border-b border-red-600/20 pb-2">
+                {category.title}
+              </h4>
+              <ul className="space-y-3">
+                {category.links.map((link) => (
+                  <li key={link.name}>
+                    <Link 
+                      to={link.href} 
+                      className="text-slate-400 hover:text-white transition-colors font-bold text-[11px] uppercase tracking-widest block py-1"
+                    >
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Right Column: Developer Info - Redesigned for Premium Look */}
+        <div className="md:col-span-3 space-y-8">
+          <div className="relative">
+            <h4 className="text-xs font-black uppercase tracking-[0.3em] text-red-600 mb-6">Formas de contato</h4>
+            <div className="absolute -left-4 top-0 w-1 h-full bg-red-600/20 rounded-full"></div>
+          </div>
+          
+          <div className="flex flex-col gap-4">
+            {/* Email Card */}
+            <div 
+              onClick={handleCopy}
+              className="group relative bg-gradient-to-br from-white/[0.03] to-transparent p-5 rounded-[2rem] border border-white/10 hover:border-red-600/30 transition-all duration-500 cursor-pointer overflow-hidden"
+            >
+              <div className="flex items-center gap-4 relative z-10">
+                <div className="w-12 h-12 rounded-2xl bg-[#EA4335]/10 flex items-center justify-center text-[#EA4335] group-hover:scale-110 transition-transform duration-500">
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-1.356 1.518-2.158 2.627-1.376L12 11.13l9.373-6.991c1.11-.83 2.627-.028 2.627 1.376z"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">E-mail</p>
+                  <p className="text-sm font-bold text-slate-200 truncate">{email}</p>
+                </div>
+                <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase text-red-600">
+                  {copied ? "COPIADO" : "COPIAR"}
+                </div>
+              </div>
+              {/* Decorative background flare */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-red-600/5 rounded-full blur-3xl group-hover:bg-red-600/10 transition-colors"></div>
+            </div>
+
+            {/* LinkedIn Card */}
+            <a 
+              href="https://linkedin.com/in/andersonnviana" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group relative bg-gradient-to-br from-white/[0.03] to-transparent p-5 rounded-[2rem] border border-white/10 hover:border-blue-600/30 transition-all duration-500 overflow-hidden"
+            >
+              <div className="flex items-center gap-4 relative z-10">
+                <div className="w-12 h-12 rounded-2xl bg-[#0A66C2]/10 flex items-center justify-center text-[#0A66C2] group-hover:scale-110 transition-transform duration-500">
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">LinkedIn</p>
+                  <p className="text-sm font-bold text-slate-200 truncate">/in/andersonnviana</p>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </div>
+              </div>
+              {/* Decorative background flare */}
+              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/5 rounded-full blur-3xl group-hover:bg-blue-600/10 transition-colors"></div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Bar */}
+      <div className="max-w-7xl mx-auto mt-24 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 opacity-40">
+        <div className="text-[10px] font-black uppercase tracking-[0.4em]">
+          © 2026 Memorial Digital • #BeOriginal
+        </div>
+        <div className="flex gap-8 text-[10px] font-black uppercase tracking-[0.4em]">
+          <span>Assis, IT</span>
+          <span>•</span>
+          <span>Vaticano</span>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
+</file>
+
+<file path="src/components/Navbar.tsx">
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import iconLogo from '../assets/icon.png';
+import { navigation, type NavCategory } from '../data/navigation';
+import { useAuth } from '../context/AuthContext';
+
+const NavDropdown: React.FC<{ category: NavCategory; closeMenu: () => void }> = ({ category, closeMenu }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const location = useLocation();
+
+  return (
+    <div 
+      className="relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="flex items-center">
+        <Link 
+          to={category.path}
+          onClick={closeMenu}
+          className={`flex items-center gap-1.5 transition-all font-black text-[10px] uppercase tracking-widest py-4 h-full ${
+            location.pathname === category.path ? 'text-red-600' : 'text-blue-950/60 hover:text-red-600'
+          }`}
+        >
+          {category.title}
+        </Link>
+        <button className="p-1 text-blue-950/20 hover:text-red-600">
+          <motion.svg 
+            animate={{ rotate: isHovered ? 180 : 0 }}
+            className="w-3 h-3" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+          </motion.svg>
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            className="absolute top-[80%] left-0 w-64 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-100 p-3 z-50"
+          >
+            <div className="flex flex-col gap-1">
+              {category.links.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  onClick={closeMenu}
+                  className={`px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    location.hash === `#${link.id}` 
+                      ? 'bg-red-50 text-red-600' 
+                      : 'text-blue-950/70 hover:bg-slate-50 hover:text-blue-950'
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const Navbar: React.FC = () => {
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [activeMobileCategory, setActiveMobileCategory] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const closeMenu = () => {
+    setIsOpen(false);
+    setActiveMobileCategory(null);
+  };
+
+  return (
+    <nav className={`fixed top-3 md:top-6 left-1/2 -translate-x-1/2 w-[92%] md:w-[95%] max-w-7xl z-50 transition-all duration-500 rounded-[2rem] md:rounded-full border border-white/20 px-6 md:px-10 ${
+      scrolled ? 'bg-white/90 backdrop-blur-2xl shadow-2xl py-2 md:py-2' : 'bg-white/70 backdrop-blur-lg shadow-xl py-3 md:py-3'
+    }`}>
+      <div className="flex justify-between items-center">
+        <Link to="/" onClick={closeMenu} className="flex items-center gap-2.5 group" aria-label="Ir para a página inicial">
+          <img 
+            src={iconLogo} 
+            alt="Ícone Carlo Acutis" 
+            width={40} 
+            height={40} 
+            className="w-8 h-8 md:w-10 md:h-10 object-contain transition-transform group-hover:rotate-12" 
+          />
+          <span className="font-black text-blue-900 text-xl md:text-2xl tracking-tighter uppercase italic leading-none">
+            Carlo<span className="text-red-600">.</span>
+          </span>
+        </Link>
+
+        {/* Desktop Links */}
+        <div className="hidden lg:flex items-center gap-6 xl:gap-8">
+          {navigation.map((category) => (
+            <NavDropdown key={category.title} category={category} closeMenu={closeMenu} />
+          ))}
+          {user && (
+            <Link
+              to="/quiz"
+              onClick={closeMenu}
+              className={`transition-all font-black text-[10px] uppercase tracking-widest ${
+                location.pathname === '/quiz' ? 'text-red-600' : 'text-blue-950/60 hover:text-red-600'
+              }`}
+            >
+              Quiz
+            </Link>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 md:gap-4">
+          {user ? (
+            <Link 
+              to="/perfil" 
+              onClick={closeMenu}
+              className="bg-blue-900 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2"
+            >
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              {user.nome}
+            </Link>
+          ) : (
+            <Link 
+              to="/login" 
+              onClick={closeMenu}
+              className="bg-red-600 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-blue-950 transition-all shadow-lg shadow-red-600/20"
+            >
+              Entrar
+            </Link>
+          )}
+          
+          <button 
+            onClick={() => setIsOpen(!isOpen)}
+            className="lg:hidden p-2 text-blue-950 transition-transform active:scale-90"
+            aria-label="Toggle Menu"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="lg:hidden overflow-hidden mt-4"
+          >
+            <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-100 p-4 flex flex-col gap-2 mb-2">
+              {navigation.map((category) => (
+                <div key={category.title} className="flex flex-col gap-1">
+                  <div className="flex bg-slate-50 rounded-2xl overflow-hidden">
+                    <Link 
+                      to={category.path}
+                      onClick={closeMenu}
+                      className="flex-1 p-4 text-[10px] font-black uppercase tracking-widest text-blue-950/80"
+                    >
+                      {category.title}
+                    </Link>
+                    <button 
+                      onClick={() => setActiveMobileCategory(activeMobileCategory === category.title ? null : category.title)}
+                      className="p-4 border-l border-white/50"
+                    >
+                      <motion.svg 
+                        animate={{ rotate: activeMobileCategory === category.title ? 180 : 0 }}
+                        className="w-4 h-4" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </motion.svg>
+                    </button>
+                  </div>
+                  
+                  <AnimatePresence>
+                    {activeMobileCategory === category.title && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden flex flex-col gap-1"
+                      >
+                        {category.links.map((link) => (
+                          <Link
+                            key={link.name}
+                            to={link.href}
+                            onClick={closeMenu}
+                            className="p-4 pl-8 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-red-600 transition-colors border-b border-slate-50 last:border-0"
+                          >
+                            {link.name}
+                          </Link>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))}
+              
+              {user && (
+                <Link
+                  to="/quiz"
+                  onClick={closeMenu}
+                  className="p-4 bg-red-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest text-center shadow-lg shadow-red-600/20"
+                >
+                  Quiz Carlo Acutis
+                </Link>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
+  );
+};
+
+export default Navbar;
+</file>
+
+<file path="src/pages/DetailPages.tsx">
+import React from 'react';
+import { motion } from 'framer-motion';
+import { biographyContent } from '../data/biographyContent';
+import Section from '../components/Section';
+import Timeline from '../components/Timeline';
+
+// Assets
+import carloPortrait from '../assets/carlo_retrato.png';
+import carloTech from '../assets/carlo_computador.png';
+import eucaristiaImg from '../assets/eucaristia.png';
+import tumuloImg from '../assets/túmulo_carlo.png';
+import familiaCarlo from '../assets/familiaCarlo.jpg';
+import maeCarlo from '../assets/MaeCarlo.png';
+import petCarlo from '../assets/PetCarlo.png';
+import amigosCarlo from '../assets/AmigosCarlo.jpg';
+import amigosCarlo2 from '../assets/AmigosCarlo2.jpg';
+import saintCarlo from '../assets/saintCarlo.jpeg';
+import milagreBR from '../assets/milagre_BR.png';
+import milagreCR from '../assets/milagre_CR.png';
+
+const PageHeader: React.FC<{ title: string; subtitle: string; color: string }> = ({ title, subtitle, color }) => (
+  <header className={`relative py-24 md:py-32 lg:py-48 px-6 md:px-10 ${color} text-white overflow-hidden m-3 md:m-6 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl`}>
+    <div className="relative z-10 max-w-6xl mx-auto text-center md:text-left">
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-black uppercase tracking-[0.3em] mb-8"
+      >
+        Exclusive Session
+      </motion.div>
+      <motion.h1 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black uppercase italic tracking-tighter leading-[0.85] md:leading-none"
+      >
+        {title}
+      </motion.h1>
+      <motion.p 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="text-lg md:text-2xl lg:text-3xl font-bold opacity-80 mt-8 md:mt-10 uppercase tracking-widest max-w-3xl mx-auto md:mx-0 leading-tight"
+      >
+        {subtitle}
+      </motion.p>
+    </div>
+    {/* Decorative Elements */}
+    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full -mr-64 -mt-64 blur-[120px]"></div>
+  </header>
+);
+
+export const VidaLegadoPage = () => {
+  const { infanciaEPais, iniciativaNaFe, animais, amigosEEscola } = biographyContent;
+  return (
+    <div className="pt-24 space-y-4">
+      <PageHeader title="Vida e Legado" subtitle="O Início da Jornada e os Valores de Carlo" color="bg-red-600" />
+      <Section id="vida-familiar" title={infanciaEPais.title} content={infanciaEPais.content} image={familiaCarlo} />
+      <Section id="iniciativa-fe" title={iniciativaNaFe.title} content={iniciativaNaFe.content} image={maeCarlo} reverse />
+      <Section id="animais" title={animais.title} content={animais.content} image={petCarlo} />
+      <Section id="amigos-escola" title={amigosEEscola.title} content={amigosEEscola.content} image={amigosCarlo} reverse />
+    </div>
+  );
+};
+
+export const FeDevocaoPage = () => {
+  const { eucaristia, nossaSenhora, espiritualidade, comunicacao } = biographyContent;
+  return (
+    <div className="pt-24 space-y-4">
+      <PageHeader title="Fé e Devoção" subtitle="A Conexão Profunda com o Divino" color="bg-blue-900" />
+      <Section id="eucaristia" title={eucaristia.title} content={eucaristia.content} image={eucaristiaImg} />
+      <Section id="nossa-senhora" title={nossaSenhora.title} content={nossaSenhora.content} image={saintCarlo} reverse />
+      <Section id="espiritualidade" title={espiritualidade.title} content={espiritualidade.content} image={carloPortrait} />
+      <Section id="comunicacao" title={comunicacao.title} content={comunicacao.content} image={carloTech} reverse />
+    </div>
+  );
+};
+
+export const SantidadePage = () => {
+  const { millennial, doencaEMorte, santoDeJeans, conexaoBrasil, santidade } = biographyContent;
+  return (
+    <div className="pt-24 space-y-4">
+      <PageHeader title="Santidade" subtitle="O Caminho para a Glória dos Altares" color="bg-slate-900" />
+      <Section id="millennial" title={millennial.title} content={millennial.content} image={amigosCarlo2} />
+      <Section id="cruz-partida" title={doencaEMorte.title} content={doencaEMorte.content} image={saintCarlo} reverse />
+      <Section id="santo-jeans" title={santoDeJeans.title} content={santoDeJeans.content} image={tumuloImg} />
+      
+      <div id="milagres" className="py-24 max-w-7xl mx-auto px-6">
+        <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter text-blue-950 mb-16 text-center">Sinais do Céu</h2>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="bg-slate-50 p-10 rounded-[3rem] border-2 border-slate-100 shadow-xl">
+            <div className="aspect-video rounded-3xl overflow-hidden mb-8 border-4 border-white shadow-lg">
+               <img 
+                 src={milagreBR} 
+                 className="w-full h-full object-cover" 
+                 alt="Criança sendo curada por intercessão de Carlo Acutis no Brasil" 
+                 loading="lazy"
+                 decoding="async"
+               />
+            </div>
+            <h4 className="text-3xl font-black uppercase italic text-blue-950 mb-4">Brasil: Mattheus</h4>
+            <p className="text-lg text-slate-600 font-medium leading-relaxed">A cura do menino Mattheus em Campo Grande (MS), o primeiro milagre que levou Carlo à beatificação.</p>
+          </div>
+          <div className="bg-blue-950 p-10 rounded-[3rem] text-white shadow-2xl">
+            <div className="aspect-video rounded-3xl overflow-hidden mb-8 border-4 border-blue-900/50 shadow-lg grayscale">
+               <img 
+                 src={milagreCR} 
+                 className="w-full h-full object-cover" 
+                 alt="Mãe rezando no túmulo de Carlo Acutis em Assis" 
+                 loading="lazy"
+                 decoding="async"
+               />
+            </div>
+            <h4 className="text-3xl font-black uppercase italic text-red-600 mb-4">Costa Rica: Valeria</h4>
+            <p className="text-lg text-blue-100/70 leading-relaxed font-medium">O milagre da cura de Valeria, após sua mãe rezar no túmulo de Carlo em Assis, confirmando sua canonização.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-6 py-20">
+        <Timeline events={santidade.events} />
+      </div>
+
+      <Section id="conexao-brasil" title={conexaoBrasil.title} content={conexaoBrasil.content} image={milagreBR} reverse />
+    </div>
+  );
+};
+</file>
+
+<file path="src/pages/Home.tsx">
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { biographyContent } from '../data/biographyContent';
+
+// Assets
+import carloHero from '../assets/Carlo.jpg'; 
+import familiaCarlo from '../assets/familiaCarlo.jpg';
+import eucaristiaImg from '../assets/eucaristia.png';
+import tumuloImg from '../assets/túmulo_carlo.png';
+
+const Home: React.FC = () => {
+  const { hero, espiritualidade } = biographyContent;
+
+  const mainCategories = [
+    { 
+      title: "Vida e Legado", 
+      subtitle: "A história do garoto que amava animais, amigos e defendia os fracos.",
+      path: "/vida-legado", 
+      img: familiaCarlo, 
+      color: "from-red-600 to-red-800" 
+    },
+    { 
+      title: "Fé e Devoção", 
+      subtitle: "A rodovia para o céu e o amor profundo pela Virgem Maria.",
+      path: "/fe-devocao", 
+      img: eucaristiaImg, 
+      color: "from-blue-800 to-blue-950" 
+    },
+    { 
+      title: "Caminho da Santidade", 
+      subtitle: "Ciberapóstolo, milagres e a glória dos altares.",
+      path: "/santidade", 
+      img: tumuloImg, 
+      color: "from-slate-800 to-slate-950" 
+    },
+  ];
+
+  return (
+    <div className="bg-white">
+      {/* Hero Section */}
+      <header className="relative h-[85vh] md:h-[90vh] flex items-center justify-center bg-blue-950 text-white overflow-hidden m-3 md:m-6 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl">
+        <motion.div 
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.4 }}
+          transition={{ duration: 1.5 }}
+          className="absolute inset-0"
+        >
+          <img 
+            src={carloHero} 
+            alt="Retrato de Carlo Acutis sorrindo" 
+            className="w-full h-full object-cover" 
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+          />
+        </motion.div>
+        
+        <div className="relative z-10 text-center px-6 max-w-5xl">
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.3em] mb-10 shadow-xl shadow-red-600/30"
+          >
+            Original Saint
+          </motion.div>
+          <motion.h1 
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-6xl sm:text-8xl md:text-[10rem] lg:text-[12rem] font-black mb-8 tracking-tighter leading-none uppercase italic drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+          >
+            Carlo<span className="text-red-600">.</span>
+          </motion.h1>
+          <motion.p 
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-lg md:text-2xl font-bold text-blue-100 tracking-tight uppercase italic max-w-3xl mx-auto leading-relaxed"
+          >
+            {hero.subtitle}
+          </motion.p>
+        </div>
+      </header>
+
+      {/* Categories Grid */}
+      <section className="max-w-7xl mx-auto px-6 py-24 md:py-32">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {mainCategories.map((cat, index) => (
+            <motion.div
+              key={cat.path}
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              transition={{ delay: index * 0.1 }}
+              viewport={{ once: true }}
+            >
+              <Link to={cat.path} className="group relative block aspect-[3/4] overflow-hidden rounded-[3rem] bg-slate-900 shadow-2xl transition-all hover:-translate-y-3">
+                <img 
+                  src={cat.img} 
+                  alt={cat.title} 
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover opacity-50 grayscale group-hover:scale-110 group-hover:grayscale-0 group-hover:opacity-80 transition-all duration-1000" 
+                />
+                <div className={`absolute inset-0 bg-gradient-to-t ${cat.color} opacity-40 group-hover:opacity-60 transition-opacity`}></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+                
+                <div className="absolute bottom-10 left-10 right-10 space-y-4">
+                  <span className="text-red-500 font-black text-[10px] uppercase tracking-[0.4em]">Explore Category</span>
+                  <h3 className="text-3xl lg:text-4xl font-black italic uppercase tracking-tighter text-white leading-none">
+                    {cat.title}
+                  </h3>
+                  <p className="text-slate-300 text-sm font-medium leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500 line-clamp-2">
+                    {cat.subtitle}
+                  </p>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Quote Section */}
+      <section className="bg-slate-950 text-white py-32 px-6 overflow-hidden relative m-3 md:m-6 rounded-[2.5rem] md:rounded-[4rem]">
+        <div className="max-w-5xl mx-auto text-center space-y-12 relative z-10">
+          <span className="text-red-600 font-black text-[11px] uppercase tracking-[0.5em]">The Philosophy</span>
+          <h2 className="text-5xl md:text-8xl font-black uppercase italic tracking-tighter leading-[0.85] text-blue-100">
+            Be an <span className="text-red-600">Original</span>, not a photocopy.
+          </h2>
+          <p className="text-xl md:text-3xl text-slate-400 font-serif italic max-w-4xl mx-auto leading-relaxed">
+            "{espiritualidade.content.split('\n\n')[0]}"
+          </p>
+          <div className="pt-8 flex flex-wrap justify-center gap-6">
+            <Link to="/fe-devocao" className="px-10 py-5 bg-red-600 text-white rounded-full font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl shadow-red-600/30">
+              Conhecer Espiritualidade
+            </Link>
+            <Link to="/quiz" className="px-10 py-5 bg-white text-blue-950 rounded-full font-black uppercase tracking-widest hover:bg-slate-200 transition-all shadow-xl">
+              Altar Digital (Quiz)
+            </Link>
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-red-600/10 rounded-full -mr-64 -mt-64 blur-[150px]"></div>
+      </section>
+    </div>
+  );
+};
+
+export default Home;
+</file>
+
+</files>
