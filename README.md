@@ -1,6 +1,7 @@
-# São Carlo Acutis - Plataforma Web & Gamificada
+# Carlo Acutis - Plataforma Web Gamificada 🌐✨
 
-Plataforma web interativa e educativa dedicada à história, legado, devoção e canonização do **São Carlo Acutis**, o "Padroeiro da Internet". O projeto combina conteúdo biográfico detalhado com um sistema de gamificação contendo quizzes, pontuação de XP, níveis e ligas entre usuários.
+Plataforma web interativa e educativa dedicada à história, legado, devoção e canonização de **São Carlo Acutis**, o "Padroeiro da Internet". 
+O projeto combina conteúdo biográfico rico com um sistema avançado de gamificação, incluindo quizzes integrados, sistema de XP, evolução de níveis e ligas entre usuários (Ligas Paroquiais).
 
 ---
 
@@ -8,136 +9,127 @@ Plataforma web interativa e educativa dedicada à história, legado, devoção e
 
 ### **Front-end**
 - **React 19** & **TypeScript**
-- **Vite** (Build tool e servidor de desenvolvimento ágil)
+- **Vite** (Build tool e servidor de desenvolvimento ultra-rápido)
 - **Tailwind CSS** (Estilização responsiva e moderna)
-- **Framer Motion** (Animações fluidas e dinâmicas)
-- **React Router DOM v7** (Roteamento SPA)
+- **Framer Motion** (Animações fluidas e navegação agradável)
+- **React Router DOM v7** (Roteamento de SPA e proteção de rotas)
+- **Lucide React** (Ícones SVG)
 
-### **Back-end & Banco de Dados**
+### **Back-end & Banco de Dados (BaaS)**
 - **Supabase**
-  - **Supabase Auth**: Gerenciamento de cadastro, autenticação e sessão de usuários.
-  - **PostgreSQL Database**: Armazenamento de perfis de usuários, XP, níveis e ligas.
+  - **Auth**: Autenticação, login e cadastro seguros.
+  - **PostgreSQL**: Modelagem relacional robusta com tabelas para perfis, perguntas, temporadas, respostas do usuário e ligas.
+  - **RLS (Row Level Security)**: Segurança avançada de leitura e escrita.
+  - **RPC (Remote Procedure Calls)**: Funções no banco para calcular XP e manipular entrada/saída de ligas de forma segura.
 
 ---
 
 ## ✨ Funcionalidades Principais
 
-### 1. 🔐 Autenticação e Gestão de Usuários
-- Login e Cadastro de novos usuários integrados ao Supabase.
-- Criação automática do perfil do usuário (`profiles`) ao se cadastrar.
-- Proteção de rotas privadas (`/perfil` e `/quiz`).
+### 1. 🔐 Autenticação e Perfil do Usuário
+- Login e Cadastro nativo e seguro utilizando Supabase Auth.
+- Criação e sincronização automática da tabela `profiles` através de *Triggers* no Postgres.
+- Proteção e redirecionamento de rotas (Apenas usuários autenticados podem jogar o Quiz e participar de ligas).
 
-### 2. 📖 Conteúdo Biográfico & Páginas Temáticas
-- **Página Inicial (`/`)**: Apresentação da vida de Carlo Acutis, linha do tempo interativa e visão geral dos pilares da sua fé.
-- **Vida & Legado (`/vida-legado`)**: Infância, juventude, paixão por computação/tecnologia e testemunho de vida.
-- **Fé & Devoção (`/fe-devocao`)**: Amor à Eucaristia ("Autoestrada para o Céu"), devoção à Virgem Maria e o site dos milagres eucarísticos.
-- **Caminho à Santidade (`/santidade`)**: Processo de beatificação, milagres reconhecidos pela Igreja, canonização e orações.
+### 2. 📖 Conteúdo Biográfico
+- **Página Inicial**: Apresentação da vida de Carlo Acutis, linha do tempo interativa e visão geral.
+- **Vida & Legado**: Infância, juventude e a profunda relação entre a santidade e a computação.
+- **Fé & Devoção**: O amor profundo pela Eucaristia ("A minha autoestrada para o Céu") e os Milagres Eucarísticos.
+- **Caminho à Santidade**: Processo de beatificação e canonização de Carlo.
 
-### 3. 🎯 Quiz Interativo & Gamificação
-- Teste de conhecimentos sobre São Carlo Acutis.
-- Sistema de pontuação e ganho de **XP**.
-- Progressão automática de níveis de devoção com base no acúmulo de XP.
-- Atualização em tempo real do perfil no Supabase.
+### 3. 🎯 Quiz Gamificado e Sistema de Progressão
+- **Temporadas de Perguntas**: O conteúdo é dividido em temporadas (ex: Infância, Milagres, Santidade) lidas dinamicamente do banco de dados.
+- **Resposta e XP Seguro (RPC)**: O cálculo de acertos e atribuição de XP (Experiência) ocorre diretamente no banco de dados, impedindo trapaças no front-end.
+- **Histórico de Respostas**: Controle rigoroso para garantir que o usuário só ganha XP ao responder a pergunta corretamente na primeira vez.
+- **Níveis de Evolução**: Conforme acumula XP, o usuário ganha novos títulos:
+  *Peregrino ➔ Discípulo ➔ Missionário ➔ Apóstolo Digital ➔ Ciberapóstolo da Eucaristia.*
 
-### 4. 🏆 Ligas & Ranking Social
-- **Criar Liga**: Usuários podem criar ligas personalizadas com código de acesso único gerado automaticamente.
-- **Entrar em Liga**: Possibilidade de ingressar em uma liga existente fornecendo o código de acesso.
-- **Ranking**: Visualização do ranking de membros da mesma liga ordenados por XP.
+### 4. 🏆 Ligas Paroquiais e Ranking Social
+- **Criação Segura**: Usuários podem criar Ligas Paroquiais. O sistema gera um código de acesso único (alfanumérico) via banco de dados.
+- **Participação por Código**: Outros usuários podem entrar na liga informando o código exclusivo.
+- **Ranking em Tempo Real**: Visualização imediata dos membros da sua liga, ordenados pela quantidade de XP, incentivando uma competição saudável de aprendizado.
 
 ---
 
-## 📁 Estrutura do Projeto
+## 🛢️ Arquitetura do Banco de Dados
+
+O banco (`schema.sql` incluído no projeto) foi desenhado pensando em integridade e performance, contendo:
+
+1. **`ligas`**: Gerencia grupos/ligas criadas com códigos de acesso únicos.
+2. **`profiles`**: Estende o `auth.users` armazenando XP, nível (título) e o vínculo com a liga (`liga_id`).
+3. **`temporadas` e `perguntas`**: Estrutura escalável para os quizzes, separando blocos de conteúdo e as questões de múltipla escolha.
+4. **`respostas_usuario`**: Tabela associativa (M:N) que registra se um usuário acertou ou não determinada pergunta, evitando ganhos de XP duplicados.
+5. **Funções e Triggers**:
+   - `handle_new_user`: Trigger para gerar o profile após cadastro.
+   - `responder_pergunta`: Valida a alternativa correta no servidor e aplica XP.
+   - `criar_liga` / `entrar_liga` / `sair_liga`: Manipulação segura de chaves estrangeiras via Security Definer.
+
+---
+
+## 📁 Estrutura de Diretórios
 
 ```text
 frontend/
-├── public/                 # Arquivos estáticos (imagens, ícones)
+├── public/                 # Arquivos estáticos puros
 ├── src/
-│   ├── assets/             # Mídias e imagens da aplicação
-│   ├── components/         # Componentes reutilizáveis de UI
-│   │   ├── layout/         # Componentes de estrutura (Footer, ScrollToTop, etc.)
-│   │   ├── Navbar.tsx      # Barra de navegação responsiva
-│   │   ├── Quiz.tsx        # Lógica e interface do Quiz
-│   │   ├── Section.tsx     # Seções modulares da página
-│   │   └── Timeline.tsx    # Linha do tempo interativa
-│   ├── context/
-│   │   └── AuthContext.tsx # Contexto global de autenticação e dados do usuário (Supabase)
-│   ├── data/
-│   │   ├── biographyContent.ts # Dados estruturados de biografia e histórias
-│   │   └── navigation.ts       # Configurações de rotas e navegação
-│   ├── pages/
-│   │   ├── DetailPages.tsx # Páginas detalhadas (Vida & Legado, Fé, Santidade)
-│   │   ├── Home.tsx        # Página inicial
-│   │   ├── Login.tsx       # Tela de login
-│   │   ├── Profile.tsx     # Painel do perfil, XP e Ligas
-│   │   ├── QuizPage.tsx    # Página do Quiz
-│   │   └── Register.tsx    # Tela de cadastro
-│   ├── services/
-│   │   ├── api.ts          # Cliente HTTP Axios (configuração base)
-│   │   └── supabase.ts     # Inicialização do cliente Supabase
-│   ├── App.tsx             # Definição de rotas e provedores
-│   ├── index.css           # Estilos globais e diretivas Tailwind
-│   └── main.tsx            # Ponto de entrada React
-├── .env.example            # Exemplo de variáveis de ambiente
-├── package.json            # Dependências e scripts do projeto
-├── tailwind.config.js      # Configuração do Tailwind CSS
-└── vite.config.ts          # Configuração do Vite
+│   ├── assets/             # Imagens e mídias
+│   ├── components/         # Componentes React (Navbar, Footer, Quiz, Timeline)
+│   ├── context/            # Contextos Globais (AuthContext p/ Supabase)
+│   ├── data/               # Dados estruturados de conteúdo de texto
+│   ├── pages/              # Telas (Home, Login, Profile, QuizPage, Detalhes)
+│   ├── services/           # Configuração do Cliente Supabase e APIs
+│   ├── App.tsx             # Entrypoint das rotas
+│   └── index.css           # Estilos globais e injeções Tailwind
+├── schema.sql              # Script SQL COMPLETO de migração e permissões RLS
+└── vite.config.ts          # Configurações do Vite
 ```
 
 ---
 
-## 🛢️ Estrutura do Banco de Dados (Supabase)
-
-### Tabela `profiles`
-- `id` (uuid, chave primária ligada a `auth.users`)
-- `nome` (text)
-- `email` (text)
-- `xp` (integer)
-- `nivel` (text)
-- `liga_id` (integer, chave estrangeira para `ligas.id`)
-
-### Tabela `ligas`
-- `id` (bigint, chave primária)
-- `nome` (text)
-- `codigo_acesso` (text, código único para entrada)
-- `created_at` (timestamp)
-
----
-
-## 🛠️ Como Executar o Projeto
+## 🛠️ Como Instalar e Rodar o Projeto Localmente
 
 ### Pré-requisitos
-- **Node.js** (versão 18 ou superior)
-- **npm** (ou yarn/pnpm)
-- Projeto configurado no **Supabase** (com as tabelas `profiles` e `ligas` criadas)
+- **Node.js** v18+ 
+- **npm**, **yarn** ou **pnpm**
+- Um projeto limpo criado no **Supabase**.
 
-### 1. Clonar o repositório e instalar dependências
-```bash
-git clone <URL_DO_REPOSITORIO>
-cd frontend
-npm install
-```
+### Passo a Passo
 
-### 2. Configurar as Variáveis de Ambiente
-Crie um arquivo `.env` na raiz da pasta `frontend/` com base no arquivo `.env.example`:
+1. **Clonar o Repositório**
+   ```bash
+   git clone <URL_DO_REPOSITORIO>
+   cd frontend
+   npm install
+   ```
 
-```env
-VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-VITE_SUPABASE_ANON_KEY=sua-chave-anon-aqui
-```
+2. **Configuração do Banco de Dados**
+   - Acesse o painel do seu projeto no Supabase.
+   - Vá no menu **SQL Editor**.
+   - Copie todo o conteúdo do arquivo `schema.sql` presente na raiz deste repositório, cole no editor e execute (`Run`). 
+   - *Este script criará as tabelas, funções de segurança, habilitará o RLS (Policies) e fará o seed das perguntas (carga inicial de dados).*
 
-### 3. Rodar em Ambiente de Desenvolvimento
-```bash
-npm run dev
-```
-Acesse a aplicação em `http://localhost:5173`.
+3. **Configuração das Variáveis de Ambiente**
+   - Na raiz do `frontend/`, crie o arquivo `.env` (ou utilize `.env.local`):
+   ```env
+   VITE_SUPABASE_URL=sua_url_do_projeto
+   VITE_SUPABASE_ANON_KEY=sua_chave_anonima_publica
+   ```
 
-### 4. Construir para Produção
-```bash
-npm run build
-```
+4. **Rodar o Servidor de Desenvolvimento**
+   ```bash
+   npm run dev
+   ```
+   - O aplicativo estará rodando em `http://localhost:5173`.
+
+5. **Gerar Versão de Produção (Build)**
+   ```bash
+   npm run build
+   ```
 
 ---
 
-## 📜 Licença
+## 📜 Propósito e Licença
 
-Este projeto é desenvolvido para fins educativos e de devoção a **São Carlo Acutis**.
+Este projeto é desenvolvido para fins educativos, promovendo conhecimento sobre a Doutrina Católica e a inspiradora vida de Carlo Acutis, provando que é perfeitamente possível aliar as novas tecnologias com a busca pela santidade.
+
+> *"A Eucaristia é a minha autoestrada para o Céu." - Carlo Acutis*

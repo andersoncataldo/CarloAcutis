@@ -105,22 +105,73 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
     }
   };
 
-  if (loading) return <div className="p-20 text-center font-black uppercase tracking-widest text-slate-400">Carregando Questões...</div>;
+  if (loading) return (
+    <div className="w-full max-w-3xl mx-auto space-y-8 animate-pulse">
+      <div className="flex justify-between items-center">
+        <div className="h-3 w-24 bg-slate-200 rounded"></div>
+        <div className="h-3 w-16 bg-slate-200 rounded"></div>
+      </div>
+      <div className="bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl border border-slate-100 space-y-10">
+        <div className="h-8 bg-slate-200 rounded-xl w-3/4"></div>
+        <div className="grid gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="flex items-center gap-6 p-6 rounded-2xl border-2 border-transparent bg-slate-50">
+              <div className="w-10 h-10 rounded-xl bg-slate-200"></div>
+              <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
   if (perguntas.length === 0) return <div className="p-20 text-center font-black uppercase tracking-widest text-slate-400">Nenhuma pergunta encontrada para esta temporada.</div>;
 
   if (completed) return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-12 bg-white rounded-[3rem] shadow-2xl text-center space-y-6">
-      <h3 className="text-4xl font-black italic uppercase text-blue-950">Temporada Concluída!</h3>
-      <p className="text-slate-500 font-medium">Você acertou {score} de {perguntas.length} perguntas.</p>
-      <div className="text-6xl font-black text-red-600">+{score * 100} XP</div>
-      <button onClick={() => { setCurrentIndex(0); setCompleted(false); setScore(0); }} className="px-8 py-4 bg-blue-900 text-white rounded-2xl font-black uppercase tracking-widest">Jogar Novamente</button>
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.9 }} 
+      animate={{ opacity: 1, scale: 1 }} 
+      className="p-12 bg-white rounded-[3rem] shadow-2xl text-center space-y-8 relative overflow-hidden"
+    >
+      <motion.div 
+        initial={{ y: 50, opacity: 0 }} 
+        animate={{ y: 0, opacity: 1 }} 
+        transition={{ delay: 0.2 }}
+        className="space-y-4 relative z-10"
+      >
+        <div className="text-6xl mb-6">🎉</div>
+        <h3 className="text-4xl md:text-5xl font-black italic uppercase text-blue-950">Temporada Concluída!</h3>
+        <p className="text-slate-500 font-medium">Você acertou {score} de {perguntas.length} perguntas.</p>
+        <motion.div 
+          initial={{ scale: 0 }} 
+          animate={{ scale: 1 }} 
+          transition={{ type: "spring", delay: 0.5 }}
+          className="text-6xl md:text-7xl font-black text-red-600 py-4"
+        >
+          +{score * 100} XP
+        </motion.div>
+        <button onClick={() => { setCurrentIndex(0); setCompleted(false); setScore(0); }} className="px-8 py-4 bg-blue-900 hover:bg-blue-800 transition-colors text-white rounded-2xl font-black uppercase tracking-widest mt-4">
+          Jogar Novamente
+        </button>
+      </motion.div>
+      {/* Decorative background circles for celebration */}
+      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3, duration: 1 }} className="absolute -top-20 -left-20 w-64 h-64 bg-yellow-300/20 rounded-full blur-3xl"></motion.div>
+      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.4, duration: 1 }} className="absolute -bottom-20 -right-20 w-64 h-64 bg-red-500/20 rounded-full blur-3xl"></motion.div>
     </motion.div>
   );
 
   const perguntaAtual = perguntas[currentIndex];
+  const progressPercent = ((currentIndex) / perguntas.length) * 100;
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-8">
+      {/* ProgressBar */}
+      <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: `${progressPercent}%` }}
+          className="h-full bg-blue-600"
+        />
+      </div>
       <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
         <span>Questão {currentIndex + 1} de {perguntas.length}</span>
         <span className="text-blue-600">XP Atual: {user?.xp}</span>
