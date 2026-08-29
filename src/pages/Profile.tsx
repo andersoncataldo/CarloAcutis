@@ -19,6 +19,7 @@ const Profile: React.FC = () => {
   const [rankingLoading, setRankingLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showSairModal, setShowSairModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
