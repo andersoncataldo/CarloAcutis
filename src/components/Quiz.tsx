@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +14,18 @@ interface Pergunta {
 
 interface QuizProps {
   temporadaId: number;
+}
+
+// Fisher-Yates simples para embaralhar a ordem visual das alternativas.
+// O "label" original (A/B/C/D) é preservado dentro de cada item, então o
+// gabarito enviado ao backend continua correto independente da posição na tela.
+function shuffle<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }
 
 const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
@@ -34,14 +46,48 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
         const { data, error } = await supabase
           .from('perguntas')
           .select('id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d')
-          .eq('temporada_id', temporadaId);
+          .eq('temporada_id', temporadaId)
+          .eq('ativa', true)
+          .order('ordem', { ascending: true, nullsFirst: false })
+          .order('id', { ascending: true });
 
         if (error) {
           console.error("Erro ao buscar perguntas", error);
+          setLoading(false);
+          return;
+        }
+
+        const lista = (data ?? []) as Pergunta[];
+        setPerguntas(lista);
+        setCompleted(false);
+
+        // Retoma o progresso: descobre quais perguntas desta temporada
+        // o usuário já respondeu, para não reiniciar do zero a cada reload.
+        if (user && lista.length > 0) {
+          const { data: respostas, error: respErr } = await supabase
+            .from('respostas_usuario')
+            .select('pergunta_id, acertou')
+            .in('pergunta_id', lista.map(p => p.id));
+
+          if (!respErr && respostas) {
+            const respondidasIds = new Set(respostas.map(r => r.pergunta_id));
+            const acertos = respostas.filter(r => r.acertou).length;
+            const proximoIndex = lista.findIndex(p => !respondidasIds.has(p.id));
+
+            setScore(acertos);
+            if (proximoIndex === -1) {
+              // Todas já respondidas nesta sessão anterior
+              setCurrentIndex(lista.length - 1);
+              setCompleted(respondidasIds.size === lista.length);
+            } else {
+              setCurrentIndex(proximoIndex);
+            }
+          } else {
+            setCurrentIndex(0);
+            setScore(0);
+          }
         } else {
-          setPerguntas(data as Pergunta[]);
           setCurrentIndex(0);
-          setCompleted(false);
           setScore(0);
         }
       } catch (err) {
@@ -52,6 +98,7 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
     };
 
     fetchPerguntas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [temporadaId]);
 
   const [feedbackMsg, setFeedbackMsg] = useState<string>('');
@@ -162,6 +209,20 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
   const perguntaAtual = perguntas[currentIndex];
   const progressPercent = ((currentIndex) / perguntas.length) * 100;
 
+  // Embaralha a ordem visual das opções a cada pergunta nova, mas mantém
+  // o label original (A/B/C/D) atrelado ao texto certo, então o backend
+  // continua recebendo a letra correta independente da posição na tela.
+  const opcoesEmbaralhadas = useMemo(() => {
+    if (!perguntaAtual) return [];
+    return shuffle([
+      { label: 'A', text: perguntaAtual.opcao_a },
+      { label: 'B', text: perguntaAtual.opcao_b },
+      { label: 'C', text: perguntaAtual.opcao_c },
+      { label: 'D', text: perguntaAtual.opcao_d }
+    ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, perguntaAtual?.id]);
+
   return (
     <div className="w-full max-w-3xl mx-auto space-y-8">
       {/* ProgressBar */}
@@ -188,12 +249,7 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
         </h2>
 
         <div className="grid gap-4">
-          {[
-            { label: 'A', text: perguntaAtual.opcao_a },
-            { label: 'B', text: perguntaAtual.opcao_b },
-            { label: 'C', text: perguntaAtual.opcao_c },
-            { label: 'D', text: perguntaAtual.opcao_d }
-          ].map((opt) => (
+          {opcoesEmbaralhadas.map((opt) => (
             <button
               key={opt.label}
               onClick={() => handleAnswer(opt.label)}

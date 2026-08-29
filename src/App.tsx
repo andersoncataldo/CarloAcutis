@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import QuizPage from './pages/QuizPage';
+import Admin from './pages/Admin';
 import { 
   VidaLegadoPage,
   FeDevocaoPage,
@@ -27,6 +28,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
   return user ? <>{children}</> : <Navigate to="/login" />;
+};
+
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isAdmin, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" />;
+  return isAdmin ? <>{children}</> : <Navigate to="/perfil" />;
 };
 
 export default function App() {
@@ -53,6 +61,12 @@ export default function App() {
                 <ProtectedRoute>
                   <QuizPage />
                 </ProtectedRoute>
+              } />
+
+              <Route path="/admin" element={
+                <AdminRoute>
+                  <Admin />
+                </AdminRoute>
               } />
 
               {/* Novas Rotas por Categoria */}

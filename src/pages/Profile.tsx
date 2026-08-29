@@ -10,8 +10,17 @@ interface Membro {
   nivel: string;
 }
 
+interface Conquista {
+  id: number;
+  codigo: string;
+  nome: string;
+  descricao: string;
+  icone: string;
+  conquistada: boolean;
+}
+
 const Profile: React.FC = () => {
-  const { user, signOut, refreshUser } = useAuth();
+  const { user, signOut, refreshUser, streak } = useAuth();
   const [ranking, setRanking] = useState<Membro[]>([]);
   const [ligaNome, setLigaNome] = useState('');
   const [codigoAcesso, setCodigoAcesso] = useState('');
@@ -19,6 +28,8 @@ const Profile: React.FC = () => {
   const [rankingLoading, setRankingLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showSairModal, setShowSairModal] = useState(false);
+  const [conquistas, setConquistas] = useState<Conquista[]>([]);
+  const [conquistasLoading, setConquistasLoading] = useState(false);
 
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -53,6 +64,37 @@ const Profile: React.FC = () => {
       fetchRanking();
     }
   }, [user?.liga_id, fetchRanking]);
+
+  const fetchConquistas = useCallback(async () => {
+    if (!user) return;
+    setConquistasLoading(true);
+    try {
+      const [{ data: todas, error: errTodas }, { data: minhas, error: errMinhas }] = await Promise.all([
+        supabase.from('conquistas').select('id, codigo, nome, descricao, icone'),
+        supabase.from('usuario_conquistas').select('conquista_id').eq('user_id', user.id)
+      ]);
+
+      if (errTodas || errMinhas) {
+        console.error("Erro ao buscar conquistas", errTodas || errMinhas);
+        return;
+      }
+
+      const conquistadasIds = new Set((minhas ?? []).map(m => m.conquista_id));
+      const lista: Conquista[] = (todas ?? []).map(c => ({
+        ...c,
+        conquistada: conquistadasIds.has(c.id)
+      }));
+      setConquistas(lista);
+    } catch (err) {
+      console.error("Erro ao buscar conquistas", err);
+    } finally {
+      setConquistasLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchConquistas();
+  }, [fetchConquistas]);
 
   const handleCriarLiga = async () => {
     if (!ligaNome.trim() || !user) return;
@@ -160,6 +202,44 @@ const Profile: React.FC = () => {
                   <motion.div initial={{ width: 0 }} animate={{ width: `${progressPercentage}%` }} className="h-full bg-gradient-to-r from-blue-600 to-red-600"></motion.div>
                 </div>
               </div>
+            </div>
+
+            {/* Streak */}
+            {streak && (
+              <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 flex items-center justify-between gap-4">
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Sequência de Fé</h4>
+                  <div className="text-3xl font-black italic text-blue-950">{streak.streak_atual} {streak.streak_atual === 1 ? 'dia' : 'dias'}</div>
+                  <div className="text-[10px] font-bold text-slate-400 mt-1">Recorde: {streak.maior_streak} dias</div>
+                </div>
+                <div className="text-5xl">🔥</div>
+              </div>
+            )}
+
+            {/* Conquistas */}
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-4">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Conquistas</h4>
+              {conquistasLoading ? (
+                <div className="grid grid-cols-4 gap-3">
+                  {[1, 2, 3, 4].map(i => <div key={i} className="aspect-square rounded-2xl bg-slate-100 animate-pulse"></div>)}
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-3">
+                  {conquistas.map(c => (
+                    <div
+                      key={c.id}
+                      title={`${c.nome} — ${c.descricao}`}
+                      className={`aspect-square rounded-2xl flex items-center justify-center text-2xl border-2 transition-all ${
+                        c.conquistada
+                          ? 'bg-yellow-50 border-yellow-300'
+                          : 'bg-slate-50 border-transparent grayscale opacity-30'
+                      }`}
+                    >
+                      {c.icone}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Liga Management */}

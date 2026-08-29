@@ -14,14 +14,22 @@ export interface UserProfile {
   email: string;
   xp: number;
   nivel: string;
+  role: 'user' | 'admin';
   liga_id: number | null;
   liga?: Liga | null;
+}
+
+export interface StreakInfo {
+  streak_atual: number;
+  maior_streak: number;
 }
 
 interface AuthContextData {
   user: UserProfile | null;
   authUser: SupabaseUser | null;
   loading: boolean;
+  isAdmin: boolean;
+  streak: StreakInfo | null;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -32,6 +40,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [authUser, setAuthUser] = useState<SupabaseUser | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [streak, setStreak] = useState<StreakInfo | null>(null);
+
+  // Registra o acesso do dia (atualiza sequência/streak) sem bloquear a UI
+  const registrarAcesso = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.rpc('registrar_acesso');
+      if (!error && data) {
+        setStreak(data as StreakInfo);
+      }
+    } catch (err) {
+      console.error('Erro ao registrar acesso diário:', err);
+    }
+  }, []);
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
@@ -63,6 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
+        registrarAcesso();
       }
       setLoading(false);
     });
@@ -72,8 +94,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthUser(session?.user ?? null);
       if (session?.user) {
         await fetchProfile(session.user.id);
+        registrarAcesso();
       } else {
         setUser(null);
+        setStreak(null);
       }
       setLoading(false);
     });
@@ -81,16 +105,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, [fetchProfile]);
+  }, [fetchProfile, registrarAcesso]);
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
     setAuthUser(null);
+    setStreak(null);
   }, []);
 
+  const isAdmin = user?.role === 'admin';
+
   return (
-    <AuthContext.Provider value={{ user, authUser, loading, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ user, authUser, loading, isAdmin, streak, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
