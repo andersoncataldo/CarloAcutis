@@ -30,10 +30,7 @@ const Profile: React.FC = () => {
   const [showSairModal, setShowSairModal] = useState(false);
   const [conquistas, setConquistas] = useState<Conquista[]>([]);
   const [conquistasLoading, setConquistasLoading] = useState(false);
-<<<<<<< HEAD
   const [meuCodigoLiga, setMeuCodigoLiga] = useState<string | null>(null);
-=======
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
 
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -45,16 +42,11 @@ const Profile: React.FC = () => {
     if (!user?.liga_id) return;
     setRankingLoading(true);
     try {
-<<<<<<< HEAD
       // Lê da view pública de ranking (não da tabela profiles diretamente):
       // profiles guarda e-mail e agora só é legível pelo próprio dono via
       // RLS. A view expõe apenas as colunas seguras para exibição pública.
       const { data, error } = await supabase
         .from('ranking_publico')
-=======
-      const { data, error } = await supabase
-        .from('profiles')
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
         .select('id, nome, xp, nivel')
         .eq('liga_id', user.liga_id)
         .order('xp', { ascending: false });
@@ -77,7 +69,6 @@ const Profile: React.FC = () => {
     }
   }, [user?.liga_id, fetchRanking]);
 
-<<<<<<< HEAD
   useEffect(() => {
     if (!user?.liga_id) {
       setMeuCodigoLiga(null);
@@ -98,8 +89,6 @@ const Profile: React.FC = () => {
     return () => { cancelled = true; };
   }, [user?.liga_id]);
 
-=======
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
   const fetchConquistas = useCallback(async () => {
     if (!user) return;
     setConquistasLoading(true);
@@ -298,7 +287,6 @@ const Profile: React.FC = () => {
               <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-4 text-center">
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sua Liga</h4>
                 <div className="text-2xl font-black italic text-blue-950 uppercase">{user.liga.nome}</div>
-<<<<<<< HEAD
                 {meuCodigoLiga ? (
                   <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => copyCode(meuCodigoLiga)}>
                     <span className="text-[10px] block text-slate-400 uppercase font-bold mb-1">
@@ -311,14 +299,6 @@ const Profile: React.FC = () => {
                     Só quem criou esta liga pode ver o código de acesso.
                   </p>
                 )}
-=======
-                <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => user.liga && copyCode(user.liga.codigoAcesso)}>
-                  <span className="text-[10px] block text-slate-400 uppercase font-bold mb-1">
-                    Clique para copiar o Código
-                  </span>
-                  <span className="font-mono font-black text-red-600 tracking-wider">{user.liga.codigoAcesso}</span>
-                </div>
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
                 <button onClick={() => setShowSairModal(true)} className="mt-4 w-full py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors">
                   Sair da Liga
                 </button>

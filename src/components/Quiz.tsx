@@ -1,16 +1,9 @@
-<<<<<<< HEAD
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../services/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { ResponderPerguntaResult } from '../types/database.types';
 import { shuffle, calcularProgresso, progressoPercentual } from '../utils/quiz';
-=======
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../services/supabase';
-import { useAuth } from '../context/AuthContext';
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
 
 interface Pergunta {
   id: number;
@@ -25,28 +18,14 @@ interface QuizProps {
   temporadaId: number;
 }
 
-<<<<<<< HEAD
 function isValidRpcResult(data: unknown): data is ResponderPerguntaResult {
   if (!data || typeof data !== 'object') return false;
   const d = data as Record<string, unknown>;
   return typeof d.correct === 'boolean' && typeof d.xp === 'number';
-=======
-// Fisher-Yates simples para embaralhar a ordem visual das alternativas.
-// O "label" original (A/B/C/D) é preservado dentro de cada item, então o
-// gabarito enviado ao backend continua correto independente da posição na tela.
-function shuffle<T>(array: T[]): T[] {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
 }
 
 const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
   const [perguntas, setPerguntas] = useState<Pergunta[]>([]);
-<<<<<<< HEAD
   const [perguntasLoading, setPerguntasLoading] = useState(true);
   const [perguntasError, setPerguntasError] = useState<string | null>(null);
 
@@ -85,20 +64,6 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
     const fetchPerguntas = async () => {
       setPerguntasLoading(true);
       setPerguntasError(null);
-=======
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [score, setScore] = useState(0);
-  const [completed, setCompleted] = useState(false);
-
-  const { user, refreshUser } = useAuth();
-
-  useEffect(() => {
-    const fetchPerguntas = async () => {
-      setLoading(true);
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
       try {
         const { data, error } = await supabase
           .from('perguntas')
@@ -106,7 +71,6 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
           .eq('temporada_id', temporadaId)
           .eq('ativa', true)
           .order('ordem', { ascending: true, nullsFirst: false })
-<<<<<<< HEAD
           .order('id', { ascending: true })
           .abortSignal(controller.signal);
 
@@ -128,58 +92,10 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
         setPerguntas([]);
       } finally {
         if (!cancelled) setPerguntasLoading(false);
-=======
-          .order('id', { ascending: true });
-
-        if (error) {
-          console.error("Erro ao buscar perguntas", error);
-          setLoading(false);
-          return;
-        }
-
-        const lista = (data ?? []) as Pergunta[];
-        setPerguntas(lista);
-        setCompleted(false);
-
-        // Retoma o progresso: descobre quais perguntas desta temporada
-        // o usuário já respondeu, para não reiniciar do zero a cada reload.
-        if (user && lista.length > 0) {
-          const { data: respostas, error: respErr } = await supabase
-            .from('respostas_usuario')
-            .select('pergunta_id, acertou')
-            .in('pergunta_id', lista.map(p => p.id));
-
-          if (!respErr && respostas) {
-            const respondidasIds = new Set(respostas.map(r => r.pergunta_id));
-            const acertos = respostas.filter(r => r.acertou).length;
-            const proximoIndex = lista.findIndex(p => !respondidasIds.has(p.id));
-
-            setScore(acertos);
-            if (proximoIndex === -1) {
-              // Todas já respondidas nesta sessão anterior
-              setCurrentIndex(lista.length - 1);
-              setCompleted(respondidasIds.size === lista.length);
-            } else {
-              setCurrentIndex(proximoIndex);
-            }
-          } else {
-            setCurrentIndex(0);
-            setScore(0);
-          }
-        } else {
-          setCurrentIndex(0);
-          setScore(0);
-        }
-      } catch (err) {
-        console.error("Erro ao buscar perguntas", err);
-      } finally {
-        setLoading(false);
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
       }
     };
 
     fetchPerguntas();
-<<<<<<< HEAD
     return () => {
       cancelled = true;
       controller.abort();
@@ -304,27 +220,6 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
         console.error('Resposta inesperada do banco:', data);
         setSelectedOption(null);
         setAnswerError('Resposta inesperada do servidor. Tente novamente.');
-=======
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [temporadaId]);
-
-  const [feedbackMsg, setFeedbackMsg] = useState<string>('');
-
-  const handleAnswer = async (opcao: string) => {
-    if (feedback || selectedOption || !user) return;
-
-    setSelectedOption(opcao);
-    try {
-      // Chama a função RPC segura no banco do Supabase para processar a resposta sem expor o gabarito
-      const { data, error } = await supabase.rpc('responder_pergunta', {
-        p_pergunta_id: perguntas[currentIndex].id,
-        p_resposta_selecionada: opcao
-      });
-
-      if (error) {
-        console.error("Erro RPC:", error);
-        setSelectedOption(null);
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
         return;
       }
 
@@ -341,7 +236,6 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
         setFeedbackMsg('Resposta Incorreta');
       }
 
-<<<<<<< HEAD
       // Atualiza XP exibido no header sem bloquear o avanço do quiz.
       refreshUser().catch(err => console.error('Erro ao atualizar perfil:', err));
 
@@ -372,27 +266,6 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
 
   const loading = perguntasLoading || progressLoading;
 
-=======
-      await refreshUser();
-
-      setTimeout(() => {
-        setFeedback(null);
-        setSelectedOption(null);
-        setFeedbackMsg('');
-        if (currentIndex < perguntas.length - 1) {
-          setCurrentIndex(prev => prev + 1);
-        } else {
-          setCompleted(true);
-        }
-      }, 1500);
-
-    } catch (err) {
-      console.error("Erro ao processar resposta", err);
-      setSelectedOption(null);
-    }
-  };
-
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
   if (loading) return (
     <div className="w-full max-w-3xl mx-auto space-y-8 animate-pulse">
       <div className="flex justify-between items-center">
@@ -412,7 +285,6 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
       </div>
     </div>
   );
-<<<<<<< HEAD
 
   if (perguntasError) return (
     <div className="p-12 text-center space-y-4">
@@ -447,83 +319,33 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
       <motion.div
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-=======
-  if (perguntas.length === 0) return <div className="p-20 text-center font-black uppercase tracking-widest text-slate-400">Nenhuma pergunta encontrada para esta temporada.</div>;
-
-  if (completed) return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.9 }} 
-      animate={{ opacity: 1, scale: 1 }} 
-      className="p-12 bg-white rounded-[3rem] shadow-2xl text-center space-y-8 relative overflow-hidden"
-    >
-      <motion.div 
-        initial={{ y: 50, opacity: 0 }} 
-        animate={{ y: 0, opacity: 1 }} 
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
         transition={{ delay: 0.2 }}
         className="space-y-4 relative z-10"
       >
         <div className="text-6xl mb-6">🎉</div>
         <h3 className="text-4xl md:text-5xl font-black italic uppercase text-blue-950">Temporada Concluída!</h3>
         <p className="text-slate-500 font-medium">Você acertou {score} de {perguntas.length} perguntas.</p>
-<<<<<<< HEAD
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-=======
-        <motion.div 
-          initial={{ scale: 0 }} 
-          animate={{ scale: 1 }} 
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
           transition={{ type: "spring", delay: 0.5 }}
           className="text-6xl md:text-7xl font-black text-red-600 py-4"
         >
           +{score * 100} XP
         </motion.div>
-<<<<<<< HEAD
       </motion.div>
-=======
-        <button onClick={() => { setCurrentIndex(0); setCompleted(false); setScore(0); }} className="px-8 py-4 bg-blue-900 hover:bg-blue-800 transition-colors text-white rounded-2xl font-black uppercase tracking-widest mt-4">
-          Jogar Novamente
-        </button>
-      </motion.div>
-      {/* Decorative background circles for celebration */}
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3, duration: 1 }} className="absolute -top-20 -left-20 w-64 h-64 bg-yellow-300/20 rounded-full blur-3xl"></motion.div>
       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.4, duration: 1 }} className="absolute -bottom-20 -right-20 w-64 h-64 bg-red-500/20 rounded-full blur-3xl"></motion.div>
     </motion.div>
   );
 
-<<<<<<< HEAD
   const progressPercent = progressoPercentual(currentIndex, perguntas.length);
-=======
-  const perguntaAtual = perguntas[currentIndex];
-  const progressPercent = ((currentIndex) / perguntas.length) * 100;
-
-  // Embaralha a ordem visual das opções a cada pergunta nova, mas mantém
-  // o label original (A/B/C/D) atrelado ao texto certo, então o backend
-  // continua recebendo a letra correta independente da posição na tela.
-  const opcoesEmbaralhadas = useMemo(() => {
-    if (!perguntaAtual) return [];
-    return shuffle([
-      { label: 'A', text: perguntaAtual.opcao_a },
-      { label: 'B', text: perguntaAtual.opcao_b },
-      { label: 'C', text: perguntaAtual.opcao_c },
-      { label: 'D', text: perguntaAtual.opcao_d }
-    ]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, perguntaAtual?.id]);
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-8">
       {/* ProgressBar */}
       <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-<<<<<<< HEAD
         <motion.div
-=======
-        <motion.div 
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
           initial={{ width: 0 }}
           animate={{ width: `${progressPercent}%` }}
           className="h-full bg-blue-600"
@@ -531,17 +353,10 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
       </div>
       <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
         <span>Questão {currentIndex + 1} de {perguntas.length}</span>
-<<<<<<< HEAD
         <span className="text-blue-600">XP Atual: {user.xp}</span>
       </div>
 
       <motion.div
-=======
-        <span className="text-blue-600">XP Atual: {user?.xp}</span>
-      </div>
-
-      <motion.div 
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
         key={currentIndex}
         initial={{ x: 20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -556,18 +371,11 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
             <button
               key={opt.label}
               onClick={() => handleAnswer(opt.label)}
-<<<<<<< HEAD
               disabled={submitting || !!feedback}
               aria-pressed={selectedOption === opt.label}
               className={`group flex items-center gap-6 p-6 rounded-2xl border-2 transition-all text-left disabled:cursor-not-allowed ${
                 feedback === 'correct' && selectedOption === opt.label
                 ? 'bg-green-50 border-green-500'
-=======
-              disabled={!!feedback}
-              className={`group flex items-center gap-6 p-6 rounded-2xl border-2 transition-all text-left ${
-                feedback === 'correct' && selectedOption === opt.label
-                ? 'bg-green-50 border-green-500' 
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
                 : feedback === 'wrong' && opt.label === selectedOption
                 ? 'bg-red-50 border-red-500'
                 : 'bg-slate-50 border-transparent hover:border-blue-600'
@@ -588,7 +396,6 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
         </div>
       </motion.div>
 
-<<<<<<< HEAD
       <div aria-live="polite" className="min-h-[1.5rem]">
         <AnimatePresence>
           {feedback && (
@@ -613,20 +420,6 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
           )}
         </AnimatePresence>
       </div>
-=======
-      <AnimatePresence>
-        {feedback && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className={`text-center font-black uppercase tracking-[0.3em] ${feedback === 'correct' ? 'text-green-500' : 'text-red-600'}`}
-          >
-            {feedbackMsg}
-          </motion.div>
-        )}
-      </AnimatePresence>
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
     </div>
   );
 };
