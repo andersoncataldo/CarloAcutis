@@ -19,6 +19,8 @@ const QuizPage: React.FC = () => {
         const { data, error } = await supabase
           .from('temporadas')
           .select('id, titulo, descricao')
+          .eq('ativa', true)
+          .order('ordem', { ascending: true, nullsFirst: false })
           .order('id', { ascending: true });
 
         if (error) {

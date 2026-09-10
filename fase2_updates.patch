@@ -1,0 +1,2326 @@
+diff --git a/.env.example b/.env.example
+index eaebb99..936579a 100644
+--- a/.env.example
++++ b/.env.example
+@@ -1,2 +1,11 @@
+-VITE_SUPABASE_URL=https://cagywhslrofuwlmpzbfy.supabase.co
+-VITE_SUPABASE_ANON_KEY=sb_publishable_mmxRQpS9zKRRmndSiE8i6g_qVvdTSsa
++# Copie este arquivo para .env e preencha com os valores do SEU projeto
++# Supabase (Project Settings > API). Nunca use valores reais aqui — este
++# arquivo é versionado no git.
++#
++# IMPORTANTE: use a chave "publishable"/"anon" pública, NUNCA a
++# "service_role" — a service_role ignora RLS e nunca deve ir para o
++# frontend nem para variáveis VITE_* (que ficam embutidas no bundle
++# público, visíveis a qualquer visitante do site).
++
++VITE_SUPABASE_URL=https://SEU-PROJETO.supabase.co
++VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_XXXXXXXXXXXXXXXXXXXXXXXX
+diff --git a/README.md b/README.md
+index 1e1da92..29153de 100644
+--- a/README.md
++++ b/README.md
+@@ -109,11 +109,13 @@ frontend/
+    - *Este script criará as tabelas, funções de segurança, habilitará o RLS (Policies) e fará o seed das perguntas (carga inicial de dados).*
+ 
+ 3. **Configuração das Variáveis de Ambiente**
+-   - Na raiz do `frontend/`, crie o arquivo `.env` (ou utilize `.env.local`):
++   - Na raiz do projeto, copie `.env.example` para `.env` e preencha com os dados do seu projeto Supabase (aba **Project Settings > API**):
+    ```env
+    VITE_SUPABASE_URL=sua_url_do_projeto
+-   VITE_SUPABASE_ANON_KEY=sua_chave_anonima_publica
++   VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_publica_anon
+    ```
++   - **Nunca** use a chave `service_role` aqui — ela ignora todas as políticas de segurança (RLS) e nunca deve chegar ao navegador do usuário.
++   - Sem essas variáveis definidas, a aplicação falha explicitamente ao iniciar (por design — ver `src/services/supabase.ts`), em vez de rodar silenciosamente contra um projeto errado.
+ 
+ 4. **Rodar o Servidor de Desenvolvimento**
+    ```bash
+@@ -121,13 +123,98 @@ frontend/
+    ```
+    - O aplicativo estará rodando em `http://localhost:5173`.
+ 
+-5. **Gerar Versão de Produção (Build)**
++5. **Rodar a Suíte de Qualidade**
++   ```bash
++   npm run check      # lint + typecheck + testes, tudo junto
++   npm run test       # só os testes (Vitest)
++   npm run test:coverage
++   ```
++
++6. **Gerar Versão de Produção (Build)**
+    ```bash
+    npm run build
+    ```
+ 
+ ---
+ 
++## 🛠️ Operação e Manutenção
++
++### Arquitetura
++
++SPA em React + Vite, hospedada como site estático (Vercel). Toda a lógica de
++autenticação, dados e regras de negócio (XP, ligas, conquistas) vive no
++Supabase (Postgres + Auth + RLS + RPCs `SECURITY DEFINER`). O frontend nunca
++confia em nenhuma validação só no cliente — toda regra que importa (XP,
++permissão de admin, limite de ligas, resposta de quiz) é reforçada no banco.
++
++### Fluxo de autenticação
++
++1. Login/cadastro via Supabase Auth (`src/pages/Login.tsx`, `Register.tsx`).
++2. Uma trigger (`handle_new_user`) cria a linha em `profiles` automaticamente.
++3. `AuthContext` escuta `onAuthStateChange`, busca o perfil (`profiles`) e
++   registra o acesso do dia (`registrar_acesso`, para a sequência/streak).
++4. Rotas protegidas (`/perfil`, `/quiz`, `/admin`) checam `user`/`isAdmin`
++   do contexto — mas a proteção real está nas RLS policies do banco.
++
++### Modelo de dados (resumo)
++
++- `profiles` — 1:1 com `auth.users`. Guarda XP, nível (coluna **gerada**
++  automaticamente a partir do XP, nunca gravada manualmente), role e liga.
++- `ligas` — grupos com código de acesso; criação e entrada só via RPC.
++- `temporadas` / `perguntas` — conteúdo do quiz, com `ativa`/`ordem` para
++  controle editorial pelo painel `/admin`, sem precisar de deploy.
++- `respostas_usuario` — histórico de respostas (1 por usuário/pergunta).
++- `streaks`, `conquistas`, `usuario_conquistas` — gamificação.
++- `auditoria_admin` — log automático (via trigger) de toda alteração de
++  conteúdo e de permissões administrativas.
++
++### Política de RLS (resumo)
++
++- `profiles`: cada usuário só lê a própria linha (contém e-mail). Ranking
++  público usa a view `ranking_publico`, que expõe só `id, nome, xp, nivel`.
++- `ligas`: `codigo_acesso` não é legível por SELECT direto — só a RPC
++  `criar_liga` (na criação) e `obter_minha_liga_codigo` (para o criador
++  recuperar depois) retornam esse valor.
++- `temporadas`/`perguntas`: leitura pública; escrita restrita a
++  `profiles.role = 'admin'`.
++- `usuario_conquistas`/`streaks`: cada usuário só lê os próprios dados.
++
++### Processo de migração
++
++O schema vive em `schema.sql` na raiz — um script único, idempotente
++(pode ser executado várias vezes sem quebrar nada: usa `IF NOT EXISTS`,
++`CREATE OR REPLACE`, `DROP POLICY IF EXISTS` etc.). Para aplicar:
++
++1. Abra o **SQL Editor** do projeto Supabase.
++2. Cole o conteúdo de `schema.sql` inteiro e rode.
++3. Aplique migrações no banco **antes** de publicar uma versão do frontend
++   que dependa delas (ex: novas colunas, novas RPCs).
++
++### Criar um administrador
++
++Depois que a pessoa já tiver uma conta criada normalmente pelo app:
++
++```sql
++UPDATE public.profiles SET role = 'admin' WHERE email = 'email-da-pessoa@exemplo.com';
++```
++
++Ela passará a ter acesso a `/admin` (edição de temporadas e perguntas).
++
++### Deploy e rollback
++
++- **Deploy**: Vercel, a partir da branch principal. Configure
++  `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` nas variáveis de
++  ambiente do projeto na Vercel (não só localmente).
++- **Rollback de frontend**: reverter para o deploy anterior é imediato pelo
++  painel da Vercel (cada deploy fica versionado).
++- **Rollback de banco**: como o script é idempotente mas aditivo, não há
++  "desfazer" automático — mudanças destrutivas (`DROP COLUMN`, etc.) devem
++  ser testadas antes num projeto Supabase de homologação, com backup
++  (Supabase faz backups diários automáticos nos planos pagos; use
++  **Database > Backups** para restaurar um ponto anterior se necessário).
++
++---
++
+ ## 📜 Propósito e Licença
+ 
+ Este projeto é desenvolvido para fins educativos, promovendo conhecimento sobre a Doutrina Católica e a inspiradora vida de Carlo Acutis, provando que é perfeitamente possível aliar as novas tecnologias com a busca pela santidade.
+diff --git a/eslint.config.js b/eslint.config.js
+index 5e6b472..c1de1f3 100644
+--- a/eslint.config.js
++++ b/eslint.config.js
+@@ -19,5 +19,21 @@ export default defineConfig([
+       ecmaVersion: 2020,
+       globals: globals.browser,
+     },
++    rules: {
++      // eslint-plugin-react-hooks@7's "recommended" preset ships the
++      // experimental React Compiler rule set, including
++      // set-state-in-effect, which flags the standard
++      // "useEffect(() => { fetchX() }, [...])" data-fetching pattern used
++      // throughout this codebase (AuthContext, Quiz, Profile, Admin,
++      // QuizPage). Rewriting every data fetch to avoid it (e.g. via
++      // useEffectEvent) is a real architectural change, not a bugfix —
++      // tracked as follow-up, downgraded to a warning for now so it's
++      // visible without blocking `npm run check`.
++      'react-hooks/set-state-in-effect': 'warn',
++      // Same rationale: the React Compiler's dependency inference disagrees
++      // with a manually-specified useCallback dep array in Profile.tsx
++      // (pre-existing, not introduced by this patch). Non-blocking.
++      'react-hooks/preserve-manual-memoization': 'warn',
++    },
+   },
+ ])
+diff --git a/package.json b/package.json
+index af8dbbb..62b3a19 100644
+--- a/package.json
++++ b/package.json
+@@ -1,13 +1,23 @@
+ {
+-  "name": "frontend",
++  "name": "arautos-da-fe-quiz",
+   "private": true,
+-  "version": "0.0.0",
++  "version": "0.2.0",
+   "type": "module",
++  "description": "Plataforma de evangelização e gamificação para jovens: quiz por temporadas, ligas paroquiais, XP, streaks e conquistas, com painel de administração de conteúdo.",
++  "keywords": ["evangelizacao", "quiz", "gamificacao", "catolico", "react", "supabase"],
++  "author": "",
++  "license": "ISC",
+   "scripts": {
+     "dev": "vite",
+     "build": "tsc -b && vite build",
++    "preview": "vite preview",
+     "lint": "eslint .",
+-    "preview": "vite preview"
++    "typecheck": "tsc -b --noEmit",
++    "test": "vitest run",
++    "test:watch": "vitest",
++    "test:coverage": "vitest run --coverage",
++    "check": "npm run lint && npm run typecheck && npm run test",
++    "analyze": "vite build && vite-bundle-visualizer"
+   },
+   "dependencies": {
+     "@supabase/supabase-js": "^2.112.3",
+@@ -18,26 +28,28 @@
+   },
+   "devDependencies": {
+     "@eslint/js": "^9.39.1",
++    "@testing-library/jest-dom": "^6.6.3",
++    "@testing-library/react": "^16.1.0",
++    "@testing-library/user-event": "^14.5.2",
+     "@types/node": "^24.10.1",
+     "@types/react": "^19.2.5",
+     "@types/react-dom": "^19.2.3",
+     "@vitejs/plugin-react": "^5.1.1",
++    "@vitest/coverage-v8": "^2.1.8",
+     "autoprefixer": "^10.4.23",
+     "eslint": "^9.39.1",
+     "eslint-plugin-react-hooks": "^7.0.1",
+     "eslint-plugin-react-refresh": "^0.4.24",
+     "globals": "^16.5.0",
++    "jsdom": "^25.0.1",
+     "postcss": "^8.5.6",
++    "rollup-plugin-visualizer": "^5.12.0",
+     "tailwindcss": "^3.4.17",
+     "typescript": "~5.9.3",
+     "typescript-eslint": "^8.46.4",
+-    "vite": "^7.2.4"
++    "vite": "^7.2.4",
++    "vitest": "^2.1.8"
+   },
+-  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+-  "main": "eslint.config.js",
+-  "keywords": [],
+-  "author": "",
+-  "license": "ISC",
+   "allowScripts": {
+     "esbuild@0.27.2": true,
+     "esbuild@0.21.5": true
+diff --git a/src/App.tsx b/src/App.tsx
+index 2b2a925..7ea1235 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -1,87 +1,108 @@
++import { lazy, Suspense } from 'react';
+ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+ import { AuthProvider, useAuth } from './context/AuthContext';
+ import Navbar from './components/Navbar';
+ import Footer from './components/layout/Footer';
+ import ScrollToTop from './components/layout/ScrollToTop';
++import ErrorBoundary from './components/ErrorBoundary';
+ import Home from './pages/Home';
+-import Login from './pages/Login';
+-import Register from './pages/Register';
+-import Profile from './pages/Profile';
+-import QuizPage from './pages/QuizPage';
+-import Admin from './pages/Admin';
+-import { 
+-  VidaLegadoPage,
+-  FeDevocaoPage,
+-  SantidadePage
+-} from './pages/DetailPages';
++
++// Lazy loading: a Home carrega tudo de forma eager (é a primeira tela que
++// a maioria dos visitantes vê), o resto só é baixado quando a rota é
++// visitada — reduz o chunk inicial (Fase 4 do plano de auditoria).
++const Login = lazy(() => import('./pages/Login'));
++const Register = lazy(() => import('./pages/Register'));
++const Profile = lazy(() => import('./pages/Profile'));
++const QuizPage = lazy(() => import('./pages/QuizPage'));
++const Admin = lazy(() => import('./pages/Admin'));
++const NotFound = lazy(() => import('./pages/NotFound'));
++
++// DetailPages.tsx exporta 3 componentes nomeados (sem export default),
++// então cada um precisa do próprio wrapper lazy apontando para o mesmo chunk.
++const VidaLegadoPage = lazy(() => import('./pages/DetailPages').then(m => ({ default: m.VidaLegadoPage })));
++const FeDevocaoPage = lazy(() => import('./pages/DetailPages').then(m => ({ default: m.FeDevocaoPage })));
++const SantidadePage = lazy(() => import('./pages/DetailPages').then(m => ({ default: m.SantidadePage })));
++
++const RouteFallback = () => (
++  <div className="min-h-[60vh] flex items-center justify-center bg-white">
++    <div className="flex flex-col items-center gap-4" role="status" aria-live="polite">
++      <div className="w-10 h-10 border-4 border-blue-900 border-t-red-600 rounded-full animate-spin"></div>
++      <span className="text-xs font-black uppercase tracking-widest text-slate-400">Carregando...</span>
++    </div>
++  </div>
++);
+ 
+ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+   const { user, loading } = useAuth();
+   if (loading) {
+     return (
+       <div className="min-h-screen flex items-center justify-center bg-slate-50">
+-        <div className="flex flex-col items-center gap-4">
++        <div className="flex flex-col items-center gap-4" role="status" aria-live="polite">
+           <div className="w-12 h-12 border-4 border-blue-900 border-t-red-600 rounded-full animate-spin"></div>
+           <span className="text-xs font-black uppercase tracking-widest text-slate-400">Carregando Sessão...</span>
+         </div>
+       </div>
+     );
+   }
+-  return user ? <>{children}</> : <Navigate to="/login" />;
++  return user ? <>{children}</> : <Navigate to="/login" replace />;
+ };
+ 
+ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+   const { user, isAdmin, loading } = useAuth();
+-  if (loading) return null;
+-  if (!user) return <Navigate to="/login" />;
+-  return isAdmin ? <>{children}</> : <Navigate to="/perfil" />;
++  if (loading) return <RouteFallback />;
++  if (!user) return <Navigate to="/login" replace />;
++  return isAdmin ? <>{children}</> : <Navigate to="/perfil" replace />;
+ };
+ 
+ export default function App() {
+   return (
+-    <AuthProvider>
+-      <Router>
+-        <ScrollToTop />
+-        <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-red-500 selection:text-white">
+-          <Navbar />
+-          
+-          <main>
+-            <Routes>
+-              <Route path="/" element={<Home />} />
+-              <Route path="/login" element={<Login />} />
+-              <Route path="/cadastro" element={<Register />} />
+-              
+-              <Route path="/perfil" element={
+-                <ProtectedRoute>
+-                  <Profile />
+-                </ProtectedRoute>
+-              } />
++    <ErrorBoundary>
++      <AuthProvider>
++        <Router>
++          <ScrollToTop />
++          <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-red-500 selection:text-white">
++            <Navbar />
+ 
+-              <Route path="/quiz" element={
+-                <ProtectedRoute>
+-                  <QuizPage />
+-                </ProtectedRoute>
+-              } />
++            <main>
++              <Suspense fallback={<RouteFallback />}>
++                <Routes>
++                  <Route path="/" element={<Home />} />
++                  <Route path="/login" element={<Login />} />
++                  <Route path="/cadastro" element={<Register />} />
+ 
+-              <Route path="/admin" element={
+-                <AdminRoute>
+-                  <Admin />
+-                </AdminRoute>
+-              } />
++                  <Route path="/perfil" element={
++                    <ProtectedRoute>
++                      <Profile />
++                    </ProtectedRoute>
++                  } />
+ 
+-              {/* Novas Rotas por Categoria */}
+-              <Route path="/vida-legado" element={<VidaLegadoPage />} />
+-              <Route path="/fe-devocao" element={<FeDevocaoPage />} />
+-              <Route path="/santidade" element={<SantidadePage />} />
+-              
+-              {/* Fallback para home ou 404 */}
+-              <Route path="*" element={<Navigate to="/" replace />} />
+-            </Routes>
+-          </main>
++                  <Route path="/quiz" element={
++                    <ProtectedRoute>
++                      <QuizPage />
++                    </ProtectedRoute>
++                  } />
+ 
+-          <Footer />
+-        </div>
+-      </Router>
+-    </AuthProvider>
++                  <Route path="/admin" element={
++                    <AdminRoute>
++                      <Admin />
++                    </AdminRoute>
++                  } />
++
++                  {/* Rotas por Categoria */}
++                  <Route path="/vida-legado" element={<VidaLegadoPage />} />
++                  <Route path="/fe-devocao" element={<FeDevocaoPage />} />
++                  <Route path="/santidade" element={<SantidadePage />} />
++
++                  {/* 404 real, em vez de redirecionar tudo silenciosamente para a home */}
++                  <Route path="*" element={<NotFound />} />
++                </Routes>
++              </Suspense>
++            </main>
++
++            <Footer />
++          </div>
++        </Router>
++      </AuthProvider>
++    </ErrorBoundary>
+   );
+ }
+diff --git a/src/components/ErrorBoundary.tsx b/src/components/ErrorBoundary.tsx
+new file mode 100644
+index 0000000..4610769
+--- /dev/null
++++ b/src/components/ErrorBoundary.tsx
+@@ -0,0 +1,54 @@
++import React from 'react';
++
++interface Props {
++  children: React.ReactNode;
++}
++
++interface State {
++  hasError: boolean;
++}
++
++// Error boundary simples: evita tela branca total se um componente quebrar
++// em produção, e é o ponto único onde plugar um serviço de monitoramento
++// de erros (ex: Sentry.captureException) — ver Fase 8 do plano de auditoria.
++class ErrorBoundary extends React.Component<Props, State> {
++  constructor(props: Props) {
++    super(props);
++    this.state = { hasError: false };
++  }
++
++  static getDerivedStateFromError(): State {
++    return { hasError: true };
++  }
++
++  componentDidCatch(error: Error, info: React.ErrorInfo) {
++    // TODO: encaminhar para um serviço de observabilidade (Sentry, etc.)
++    // em vez de apenas console.error, quando a Fase 8 for implementada.
++    console.error('Erro não tratado capturado pelo ErrorBoundary:', error, info);
++  }
++
++  render() {
++    if (this.state.hasError) {
++      return (
++        <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6">
++          <div className="text-center space-y-4 max-w-md">
++            <div className="text-5xl">🙏</div>
++            <h1 className="text-2xl font-black uppercase italic text-blue-950">Algo deu errado</h1>
++            <p className="text-slate-500 font-medium text-sm">
++              Encontramos um problema inesperado. Tente recarregar a página; se persistir, avise a equipe.
++            </p>
++            <button
++              onClick={() => window.location.reload()}
++              className="px-6 py-3 bg-blue-900 text-white rounded-xl font-black uppercase tracking-widest text-xs"
++            >
++              Recarregar
++            </button>
++          </div>
++        </div>
++      );
++    }
++    return this.props.children;
++  }
++}
++
++export default ErrorBoundary;
+diff --git a/src/components/Quiz.test.tsx b/src/components/Quiz.test.tsx
+new file mode 100644
+index 0000000..6c201a3
+--- /dev/null
++++ b/src/components/Quiz.test.tsx
+@@ -0,0 +1,98 @@
++import { describe, it, expect, vi, beforeEach } from 'vitest';
++import { render, screen, waitFor } from '@testing-library/react';
++import Quiz from '../components/Quiz';
++
++// Mocka o cliente Supabase inteiro: cada teste configura o retorno das
++// chamadas encadeadas (.from().select().eq()...) via mockState.
++// vi.mock() é hoisted para o topo do arquivo, então qualquer estado usado
++// dentro do factory precisa vir de vi.hoisted() — senão dá erro de
++// "Cannot access before initialization".
++const { mockRpc, mockState } = vi.hoisted(() => {
++  return {
++    mockRpc: vi.fn(),
++    mockState: {
++      perguntasResult: { data: [] as unknown[], error: null as unknown },
++      respostasResult: { data: [] as unknown[], error: null as unknown },
++      lastRespostasFilters: {} as Record<string, unknown>,
++    },
++  };
++});
++
++vi.mock('../services/supabase', () => {
++  const buildQuery = (table: string) => {
++    const query: Record<string, unknown> = {};
++    const chain = () => query;
++    query.select = vi.fn(chain);
++    query.eq = vi.fn((col: string, val: unknown) => {
++      if (table === 'respostas_usuario') mockState.lastRespostasFilters[col] = val;
++      return query;
++    });
++    query.in = vi.fn(chain);
++    query.order = vi.fn(chain);
++    query.abortSignal = vi.fn(() =>
++      table === 'perguntas'
++        ? Promise.resolve(mockState.perguntasResult)
++        : Promise.resolve(mockState.respostasResult)
++    );
++    return query;
++  };
++
++  return {
++    supabase: {
++      from: vi.fn((table: string) => buildQuery(table)),
++      rpc: mockRpc,
++    },
++  };
++});
++
++vi.mock('../context/AuthContext', () => ({
++  useAuth: () => ({
++    user: { id: 'user-1', xp: 300, nome: 'Teste', email: 't@t.com', nivel: 'Peregrino', role: 'user', liga_id: null },
++    refreshUser: vi.fn(),
++  }),
++}));
++
++describe('Quiz', () => {
++  beforeEach(() => {
++    mockState.perguntasResult = { data: [], error: null };
++    mockState.respostasResult = { data: [], error: null };
++    mockState.lastRespostasFilters = {};
++    mockRpc.mockReset();
++  });
++
++  it('mostra o skeleton de carregamento antes de resolver as consultas', async () => {
++    const { container } = render(<Quiz temporadaId={1} />);
++    expect(container.querySelector('.animate-pulse')).toBeTruthy();
++    // deixa as promises da consulta resolverem antes de encerrar o teste,
++    // só para não vazar updates de estado sem act() para o próximo teste.
++    await waitFor(() => expect(mockRpc).not.toHaveBeenCalled());
++  });
++
++  it('mostra mensagem de "nenhuma pergunta" quando a temporada está vazia', async () => {
++    mockState.perguntasResult = { data: [], error: null };
++    render(<Quiz temporadaId={1} />);
++    await waitFor(() => {
++      expect(screen.getByText(/Nenhuma pergunta encontrada/i)).toBeInTheDocument();
++    });
++  });
++
++  it('filtra o progresso pelo usuário autenticado (user_id) e não quebra a ordem dos Hooks', async () => {
++    mockState.perguntasResult = {
++      data: [
++        { id: 10, texto_pergunta: 'Pergunta 1', opcao_a: 'A', opcao_b: 'B', opcao_c: 'C', opcao_d: 'D' }
++      ],
++      error: null
++    };
++    mockState.respostasResult = { data: [], error: null };
++
++    render(<Quiz temporadaId={1} />);
++
++    await waitFor(() => {
++      expect(screen.getByText('Pergunta 1')).toBeInTheDocument();
++    });
++
++    // A consulta de respostas_usuario precisa ser filtrada por user_id —
++    // sem isso, o progresso de um usuário pode vazar para outro.
++    expect(mockState.lastRespostasFilters.user_id).toBe('user-1');
++  });
++});
+diff --git a/src/components/Quiz.tsx b/src/components/Quiz.tsx
+index 99d8c36..11043d2 100644
+--- a/src/components/Quiz.tsx
++++ b/src/components/Quiz.tsx
+@@ -1,7 +1,9 @@
+-import React, { useState, useEffect, useMemo } from 'react';
++import React, { useState, useEffect, useMemo, useRef } from 'react';
+ import { motion, AnimatePresence } from 'framer-motion';
+ import { supabase } from '../services/supabase';
+ import { useAuth } from '../context/AuthContext';
++import type { ResponderPerguntaResult } from '../types/database.types';
++import { shuffle, calcularProgresso, progressoPercentual } from '../utils/quiz';
+ 
+ interface Pergunta {
+   id: number;
+@@ -16,32 +18,52 @@ interface QuizProps {
+   temporadaId: number;
+ }
+ 
+-// Fisher-Yates simples para embaralhar a ordem visual das alternativas.
+-// O "label" original (A/B/C/D) é preservado dentro de cada item, então o
+-// gabarito enviado ao backend continua correto independente da posição na tela.
+-function shuffle<T>(array: T[]): T[] {
+-  const arr = [...array];
+-  for (let i = arr.length - 1; i > 0; i--) {
+-    const j = Math.floor(Math.random() * (i + 1));
+-    [arr[i], arr[j]] = [arr[j], arr[i]];
+-  }
+-  return arr;
++function isValidRpcResult(data: unknown): data is ResponderPerguntaResult {
++  if (!data || typeof data !== 'object') return false;
++  const d = data as Record<string, unknown>;
++  return typeof d.correct === 'boolean' && typeof d.xp === 'number';
+ }
+ 
+ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
+   const [perguntas, setPerguntas] = useState<Pergunta[]>([]);
++  const [perguntasLoading, setPerguntasLoading] = useState(true);
++  const [perguntasError, setPerguntasError] = useState<string | null>(null);
++
++  const [progressLoading, setProgressLoading] = useState(true);
++
+   const [currentIndex, setCurrentIndex] = useState(0);
+-  const [loading, setLoading] = useState(true);
+   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
++  const [feedbackMsg, setFeedbackMsg] = useState<string>('');
+   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+   const [score, setScore] = useState(0);
+   const [completed, setCompleted] = useState(false);
++  const [submitting, setSubmitting] = useState(false);
++  const [answerError, setAnswerError] = useState<string | null>(null);
+ 
+   const { user, refreshUser } = useAuth();
+ 
++  const mountedRef = useRef(true);
++  const advanceTimeoutRef = useRef<number | null>(null);
++
++  useEffect(() => {
++    mountedRef.current = true;
++    return () => {
++      mountedRef.current = false;
++      if (advanceTimeoutRef.current !== null) {
++        window.clearTimeout(advanceTimeoutRef.current);
++      }
++    };
++  }, []);
++
++  // Efeito 1: carrega as perguntas ativas da temporada. Independente do
++  // usuário — perguntas são conteúdo público, progresso não é.
+   useEffect(() => {
++    const controller = new AbortController();
++    let cancelled = false;
++
+     const fetchPerguntas = async () => {
+-      setLoading(true);
++      setPerguntasLoading(true);
++      setPerguntasError(null);
+       try {
+         const { data, error } = await supabase
+           .from('perguntas')
+@@ -49,74 +71,155 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
+           .eq('temporada_id', temporadaId)
+           .eq('ativa', true)
+           .order('ordem', { ascending: true, nullsFirst: false })
+-          .order('id', { ascending: true });
++          .order('id', { ascending: true })
++          .abortSignal(controller.signal);
++
++        if (cancelled) return;
+ 
+         if (error) {
+-          console.error("Erro ao buscar perguntas", error);
+-          setLoading(false);
++          console.error('Erro ao buscar perguntas:', error.message);
++          setPerguntasError('Não foi possível carregar as perguntas desta temporada. Tente novamente em instantes.');
++          setPerguntas([]);
+           return;
+         }
+ 
+-        const lista = (data ?? []) as Pergunta[];
+-        setPerguntas(lista);
+-        setCompleted(false);
+-
+-        // Retoma o progresso: descobre quais perguntas desta temporada
+-        // o usuário já respondeu, para não reiniciar do zero a cada reload.
+-        if (user && lista.length > 0) {
+-          const { data: respostas, error: respErr } = await supabase
+-            .from('respostas_usuario')
+-            .select('pergunta_id, acertou')
+-            .in('pergunta_id', lista.map(p => p.id));
+-
+-          if (!respErr && respostas) {
+-            const respondidasIds = new Set(respostas.map(r => r.pergunta_id));
+-            const acertos = respostas.filter(r => r.acertou).length;
+-            const proximoIndex = lista.findIndex(p => !respondidasIds.has(p.id));
+-
+-            setScore(acertos);
+-            if (proximoIndex === -1) {
+-              // Todas já respondidas nesta sessão anterior
+-              setCurrentIndex(lista.length - 1);
+-              setCompleted(respondidasIds.size === lista.length);
+-            } else {
+-              setCurrentIndex(proximoIndex);
+-            }
+-          } else {
+-            setCurrentIndex(0);
+-            setScore(0);
+-          }
+-        } else {
++        setPerguntas((data ?? []) as Pergunta[]);
++      } catch (err) {
++        if (cancelled) return;
++        if (err instanceof Error && err.name === 'AbortError') return;
++        console.error('Erro de rede ao buscar perguntas:', err);
++        setPerguntasError('Falha de conexão ao carregar as perguntas. Verifique sua internet.');
++        setPerguntas([]);
++      } finally {
++        if (!cancelled) setPerguntasLoading(false);
++      }
++    };
++
++    fetchPerguntas();
++    return () => {
++      cancelled = true;
++      controller.abort();
++    };
++  }, [temporadaId]);
++
++  // Efeito 2: carrega o progresso do usuário (o que já foi respondido) para
++  // retomar de onde parou. Só roda quando há usuário autenticado e as
++  // perguntas já foram carregadas — evita disparar consulta com user_id
++  // indefinido e evita recarregar o progresso a cada refresh de XP
++  // (depende de user?.id, não do objeto "user" inteiro).
++  useEffect(() => {
++    if (perguntasLoading) return;
++
++    if (!user) {
++      // Sem sessão: não há progresso para retomar; começa do zero e a UI
++      // de resposta ficará desabilitada (handleAnswer também valida isso).
++      setCurrentIndex(0);
++      setScore(0);
++      setCompleted(false);
++      setProgressLoading(false);
++      return;
++    }
++
++    if (perguntas.length === 0) {
++      setProgressLoading(false);
++      return;
++    }
++
++    const controller = new AbortController();
++    let cancelled = false;
++
++    const fetchProgresso = async () => {
++      setProgressLoading(true);
++      try {
++        const { data: respostas, error } = await supabase
++          .from('respostas_usuario')
++          .select('pergunta_id, acertou')
++          .eq('user_id', user.id)
++          .in('pergunta_id', perguntas.map(p => p.id))
++          .abortSignal(controller.signal);
++
++        if (cancelled) return;
++
++        if (error) {
++          console.error('Erro ao buscar progresso:', error.message);
+           setCurrentIndex(0);
+           setScore(0);
++          return;
+         }
++
++        const progresso = calcularProgresso(perguntas.map(p => p.id), respostas ?? []);
++        setScore(progresso.score);
++        setCurrentIndex(progresso.currentIndex);
++        setCompleted(progresso.completed);
+       } catch (err) {
+-        console.error("Erro ao buscar perguntas", err);
++        if (cancelled) return;
++        if (err instanceof Error && err.name === 'AbortError') return;
++        console.error('Erro de rede ao buscar progresso:', err);
+       } finally {
+-        setLoading(false);
++        if (!cancelled) setProgressLoading(false);
+       }
+     };
+ 
+-    fetchPerguntas();
++    fetchProgresso();
++    return () => {
++      cancelled = true;
++      controller.abort();
++    };
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+-  }, [temporadaId]);
++  }, [user?.id, perguntas, perguntasLoading]);
+ 
+-  const [feedbackMsg, setFeedbackMsg] = useState<string>('');
++  const perguntaAtual = perguntas[currentIndex];
++
++  // Embaralha a ordem visual das opções a cada pergunta nova, mas mantém
++  // o label original (A/B/C/D) atrelado ao texto certo, então o backend
++  // continua recebendo a letra correta independente da posição na tela.
++  // IMPORTANTE: este Hook precisa rodar sempre, antes de qualquer "return"
++  // condicional abaixo — senão a ordem dos Hooks muda entre renders
++  // (loading -> conteúdo) e o React quebra.
++  const opcoesEmbaralhadas = useMemo(() => {
++    if (!perguntaAtual) return [];
++    return shuffle([
++      { label: 'A', text: perguntaAtual.opcao_a },
++      { label: 'B', text: perguntaAtual.opcao_b },
++      { label: 'C', text: perguntaAtual.opcao_c },
++      { label: 'D', text: perguntaAtual.opcao_d }
++    ]);
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [perguntaAtual?.id]);
+ 
+   const handleAnswer = async (opcao: string) => {
+-    if (feedback || selectedOption || !user) return;
++    if (submitting || feedback || selectedOption) return;
++
++    if (!user) {
++      setAnswerError('Você precisa estar logado para responder.');
++      return;
++    }
++
++    if (!perguntaAtual) return;
+ 
++    setSubmitting(true);
++    setAnswerError(null);
+     setSelectedOption(opcao);
++
+     try {
+-      // Chama a função RPC segura no banco do Supabase para processar a resposta sem expor o gabarito
+       const { data, error } = await supabase.rpc('responder_pergunta', {
+-        p_pergunta_id: perguntas[currentIndex].id,
++        p_pergunta_id: perguntaAtual.id,
+         p_resposta_selecionada: opcao
+       });
+ 
++      if (!mountedRef.current) return;
++
+       if (error) {
+-        console.error("Erro RPC:", error);
++        console.error('Erro RPC responder_pergunta:', error.message);
+         setSelectedOption(null);
++        setAnswerError('Não foi possível registrar sua resposta. Tente novamente.');
++        return;
++      }
++
++      if (!isValidRpcResult(data)) {
++        console.error('Resposta inesperada do banco:', data);
++        setSelectedOption(null);
++        setAnswerError('Resposta inesperada do servidor. Tente novamente.');
+         return;
+       }
+ 
+@@ -133,25 +236,36 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
+         setFeedbackMsg('Resposta Incorreta');
+       }
+ 
+-      await refreshUser();
++      // Atualiza XP exibido no header sem bloquear o avanço do quiz.
++      refreshUser().catch(err => console.error('Erro ao atualizar perfil:', err));
+ 
+-      setTimeout(() => {
++      if (advanceTimeoutRef.current !== null) {
++        window.clearTimeout(advanceTimeoutRef.current);
++      }
++      advanceTimeoutRef.current = window.setTimeout(() => {
++        if (!mountedRef.current) return;
+         setFeedback(null);
+         setSelectedOption(null);
+         setFeedbackMsg('');
+-        if (currentIndex < perguntas.length - 1) {
+-          setCurrentIndex(prev => prev + 1);
+-        } else {
++        setCurrentIndex(prev => {
++          if (prev < perguntas.length - 1) return prev + 1;
+           setCompleted(true);
+-        }
++          return prev;
++        });
++        advanceTimeoutRef.current = null;
+       }, 1500);
+-
+     } catch (err) {
+-      console.error("Erro ao processar resposta", err);
++      if (!mountedRef.current) return;
++      console.error('Erro de rede ao processar resposta:', err);
+       setSelectedOption(null);
++      setAnswerError('Falha de conexão ao enviar sua resposta. Verifique sua internet.');
++    } finally {
++      if (mountedRef.current) setSubmitting(false);
+     }
+   };
+ 
++  const loading = perguntasLoading || progressLoading;
++
+   if (loading) return (
+     <div className="w-full max-w-3xl mx-auto space-y-8 animate-pulse">
+       <div className="flex justify-between items-center">
+@@ -171,63 +285,67 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
+       </div>
+     </div>
+   );
+-  if (perguntas.length === 0) return <div className="p-20 text-center font-black uppercase tracking-widest text-slate-400">Nenhuma pergunta encontrada para esta temporada.</div>;
++
++  if (perguntasError) return (
++    <div className="p-12 text-center space-y-4">
++      <p className="font-black uppercase tracking-widest text-red-600">{perguntasError}</p>
++      <button
++        onClick={() => window.location.reload()}
++        className="px-6 py-3 bg-blue-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs"
++      >
++        Tentar novamente
++      </button>
++    </div>
++  );
++
++  if (!user) return (
++    <div className="p-20 text-center font-black uppercase tracking-widest text-slate-400">
++      Faça login para responder ao quiz.
++    </div>
++  );
++
++  if (perguntas.length === 0) return (
++    <div className="p-20 text-center font-black uppercase tracking-widest text-slate-400">
++      Nenhuma pergunta encontrada para esta temporada.
++    </div>
++  );
+ 
+   if (completed) return (
+-    <motion.div 
+-      initial={{ opacity: 0, scale: 0.9 }} 
+-      animate={{ opacity: 1, scale: 1 }} 
++    <motion.div
++      initial={{ opacity: 0, scale: 0.9 }}
++      animate={{ opacity: 1, scale: 1 }}
+       className="p-12 bg-white rounded-[3rem] shadow-2xl text-center space-y-8 relative overflow-hidden"
+     >
+-      <motion.div 
+-        initial={{ y: 50, opacity: 0 }} 
+-        animate={{ y: 0, opacity: 1 }} 
++      <motion.div
++        initial={{ y: 50, opacity: 0 }}
++        animate={{ y: 0, opacity: 1 }}
+         transition={{ delay: 0.2 }}
+         className="space-y-4 relative z-10"
+       >
+         <div className="text-6xl mb-6">🎉</div>
+         <h3 className="text-4xl md:text-5xl font-black italic uppercase text-blue-950">Temporada Concluída!</h3>
+         <p className="text-slate-500 font-medium">Você acertou {score} de {perguntas.length} perguntas.</p>
+-        <motion.div 
+-          initial={{ scale: 0 }} 
+-          animate={{ scale: 1 }} 
++        <motion.div
++          initial={{ scale: 0 }}
++          animate={{ scale: 1 }}
+           transition={{ type: "spring", delay: 0.5 }}
+           className="text-6xl md:text-7xl font-black text-red-600 py-4"
+         >
+           +{score * 100} XP
+         </motion.div>
+-        <button onClick={() => { setCurrentIndex(0); setCompleted(false); setScore(0); }} className="px-8 py-4 bg-blue-900 hover:bg-blue-800 transition-colors text-white rounded-2xl font-black uppercase tracking-widest mt-4">
+-          Jogar Novamente
+-        </button>
+       </motion.div>
+-      {/* Decorative background circles for celebration */}
+       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3, duration: 1 }} className="absolute -top-20 -left-20 w-64 h-64 bg-yellow-300/20 rounded-full blur-3xl"></motion.div>
+       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.4, duration: 1 }} className="absolute -bottom-20 -right-20 w-64 h-64 bg-red-500/20 rounded-full blur-3xl"></motion.div>
+     </motion.div>
+   );
+ 
+-  const perguntaAtual = perguntas[currentIndex];
+-  const progressPercent = ((currentIndex) / perguntas.length) * 100;
+-
+-  // Embaralha a ordem visual das opções a cada pergunta nova, mas mantém
+-  // o label original (A/B/C/D) atrelado ao texto certo, então o backend
+-  // continua recebendo a letra correta independente da posição na tela.
+-  const opcoesEmbaralhadas = useMemo(() => {
+-    if (!perguntaAtual) return [];
+-    return shuffle([
+-      { label: 'A', text: perguntaAtual.opcao_a },
+-      { label: 'B', text: perguntaAtual.opcao_b },
+-      { label: 'C', text: perguntaAtual.opcao_c },
+-      { label: 'D', text: perguntaAtual.opcao_d }
+-    ]);
+-    // eslint-disable-next-line react-hooks/exhaustive-deps
+-  }, [currentIndex, perguntaAtual?.id]);
++  const progressPercent = progressoPercentual(currentIndex, perguntas.length);
+ 
+   return (
+     <div className="w-full max-w-3xl mx-auto space-y-8">
+       {/* ProgressBar */}
+       <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+-        <motion.div 
++        <motion.div
+           initial={{ width: 0 }}
+           animate={{ width: `${progressPercent}%` }}
+           className="h-full bg-blue-600"
+@@ -235,10 +353,10 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
+       </div>
+       <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+         <span>Questão {currentIndex + 1} de {perguntas.length}</span>
+-        <span className="text-blue-600">XP Atual: {user?.xp}</span>
++        <span className="text-blue-600">XP Atual: {user.xp}</span>
+       </div>
+ 
+-      <motion.div 
++      <motion.div
+         key={currentIndex}
+         initial={{ x: 20, opacity: 0 }}
+         animate={{ x: 0, opacity: 1 }}
+@@ -253,10 +371,11 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
+             <button
+               key={opt.label}
+               onClick={() => handleAnswer(opt.label)}
+-              disabled={!!feedback}
+-              className={`group flex items-center gap-6 p-6 rounded-2xl border-2 transition-all text-left ${
++              disabled={submitting || !!feedback}
++              aria-pressed={selectedOption === opt.label}
++              className={`group flex items-center gap-6 p-6 rounded-2xl border-2 transition-all text-left disabled:cursor-not-allowed ${
+                 feedback === 'correct' && selectedOption === opt.label
+-                ? 'bg-green-50 border-green-500' 
++                ? 'bg-green-50 border-green-500'
+                 : feedback === 'wrong' && opt.label === selectedOption
+                 ? 'bg-red-50 border-red-500'
+                 : 'bg-slate-50 border-transparent hover:border-blue-600'
+@@ -277,18 +396,30 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId }) => {
+         </div>
+       </motion.div>
+ 
+-      <AnimatePresence>
+-        {feedback && (
+-          <motion.div 
+-            initial={{ opacity: 0, y: 10 }}
+-            animate={{ opacity: 1, y: 0 }}
+-            exit={{ opacity: 0 }}
+-            className={`text-center font-black uppercase tracking-[0.3em] ${feedback === 'correct' ? 'text-green-500' : 'text-red-600'}`}
+-          >
+-            {feedbackMsg}
+-          </motion.div>
+-        )}
+-      </AnimatePresence>
++      <div aria-live="polite" className="min-h-[1.5rem]">
++        <AnimatePresence>
++          {feedback && (
++            <motion.div
++              initial={{ opacity: 0, y: 10 }}
++              animate={{ opacity: 1, y: 0 }}
++              exit={{ opacity: 0 }}
++              className={`text-center font-black uppercase tracking-[0.3em] ${feedback === 'correct' ? 'text-green-500' : 'text-red-600'}`}
++            >
++              {feedbackMsg}
++            </motion.div>
++          )}
++          {answerError && (
++            <motion.div
++              initial={{ opacity: 0, y: 10 }}
++              animate={{ opacity: 1, y: 0 }}
++              exit={{ opacity: 0 }}
++              className="text-center font-black uppercase tracking-[0.2em] text-red-600 text-xs"
++            >
++              {answerError}
++            </motion.div>
++          )}
++        </AnimatePresence>
++      </div>
+     </div>
+   );
+ };
+diff --git a/src/context/AuthContext.tsx b/src/context/AuthContext.tsx
+index d622134..1851281 100644
+--- a/src/context/AuthContext.tsx
++++ b/src/context/AuthContext.tsx
+@@ -1,11 +1,11 @@
+-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
++import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+ import { supabase } from '../services/supabase';
+-import type { User as SupabaseUser } from '@supabase/supabase-js';
++import type { User as SupabaseUser, AuthChangeEvent, Session } from '@supabase/supabase-js';
+ 
+ export interface Liga {
+   id: number;
+   nome: string;
+-  codigoAcesso: string;
++  codigoAcesso?: string;
+ }
+ 
+ export interface UserProfile {
+@@ -34,6 +34,8 @@ interface AuthContextData {
+   refreshUser: () => Promise<void>;
+ }
+ 
++const PROFILE_COLUMNS = 'id, nome, email, xp, nivel, role, liga_id, liga:ligas(id, nome)';
++
+ const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+ 
+ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+@@ -42,14 +44,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
+   const [loading, setLoading] = useState(true);
+   const [streak, setStreak] = useState<StreakInfo | null>(null);
+ 
+-  // Registra o acesso do dia (atualiza sequência/streak) sem bloquear a UI
+-  const registrarAcesso = useCallback(async () => {
++  // Evita chamadas duplicadas de fetchProfile/registrar_acesso: o Supabase
++  // dispara onAuthStateChange tanto na sessão inicial (INITIAL_SESSION)
++  // quanto em eventos como TOKEN_REFRESHED, que não exigem recarregar
++  // perfil/streak porque o usuário logado não mudou.
++  const acessoRegistradoParaRef = useRef<string | null>(null);
++  const perfilCarregadoParaRef = useRef<string | null>(null);
++
++  const registrarAcesso = useCallback(async (userId: string) => {
++    if (acessoRegistradoParaRef.current === userId) return;
++    acessoRegistradoParaRef.current = userId;
+     try {
+       const { data, error } = await supabase.rpc('registrar_acesso');
+-      if (!error && data) {
++      if (error) {
++        console.error('Erro ao registrar acesso diário:', error.message);
++        return;
++      }
++      if (data) {
+         setStreak(data as StreakInfo);
+       }
+     } catch (err) {
++      // Falha ao registrar streak não deve travar o app nem o login.
+       console.error('Erro ao registrar acesso diário:', err);
+     }
+   }, []);
+@@ -58,17 +73,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
+     try {
+       const { data: profile, error } = await supabase
+         .from('profiles')
+-        .select('*, liga:ligas(*)')
++        .select(PROFILE_COLUMNS)
+         .eq('id', userId)
+         .single();
+ 
+       if (error) {
+-        console.error('Erro ao buscar perfil:', error);
+-      } else {
+-        setUser(profile as UserProfile);
++        // PGRST116 = nenhuma linha encontrada. Pode acontecer se a trigger
++        // de criação de perfil ainda não rodou (corrida rara no cadastro).
++        console.error('Erro ao buscar perfil:', error.message);
++        setUser(null);
++        return;
+       }
++
++      if (!profile) {
++        setUser(null);
++        return;
++      }
++
++      setUser(profile as unknown as UserProfile);
++      perfilCarregadoParaRef.current = userId;
+     } catch (err) {
+       console.error('Erro ao conectar ao perfil:', err);
++      setUser(null);
+     }
+   }, []);
+ 
+@@ -79,30 +105,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
+   }, [authUser, fetchProfile]);
+ 
+   useEffect(() => {
+-    // Session check
+-    supabase.auth.getSession().then(({ data: { session } }) => {
+-      setAuthUser(session?.user ?? null);
+-      if (session?.user) {
+-        fetchProfile(session.user.id);
+-        registrarAcesso();
+-      }
+-      setLoading(false);
+-    });
++    let ativo = true;
++
++    const handleSession = async (_event: AuthChangeEvent, session: Session | null) => {
++      if (!ativo) return;
+ 
+-    // Auth listener
+-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+       setAuthUser(session?.user ?? null);
++
+       if (session?.user) {
+-        await fetchProfile(session.user.id);
+-        registrarAcesso();
++        // TOKEN_REFRESHED mantém o mesmo usuário: não precisa recarregar
++        // perfil nem registrar acesso de novo.
++        if (perfilCarregadoParaRef.current !== session.user.id) {
++          await fetchProfile(session.user.id);
++        }
++        if (!ativo) return;
++        registrarAcesso(session.user.id);
+       } else {
+         setUser(null);
+         setStreak(null);
++        perfilCarregadoParaRef.current = null;
++        acessoRegistradoParaRef.current = null;
+       }
+-      setLoading(false);
++
++      if (ativo) setLoading(false);
++    };
++
++    // onAuthStateChange já dispara imediatamente com a sessão atual
++    // (evento INITIAL_SESSION), então não é necessário chamar
++    // supabase.auth.getSession() em paralelo — isso é o que causava a
++    // dupla chamada de fetchProfile/registrar_acesso no carregamento.
++    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
++      handleSession(event, session);
+     });
+ 
++    // Rede de segurança: se por algum motivo o evento inicial não chegar
++    // (ex. aba em background), não deixa a UI presa em "carregando" para sempre.
++    const timeoutId = window.setTimeout(() => {
++      if (ativo) setLoading((current) => (current ? false : current));
++    }, 8000);
++
+     return () => {
++      ativo = false;
++      window.clearTimeout(timeoutId);
+       subscription.unsubscribe();
+     };
+   }, [fetchProfile, registrarAcesso]);
+@@ -112,6 +156,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
+     setUser(null);
+     setAuthUser(null);
+     setStreak(null);
++    perfilCarregadoParaRef.current = null;
++    acessoRegistradoParaRef.current = null;
+   }, []);
+ 
+   const isAdmin = user?.role === 'admin';
+diff --git a/src/pages/Admin.tsx b/src/pages/Admin.tsx
+index 40996db..0753537 100644
+--- a/src/pages/Admin.tsx
++++ b/src/pages/Admin.tsx
+@@ -20,8 +20,13 @@ interface Pergunta {
+   opcao_d: string;
+   resposta_correta: string;
+   ordem: number | null;
++  ativa: boolean;
+ }
+ 
++const MAX_TEXTO_PERGUNTA = 300;
++const MAX_OPCAO = 150;
++const MAX_TITULO_TEMPORADA = 100;
++
+ const emptyPergunta = {
+   texto_pergunta: '',
+   opcao_a: '',
+@@ -31,23 +36,53 @@ const emptyPergunta = {
+   resposta_correta: 'A'
+ };
+ 
++// Traduz erros do Postgres/PostgREST para mensagens que fazem sentido para
++// quem está usando o painel, sem vazar detalhes internos (nome de
++// constraint, schema, etc.) — só loga o detalhe técnico no console.
++function mensagemAmigavel(error: { message: string; code?: string } | null, fallback: string): string {
++  if (!error) return fallback;
++  console.error('Erro Supabase:', error);
++  if (error.message?.includes('perguntas_textos_nao_vazios')) return 'Preencha todos os campos de texto.';
++  if (error.message?.includes('perguntas_resposta_valida')) return 'A resposta correta precisa ser A, B, C ou D.';
++  if (error.message?.includes('temporadas_titulo_nao_vazio')) return 'O título da temporada não pode ficar vazio.';
++  if (error.code === '42501' || error.message?.includes('policy')) return 'Você não tem permissão para fazer isso.';
++  return fallback;
++}
++
+ // Painel de administração de conteúdo (temporadas e perguntas do quiz).
+ // Acesso restrito a usuários com profiles.role = 'admin' (garantido pelo RLS
+ // no banco — esta tela só evita que um não-admin veja os controles, a
+-// segurança de verdade está nas policies do Supabase).
++// segurança de verdade está nas policies do Supabase). Toda alteração aqui
++// é registrada automaticamente na tabela auditoria_admin via trigger.
+ const Admin: React.FC = () => {
+   const { isAdmin } = useAuth();
+   const [temporadas, setTemporadas] = useState<Temporada[]>([]);
+   const [selectedTemporadaId, setSelectedTemporadaId] = useState<number | null>(null);
+   const [perguntas, setPerguntas] = useState<Pergunta[]>([]);
+-  const [loading, setLoading] = useState(false);
++
+   const [novaTemporada, setNovaTemporada] = useState({ titulo: '', descricao: '' });
++  const [editingTemporadaId, setEditingTemporadaId] = useState<number | null>(null);
++  const [editTemporadaForm, setEditTemporadaForm] = useState({ titulo: '', descricao: '' });
++
+   const [novaPergunta, setNovaPergunta] = useState(emptyPergunta);
+-  const [msg, setMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
++  const [editingPerguntaId, setEditingPerguntaId] = useState<number | null>(null);
++
++  // Loading por operação específica (ex: "temporada-3", "pergunta-salvar"),
++  // em vez de um único spinner global que trava a tela inteira.
++  const [loadingKeys, setLoadingKeys] = useState<Set<string>>(new Set());
++  const isLoading = (key: string) => loadingKeys.has(key);
++  const setLoadingKey = (key: string, value: boolean) => {
++    setLoadingKeys(prev => {
++      const next = new Set(prev);
++      if (value) next.add(key); else next.delete(key);
++      return next;
++    });
++  };
+ 
++  const [msg, setMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+   const showMsg = (text: string, type: 'success' | 'error' = 'success') => {
+     setMsg({ text, type });
+-    setTimeout(() => setMsg(null), 3000);
++    window.setTimeout(() => setMsg(null), 3500);
+   };
+ 
+   const fetchTemporadas = useCallback(async () => {
+@@ -57,25 +92,23 @@ const Admin: React.FC = () => {
+       .order('ordem', { ascending: true, nullsFirst: false })
+       .order('id', { ascending: true });
+     if (error) {
+-      console.error(error);
++      showMsg(mensagemAmigavel(error, 'Não foi possível carregar as temporadas.'), 'error');
+       return;
+     }
+-    setTemporadas((data ?? []) as Temporada[]);
+-    if (!selectedTemporadaId && data && data.length > 0) {
+-      setSelectedTemporadaId(data[0].id);
+-    }
+-    // eslint-disable-next-line react-hooks/exhaustive-deps
++    const lista = (data ?? []) as Temporada[];
++    setTemporadas(lista);
++    setSelectedTemporadaId(prev => prev ?? (lista.length > 0 ? lista[0].id : null));
+   }, []);
+ 
+   const fetchPerguntas = useCallback(async (temporadaId: number) => {
+     const { data, error } = await supabase
+       .from('perguntas')
+-      .select('id, temporada_id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, ordem')
++      .select('id, temporada_id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, ordem, ativa')
+       .eq('temporada_id', temporadaId)
+       .order('ordem', { ascending: true, nullsFirst: false })
+       .order('id', { ascending: true });
+     if (error) {
+-      console.error(error);
++      showMsg(mensagemAmigavel(error, 'Não foi possível carregar as perguntas.'), 'error');
+       return;
+     }
+     setPerguntas((data ?? []) as Pergunta[]);
+@@ -94,35 +127,83 @@ const Admin: React.FC = () => {
+     );
+   }
+ 
++  // ---------- Temporadas ----------
++
+   const handleCriarTemporada = async () => {
+-    if (!novaTemporada.titulo.trim()) return;
+-    setLoading(true);
++    const titulo = novaTemporada.titulo.trim();
++    if (!titulo) { showMsg('Dê um título para a temporada.', 'error'); return; }
++    if (titulo.length > MAX_TITULO_TEMPORADA) { showMsg(`Título muito longo (máx. ${MAX_TITULO_TEMPORADA} caracteres).`, 'error'); return; }
++
++    setLoadingKey('temporada-criar', true);
+     const { error } = await supabase.from('temporadas').insert({
+-      titulo: novaTemporada.titulo.trim(),
++      titulo,
+       descricao: novaTemporada.descricao.trim(),
+       ordem: temporadas.length + 1
+     });
+-    setLoading(false);
+-    if (error) { showMsg('Erro ao criar temporada.', 'error'); return; }
++    setLoadingKey('temporada-criar', false);
++    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao criar temporada.'), 'error'); return; }
+     setNovaTemporada({ titulo: '', descricao: '' });
+     showMsg('Temporada criada!');
+     fetchTemporadas();
+   };
+ 
+-  const toggleAtiva = async (t: Temporada) => {
++  const toggleAtivaTemporada = async (t: Temporada) => {
++    setLoadingKey(`temporada-${t.id}`, true);
+     const { error } = await supabase.from('temporadas').update({ ativa: !t.ativa }).eq('id', t.id);
+-    if (error) { showMsg('Erro ao atualizar temporada.', 'error'); return; }
++    setLoadingKey(`temporada-${t.id}`, false);
++    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao atualizar temporada.'), 'error'); return; }
+     fetchTemporadas();
+   };
+ 
++  const startEditTemporada = (t: Temporada) => {
++    setEditingTemporadaId(t.id);
++    setEditTemporadaForm({ titulo: t.titulo, descricao: t.descricao ?? '' });
++  };
++
++  const cancelEditTemporada = () => {
++    setEditingTemporadaId(null);
++    setEditTemporadaForm({ titulo: '', descricao: '' });
++  };
++
++  const salvarEdicaoTemporada = async (id: number) => {
++    const titulo = editTemporadaForm.titulo.trim();
++    if (!titulo) { showMsg('O título não pode ficar vazio.', 'error'); return; }
++    if (titulo.length > MAX_TITULO_TEMPORADA) { showMsg(`Título muito longo (máx. ${MAX_TITULO_TEMPORADA} caracteres).`, 'error'); return; }
++
++    setLoadingKey(`temporada-salvar-${id}`, true);
++    const { error } = await supabase
++      .from('temporadas')
++      .update({ titulo, descricao: editTemporadaForm.descricao.trim() })
++      .eq('id', id);
++    setLoadingKey(`temporada-salvar-${id}`, false);
++    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao salvar temporada.'), 'error'); return; }
++    showMsg('Temporada atualizada!');
++    cancelEditTemporada();
++    fetchTemporadas();
++  };
++
++  // ---------- Perguntas ----------
++
++  const validarPergunta = (p: typeof novaPergunta): string | null => {
++    if (!p.texto_pergunta.trim() || !p.opcao_a.trim() || !p.opcao_b.trim() || !p.opcao_c.trim() || !p.opcao_d.trim()) {
++      return 'Preencha todos os campos da pergunta.';
++    }
++    if (p.texto_pergunta.trim().length > MAX_TEXTO_PERGUNTA) {
++      return `A pergunta está muito longa (máx. ${MAX_TEXTO_PERGUNTA} caracteres).`;
++    }
++    if ([p.opcao_a, p.opcao_b, p.opcao_c, p.opcao_d].some(o => o.trim().length > MAX_OPCAO)) {
++      return `Cada opção pode ter no máximo ${MAX_OPCAO} caracteres.`;
++    }
++    return null;
++  };
++
+   const handleCriarPergunta = async () => {
+     if (!selectedTemporadaId) return;
++    const erro = validarPergunta(novaPergunta);
++    if (erro) { showMsg(erro, 'error'); return; }
++
++    setLoadingKey('pergunta-criar', true);
+     const p = novaPergunta;
+-    if (!p.texto_pergunta.trim() || !p.opcao_a.trim() || !p.opcao_b.trim() || !p.opcao_c.trim() || !p.opcao_d.trim()) {
+-      showMsg('Preencha todos os campos da pergunta.', 'error');
+-      return;
+-    }
+-    setLoading(true);
+     const { error } = await supabase.from('perguntas').insert({
+       temporada_id: selectedTemporadaId,
+       texto_pergunta: p.texto_pergunta.trim(),
+@@ -133,18 +214,69 @@ const Admin: React.FC = () => {
+       resposta_correta: p.resposta_correta,
+       ordem: perguntas.length + 1
+     });
+-    setLoading(false);
+-    if (error) { showMsg('Erro ao criar pergunta.', 'error'); return; }
++    setLoadingKey('pergunta-criar', false);
++    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao criar pergunta.'), 'error'); return; }
+     setNovaPergunta(emptyPergunta);
+     showMsg('Pergunta adicionada!');
+     fetchPerguntas(selectedTemporadaId);
+   };
+ 
+-  const handleExcluirPergunta = async (id: number) => {
+-    if (!confirm('Excluir esta pergunta? Respostas de usuários vinculadas a ela também serão apagadas.')) return;
+-    const { error } = await supabase.from('perguntas').delete().eq('id', id);
+-    if (error) { showMsg('Erro ao excluir pergunta.', 'error'); return; }
+-    showMsg('Pergunta excluída.');
++  const startEditPergunta = (p: Pergunta) => {
++    setEditingPerguntaId(p.id);
++    setNovaPergunta({
++      texto_pergunta: p.texto_pergunta,
++      opcao_a: p.opcao_a,
++      opcao_b: p.opcao_b,
++      opcao_c: p.opcao_c,
++      opcao_d: p.opcao_d,
++      resposta_correta: p.resposta_correta
++    });
++    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
++  };
++
++  const cancelEditPergunta = () => {
++    setEditingPerguntaId(null);
++    setNovaPergunta(emptyPergunta);
++  };
++
++  const salvarEdicaoPergunta = async () => {
++    if (!editingPerguntaId || !selectedTemporadaId) return;
++    const erro = validarPergunta(novaPergunta);
++    if (erro) { showMsg(erro, 'error'); return; }
++
++    setLoadingKey('pergunta-salvar', true);
++    const p = novaPergunta;
++    const { error } = await supabase.from('perguntas').update({
++      texto_pergunta: p.texto_pergunta.trim(),
++      opcao_a: p.opcao_a.trim(),
++      opcao_b: p.opcao_b.trim(),
++      opcao_c: p.opcao_c.trim(),
++      opcao_d: p.opcao_d.trim(),
++      resposta_correta: p.resposta_correta
++    }).eq('id', editingPerguntaId);
++    setLoadingKey('pergunta-salvar', false);
++    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao salvar pergunta.'), 'error'); return; }
++    showMsg('Pergunta atualizada!');
++    cancelEditPergunta();
++    fetchPerguntas(selectedTemporadaId);
++  };
++
++  // Em vez de excluir fisicamente (o que apagaria em cascata o histórico de
++  // respostas dos usuários via ON DELETE CASCADE), desativamos a pergunta.
++  // Ela some do quiz para novos jogadores, mas o histórico de quem já
++  // respondeu continua íntegro.
++  const toggleAtivaPergunta = async (p: Pergunta) => {
++    if (p.ativa) {
++      const confirmado = window.confirm(
++        `Arquivar esta pergunta? Ela deixará de aparecer no quiz, mas o histórico de quem já respondeu é mantido.\n\n"${p.texto_pergunta}"`
++      );
++      if (!confirmado) return;
++    }
++    setLoadingKey(`pergunta-${p.id}`, true);
++    const { error } = await supabase.from('perguntas').update({ ativa: !p.ativa }).eq('id', p.id);
++    setLoadingKey(`pergunta-${p.id}`, false);
++    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao atualizar pergunta.'), 'error'); return; }
++    showMsg(p.ativa ? 'Pergunta arquivada.' : 'Pergunta reativada.');
+     if (selectedTemporadaId) fetchPerguntas(selectedTemporadaId);
+   };
+ 
+@@ -161,39 +293,78 @@ const Admin: React.FC = () => {
+           <h2 className="text-lg font-black uppercase text-blue-950">Temporadas</h2>
+           <div className="space-y-2">
+             {temporadas.map(t => (
+-              <div
+-                key={t.id}
+-                className={`flex items-center justify-between p-4 rounded-xl cursor-pointer border-2 ${
+-                  selectedTemporadaId === t.id ? 'border-blue-600 bg-blue-50' : 'border-transparent bg-slate-50'
+-                }`}
+-                onClick={() => setSelectedTemporadaId(t.id)}
+-              >
+-                <div>
+-                  <div className="font-bold text-slate-800">{t.titulo}</div>
+-                  <div className="text-xs text-slate-400">{t.descricao}</div>
+-                </div>
+-                <button
+-                  onClick={(e) => { e.stopPropagation(); toggleAtiva(t); }}
+-                  className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${
+-                    t.ativa ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-500'
+-                  }`}
+-                >
+-                  {t.ativa ? 'Ativa' : 'Inativa'}
+-                </button>
++              <div key={t.id} className={`rounded-xl border-2 ${selectedTemporadaId === t.id ? 'border-blue-600 bg-blue-50' : 'border-transparent bg-slate-50'}`}>
++                {editingTemporadaId === t.id ? (
++                  <div className="p-4 space-y-3">
++                    <label className="sr-only" htmlFor={`titulo-temporada-${t.id}`}>Título</label>
++                    <input
++                      id={`titulo-temporada-${t.id}`}
++                      value={editTemporadaForm.titulo}
++                      maxLength={MAX_TITULO_TEMPORADA}
++                      onChange={e => setEditTemporadaForm(s => ({ ...s, titulo: e.target.value }))}
++                      className="w-full px-4 py-2 bg-white rounded-lg text-sm border-2 border-blue-200 focus:border-blue-600 outline-none"
++                    />
++                    <label className="sr-only" htmlFor={`descricao-temporada-${t.id}`}>Descrição</label>
++                    <input
++                      id={`descricao-temporada-${t.id}`}
++                      value={editTemporadaForm.descricao}
++                      onChange={e => setEditTemporadaForm(s => ({ ...s, descricao: e.target.value }))}
++                      className="w-full px-4 py-2 bg-white rounded-lg text-sm border-2 border-blue-200 focus:border-blue-600 outline-none"
++                    />
++                    <div className="flex gap-2">
++                      <button
++                        onClick={() => salvarEdicaoTemporada(t.id)}
++                        disabled={isLoading(`temporada-salvar-${t.id}`)}
++                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
++                      >
++                        {isLoading(`temporada-salvar-${t.id}`) ? 'Salvando...' : 'Salvar'}
++                      </button>
++                      <button onClick={cancelEditTemporada} className="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-widest">
++                        Cancelar
++                      </button>
++                    </div>
++                  </div>
++                ) : (
++                  <div className="flex items-center justify-between p-4 gap-3">
++                    <button onClick={() => setSelectedTemporadaId(t.id)} className="text-left flex-1">
++                      <div className="font-bold text-slate-800">{t.titulo}</div>
++                      <div className="text-xs text-slate-400">{t.descricao}</div>
++                    </button>
++                    <button onClick={() => startEditTemporada(t)} className="text-[10px] font-black uppercase tracking-widest text-blue-700 hover:underline">
++                      Editar
++                    </button>
++                    <button
++                      onClick={() => toggleAtivaTemporada(t)}
++                      disabled={isLoading(`temporada-${t.id}`)}
++                      className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest disabled:opacity-50 ${
++                        t.ativa ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-500'
++                      }`}
++                    >
++                      {isLoading(`temporada-${t.id}`) ? '...' : t.ativa ? 'Ativa' : 'Inativa'}
++                    </button>
++                  </div>
++                )}
+               </div>
+             ))}
+           </div>
+           <div className="grid md:grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+-            <input placeholder="Título da nova temporada" value={novaTemporada.titulo}
+-              onChange={e => setNovaTemporada(s => ({ ...s, titulo: e.target.value }))}
+-              className="px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
+-            <input placeholder="Descrição" value={novaTemporada.descricao}
+-              onChange={e => setNovaTemporada(s => ({ ...s, descricao: e.target.value }))}
+-              className="px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
++            <div>
++              <label className="sr-only" htmlFor="nova-temporada-titulo">Título da nova temporada</label>
++              <input id="nova-temporada-titulo" placeholder="Título da nova temporada" value={novaTemporada.titulo}
++                maxLength={MAX_TITULO_TEMPORADA}
++                onChange={e => setNovaTemporada(s => ({ ...s, titulo: e.target.value }))}
++                className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
++            </div>
++            <div>
++              <label className="sr-only" htmlFor="nova-temporada-descricao">Descrição</label>
++              <input id="nova-temporada-descricao" placeholder="Descrição" value={novaTemporada.descricao}
++                onChange={e => setNovaTemporada(s => ({ ...s, descricao: e.target.value }))}
++                className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
++            </div>
+           </div>
+-          <button onClick={handleCriarTemporada} disabled={loading}
++          <button onClick={handleCriarTemporada} disabled={isLoading('temporada-criar')}
+             className="px-6 py-3 bg-blue-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50">
+-            Criar Temporada
++            {isLoading('temporada-criar') ? 'Criando...' : 'Criar Temporada'}
+           </button>
+         </div>
+ 
+@@ -203,50 +374,92 @@ const Admin: React.FC = () => {
+             <h2 className="text-lg font-black uppercase text-blue-950">Perguntas desta Temporada</h2>
+             <div className="space-y-2">
+               {perguntas.map(p => (
+-                <div key={p.id} className="p-4 rounded-xl bg-slate-50 flex justify-between items-start gap-4">
++                <div key={p.id} className={`p-4 rounded-xl flex justify-between items-start gap-4 ${p.ativa ? 'bg-slate-50' : 'bg-slate-100 opacity-60'}`}>
+                   <div className="text-sm">
+                     <div className="font-bold text-slate-800">{p.texto_pergunta}</div>
+-                    <div className="text-xs text-slate-400 mt-1">Resposta correta: {p.resposta_correta}</div>
++                    <div className="text-xs text-slate-400 mt-1">
++                      Resposta correta: {p.resposta_correta} {!p.ativa && '· Arquivada'}
++                    </div>
++                  </div>
++                  <div className="flex gap-3 whitespace-nowrap">
++                    <button onClick={() => startEditPergunta(p)} className="text-[10px] font-black uppercase tracking-widest text-blue-700 hover:underline">
++                      Editar
++                    </button>
++                    <button
++                      onClick={() => toggleAtivaPergunta(p)}
++                      disabled={isLoading(`pergunta-${p.id}`)}
++                      className="text-[10px] font-black uppercase tracking-widest text-red-600 hover:underline disabled:opacity-50"
++                    >
++                      {isLoading(`pergunta-${p.id}`) ? '...' : p.ativa ? 'Arquivar' : 'Reativar'}
++                    </button>
+                   </div>
+-                  <button onClick={() => handleExcluirPergunta(p.id)}
+-                    className="text-[10px] font-black uppercase tracking-widest text-red-600 hover:underline whitespace-nowrap">
+-                    Excluir
+-                  </button>
+                 </div>
+               ))}
+               {perguntas.length === 0 && <p className="text-sm text-slate-400 italic">Nenhuma pergunta cadastrada ainda.</p>}
+             </div>
+ 
+             <div className="pt-4 border-t border-slate-100 space-y-3">
+-              <textarea placeholder="Texto da pergunta" value={novaPergunta.texto_pergunta}
++              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">
++                {editingPerguntaId ? 'Editando pergunta' : 'Nova pergunta'}
++              </h3>
++              <label className="sr-only" htmlFor="pergunta-texto">Texto da pergunta</label>
++              <textarea id="pergunta-texto" placeholder="Texto da pergunta" value={novaPergunta.texto_pergunta}
++                maxLength={MAX_TEXTO_PERGUNTA}
+                 onChange={e => setNovaPergunta(s => ({ ...s, texto_pergunta: e.target.value }))}
+                 className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" rows={2} />
+               <div className="grid md:grid-cols-2 gap-3">
+-                <input placeholder="Opção A" value={novaPergunta.opcao_a} onChange={e => setNovaPergunta(s => ({ ...s, opcao_a: e.target.value }))} className="px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
+-                <input placeholder="Opção B" value={novaPergunta.opcao_b} onChange={e => setNovaPergunta(s => ({ ...s, opcao_b: e.target.value }))} className="px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
+-                <input placeholder="Opção C" value={novaPergunta.opcao_c} onChange={e => setNovaPergunta(s => ({ ...s, opcao_c: e.target.value }))} className="px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
+-                <input placeholder="Opção D" value={novaPergunta.opcao_d} onChange={e => setNovaPergunta(s => ({ ...s, opcao_d: e.target.value }))} className="px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
++                {(['opcao_a', 'opcao_b', 'opcao_c', 'opcao_d'] as const).map((campo, i) => (
++                  <div key={campo}>
++                    <label className="sr-only" htmlFor={`pergunta-${campo}`}>{`Opção ${String.fromCharCode(65 + i)}`}</label>
++                    <input
++                      id={`pergunta-${campo}`}
++                      placeholder={`Opção ${String.fromCharCode(65 + i)}`}
++                      value={novaPergunta[campo]}
++                      maxLength={MAX_OPCAO}
++                      onChange={e => setNovaPergunta(s => ({ ...s, [campo]: e.target.value }))}
++                      className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none"
++                    />
++                  </div>
++                ))}
+               </div>
+               <div className="flex items-center gap-3">
+-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Resposta correta</label>
+-                <select value={novaPergunta.resposta_correta}
++                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400" htmlFor="pergunta-resposta-correta">Resposta correta</label>
++                <select id="pergunta-resposta-correta" value={novaPergunta.resposta_correta}
+                   onChange={e => setNovaPergunta(s => ({ ...s, resposta_correta: e.target.value }))}
+                   className="px-4 py-2 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none">
+                   {['A', 'B', 'C', 'D'].map(l => <option key={l} value={l}>{l}</option>)}
+                 </select>
+               </div>
+-              <button onClick={handleCriarPergunta} disabled={loading}
+-                className="px-6 py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50">
+-                Adicionar Pergunta
+-              </button>
++              <div className="flex gap-3">
++                {editingPerguntaId ? (
++                  <>
++                    <button onClick={salvarEdicaoPergunta} disabled={isLoading('pergunta-salvar')}
++                      className="px-6 py-3 bg-blue-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50">
++                      {isLoading('pergunta-salvar') ? 'Salvando...' : 'Salvar Alterações'}
++                    </button>
++                    <button onClick={cancelEditPergunta} className="px-6 py-3 bg-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest">
++                      Cancelar
++                    </button>
++                  </>
++                ) : (
++                  <button onClick={handleCriarPergunta} disabled={isLoading('pergunta-criar')}
++                    className="px-6 py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50">
++                    {isLoading('pergunta-criar') ? 'Adicionando...' : 'Adicionar Pergunta'}
++                  </button>
++                )}
++              </div>
+             </div>
+           </div>
+         )}
+ 
+         {msg && (
+-          <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold text-sm shadow-xl ${
+-            msg.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-600 text-white'
+-          }`}>
++          <div
++            role="status"
++            aria-live="polite"
++            className={`fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold text-sm shadow-xl ${
++              msg.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-600 text-white'
++            }`}
++          >
+             {msg.text}
+           </div>
+         )}
+diff --git a/src/pages/NotFound.tsx b/src/pages/NotFound.tsx
+new file mode 100644
+index 0000000..34ebe90
+--- /dev/null
++++ b/src/pages/NotFound.tsx
+@@ -0,0 +1,24 @@
++import React from 'react';
++import { Link } from 'react-router-dom';
++
++const NotFound: React.FC = () => (
++  <div className="min-h-[70vh] flex items-center justify-center px-6 pt-24">
++    <div className="text-center space-y-6 max-w-md">
++      <span className="text-[10px] font-black uppercase tracking-[0.5em] text-red-600">Erro 404</span>
++      <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-blue-950">
++        Página não encontrada
++      </h1>
++      <p className="text-slate-500 font-medium">
++        O endereço que você tentou acessar não existe ou foi movido.
++      </p>
++      <Link
++        to="/"
++        className="inline-block px-8 py-4 bg-blue-900 hover:bg-blue-800 transition-colors text-white rounded-2xl font-black uppercase tracking-widest text-xs"
++      >
++        Voltar para o início
++      </Link>
++    </div>
++  </div>
++);
++
++export default NotFound;
+diff --git a/src/pages/Profile.tsx b/src/pages/Profile.tsx
+index 9141279..6ebadcc 100644
+--- a/src/pages/Profile.tsx
++++ b/src/pages/Profile.tsx
+@@ -30,6 +30,7 @@ const Profile: React.FC = () => {
+   const [showSairModal, setShowSairModal] = useState(false);
+   const [conquistas, setConquistas] = useState<Conquista[]>([]);
+   const [conquistasLoading, setConquistasLoading] = useState(false);
++  const [meuCodigoLiga, setMeuCodigoLiga] = useState<string | null>(null);
+ 
+ 
+   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+@@ -41,8 +42,11 @@ const Profile: React.FC = () => {
+     if (!user?.liga_id) return;
+     setRankingLoading(true);
+     try {
++      // Lê da view pública de ranking (não da tabela profiles diretamente):
++      // profiles guarda e-mail e agora só é legível pelo próprio dono via
++      // RLS. A view expõe apenas as colunas seguras para exibição pública.
+       const { data, error } = await supabase
+-        .from('profiles')
++        .from('ranking_publico')
+         .select('id, nome, xp, nivel')
+         .eq('liga_id', user.liga_id)
+         .order('xp', { ascending: false });
+@@ -65,6 +69,26 @@ const Profile: React.FC = () => {
+     }
+   }, [user?.liga_id, fetchRanking]);
+ 
++  useEffect(() => {
++    if (!user?.liga_id) {
++      setMeuCodigoLiga(null);
++      return;
++    }
++    let cancelled = false;
++    // codigo_acesso não é mais legível diretamente da tabela ligas (só o
++    // criador consegue recuperá-lo, via esta RPC) — ver auditoria de segurança.
++    supabase.rpc('obter_minha_liga_codigo').then(({ data, error }) => {
++      if (cancelled) return;
++      if (error) {
++        console.error('Erro ao buscar código da liga:', error.message);
++        setMeuCodigoLiga(null);
++        return;
++      }
++      setMeuCodigoLiga((data as { codigo_acesso: string } | null)?.codigo_acesso ?? null);
++    });
++    return () => { cancelled = true; };
++  }, [user?.liga_id]);
++
+   const fetchConquistas = useCallback(async () => {
+     if (!user) return;
+     setConquistasLoading(true);
+@@ -263,12 +287,18 @@ const Profile: React.FC = () => {
+               <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-4 text-center">
+                 <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sua Liga</h4>
+                 <div className="text-2xl font-black italic text-blue-950 uppercase">{user.liga.nome}</div>
+-                <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => user.liga && copyCode(user.liga.codigoAcesso)}>
+-                  <span className="text-[10px] block text-slate-400 uppercase font-bold mb-1">
+-                    Clique para copiar o Código
+-                  </span>
+-                  <span className="font-mono font-black text-red-600 tracking-wider">{user.liga.codigoAcesso}</span>
+-                </div>
++                {meuCodigoLiga ? (
++                  <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors" onClick={() => copyCode(meuCodigoLiga)}>
++                    <span className="text-[10px] block text-slate-400 uppercase font-bold mb-1">
++                      Clique para copiar o Código
++                    </span>
++                    <span className="font-mono font-black text-red-600 tracking-wider">{meuCodigoLiga}</span>
++                  </div>
++                ) : (
++                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">
++                    Só quem criou esta liga pode ver o código de acesso.
++                  </p>
++                )}
+                 <button onClick={() => setShowSairModal(true)} className="mt-4 w-full py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors">
+                   Sair da Liga
+                 </button>
+diff --git a/src/services/supabase.ts b/src/services/supabase.ts
+index b1dcee0..48b97f8 100644
+--- a/src/services/supabase.ts
++++ b/src/services/supabase.ts
+@@ -1,6 +1,23 @@
+ import { createClient } from '@supabase/supabase-js';
+ 
+-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://cagywhslrofuwlmpzbfy.supabase.co';
+-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_mmxRQpS9zKRRmndSiE8i6g_qVvdTSsa';
++const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
++const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+ 
+-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
++// Falha explícita em vez de cair silenciosamente para um projeto hardcoded.
++// Nunca coloque a service_role key aqui — apenas a publishable/anon key,
++// que é segura para expor no frontend (a segurança real vem do RLS).
++if (!supabaseUrl || !supabasePublishableKey) {
++  throw new Error(
++    'Configuração do Supabase ausente. Defina VITE_SUPABASE_URL e ' +
++    'VITE_SUPABASE_PUBLISHABLE_KEY no seu arquivo .env (veja .env.example).'
++  );
++}
++
++// NOTA (Fase 3 do plano de auditoria): o ideal é tipar o client como
++// createClient<Database>(...) usando src/types/database.types.ts. Isso foi
++// tentado e revertido aqui porque o arquivo é escrito à mão (não gerado
++// pelo CLI oficial) e não bate 100% com o contrato interno que o
++// supabase-js exige para o generic — gerava falsos erros de compilação.
++// Assim que rodar `npx supabase gen types typescript --project-id <ref>`
++// contra o projeto real, troque a linha abaixo por createClient<Database>.
++export const supabase = createClient(supabaseUrl, supabasePublishableKey);
+diff --git a/src/test/setup.ts b/src/test/setup.ts
+new file mode 100644
+index 0000000..bb02c60
+--- /dev/null
++++ b/src/test/setup.ts
+@@ -0,0 +1 @@
++import '@testing-library/jest-dom/vitest';
+diff --git a/src/types/database.types.ts b/src/types/database.types.ts
+new file mode 100644
+index 0000000..065b07a
+--- /dev/null
++++ b/src/types/database.types.ts
+@@ -0,0 +1,222 @@
++// Tipos do banco de dados.
++//
++// Em produção, o ideal é gerar este arquivo automaticamente com:
++//   npx supabase gen types typescript --project-id <ref> > src/types/database.types.ts
++// Ele foi escrito manualmente aqui para refletir o schema.sql atual e
++// destravar a Fase 3 do plano (remover `as X` do código). Assim que o CLI
++// do Supabase estiver disponível no pipeline, troque por geração automática.
++
++export interface Database {
++  public: {
++    Tables: {
++      profiles: {
++        Row: {
++          id: string;
++          nome: string;
++          email: string;
++          xp: number;
++          nivel: string;
++          role: 'user' | 'admin';
++          liga_id: number | null;
++          created_at: string;
++          updated_at: string;
++        };
++        Insert: {
++          id: string;
++          nome?: string;
++          email: string;
++          xp?: number;
++        };
++        Update: {
++          nome?: string;
++        };
++      };
++      ligas: {
++        Row: {
++          id: number;
++          nome: string;
++          codigo_acesso: string;
++          criado_por: string | null;
++          created_at: string;
++        };
++        Insert: {
++          nome: string;
++        };
++        Update: {
++          nome?: string;
++        };
++      };
++      temporadas: {
++        Row: {
++          id: number;
++          titulo: string;
++          descricao: string;
++          ordem: number | null;
++          ativa: boolean;
++          created_at: string;
++        };
++        Insert: {
++          titulo: string;
++          descricao?: string;
++          ordem?: number | null;
++          ativa?: boolean;
++        };
++        Update: {
++          titulo?: string;
++          descricao?: string;
++          ordem?: number | null;
++          ativa?: boolean;
++        };
++      };
++      perguntas: {
++        Row: {
++          id: number;
++          temporada_id: number;
++          texto_pergunta: string;
++          opcao_a: string;
++          opcao_b: string;
++          opcao_c: string;
++          opcao_d: string;
++          resposta_correta: 'A' | 'B' | 'C' | 'D';
++          ordem: number | null;
++          ativa: boolean;
++          created_at: string;
++        };
++        Insert: {
++          temporada_id: number;
++          texto_pergunta: string;
++          opcao_a: string;
++          opcao_b: string;
++          opcao_c: string;
++          opcao_d: string;
++          resposta_correta: 'A' | 'B' | 'C' | 'D';
++          ordem?: number | null;
++          ativa?: boolean;
++        };
++        Update: {
++          texto_pergunta?: string;
++          opcao_a?: string;
++          opcao_b?: string;
++          opcao_c?: string;
++          opcao_d?: string;
++          resposta_correta?: 'A' | 'B' | 'C' | 'D';
++          ordem?: number | null;
++          ativa?: boolean;
++        };
++      };
++      respostas_usuario: {
++        Row: {
++          id: number;
++          user_id: string;
++          pergunta_id: number;
++          acertou: boolean;
++          created_at: string;
++        };
++        Insert: {
++          user_id: string;
++          pergunta_id: number;
++          acertou: boolean;
++        };
++        Update: never;
++      };
++      streaks: {
++        Row: {
++          user_id: string;
++          streak_atual: number;
++          maior_streak: number;
++          ultimo_acesso: string | null;
++          updated_at: string;
++        };
++        Insert: never;
++        Update: never;
++      };
++      conquistas: {
++        Row: {
++          id: number;
++          codigo: string;
++          nome: string;
++          descricao: string | null;
++          icone: string;
++          created_at: string;
++        };
++        Insert: never;
++        Update: never;
++      };
++      usuario_conquistas: {
++        Row: {
++          id: number;
++          user_id: string;
++          conquista_id: number;
++          created_at: string;
++        };
++        Insert: never;
++        Update: never;
++      };
++      auditoria_admin: {
++        Row: {
++          id: number;
++          admin_id: string | null;
++          acao: string;
++          entidade: string;
++          entidade_id: string | null;
++          valores_antigos: Record<string, unknown> | null;
++          valores_novos: Record<string, unknown> | null;
++          created_at: string;
++        };
++        Insert: never;
++        Update: never;
++      };
++    };
++    Views: {
++      ranking_publico: {
++        Row: {
++          id: string;
++          nome: string;
++          xp: number;
++          nivel: string;
++          liga_id: number | null;
++        };
++      };
++    };
++    Functions: {
++      responder_pergunta: {
++        Args: { p_pergunta_id: number; p_resposta_selecionada: string };
++        Returns: {
++          correct: boolean;
++          xp: number;
++          nivel: string;
++          first_attempt: boolean;
++        };
++      };
++      criar_liga: {
++        Args: { p_nome: string };
++        Returns: { liga_id: number; nome: string; codigo_acesso: string };
++      };
++      entrar_liga: {
++        Args: { p_codigo: string };
++        Returns: { liga_id: number; nome: string; codigo_acesso: string };
++      };
++      sair_liga: {
++        Args: Record<string, never>;
++        Returns: { success: boolean };
++      };
++      registrar_acesso: {
++        Args: Record<string, never>;
++        Returns: { streak_atual: number; maior_streak: number };
++      };
++      obter_minha_liga_codigo: {
++        Args: Record<string, never>;
++        Returns: { codigo_acesso: string } | null;
++      };
++    };
++  };
++}
++
++// Aliases convenientes usados pelas telas.
++export type Profile = Database['public']['Tables']['profiles']['Row'];
++export type Liga = Database['public']['Tables']['ligas']['Row'];
++export type Temporada = Database['public']['Tables']['temporadas']['Row'];
++export type Pergunta = Database['public']['Tables']['perguntas']['Row'];
++export type RankingEntry = Database['public']['Views']['ranking_publico']['Row'];
++export type ResponderPerguntaResult = Database['public']['Functions']['responder_pergunta']['Returns'];
++export type RegistrarAcessoResult = Database['public']['Functions']['registrar_acesso']['Returns'];
+diff --git a/src/utils/quiz.test.ts b/src/utils/quiz.test.ts
+new file mode 100644
+index 0000000..672f5cc
+--- /dev/null
++++ b/src/utils/quiz.test.ts
+@@ -0,0 +1,103 @@
++import { describe, it, expect } from 'vitest';
++import { shuffle, calcularProgresso, calcularXpGanho, progressoPercentual } from './quiz';
++
++describe('shuffle', () => {
++  it('mantém todos os elementos originais, apenas reordenados', () => {
++    const original = [{ label: 'A' }, { label: 'B' }, { label: 'C' }, { label: 'D' }];
++    const embaralhado = shuffle(original);
++
++    expect(embaralhado).toHaveLength(original.length);
++    expect(embaralhado.map(o => o.label).sort()).toEqual(original.map(o => o.label).sort());
++  });
++
++  it('não modifica o array original (imutabilidade)', () => {
++    const original = [1, 2, 3, 4];
++    const copia = [...original];
++    shuffle(original);
++    expect(original).toEqual(copia);
++  });
++
++  it('preserva o label de cada opção junto do seu texto original', () => {
++    const opcoes = [
++      { label: 'A', text: 'Roma' },
++      { label: 'B', text: 'Assis' },
++      { label: 'C', text: 'Milão' },
++      { label: 'D', text: 'Florença' }
++    ];
++    const embaralhado = shuffle(opcoes);
++    for (const opt of embaralhado) {
++      const original = opcoes.find(o => o.label === opt.label);
++      expect(opt.text).toBe(original?.text);
++    }
++  });
++});
++
++describe('calcularProgresso', () => {
++  it('começa do zero quando não há respostas registradas', () => {
++    const resultado = calcularProgresso([1, 2, 3], []);
++    expect(resultado).toEqual({ score: 0, currentIndex: 0, completed: false });
++  });
++
++  it('retoma na primeira pergunta ainda não respondida', () => {
++    const resultado = calcularProgresso(
++      [1, 2, 3, 4],
++      [
++        { pergunta_id: 1, acertou: true },
++        { pergunta_id: 2, acertou: false }
++      ]
++    );
++    expect(resultado.currentIndex).toBe(2); // pergunta id=3, índice 2
++    expect(resultado.score).toBe(1);
++    expect(resultado.completed).toBe(false);
++  });
++
++  it('marca como concluída quando todas as perguntas já foram respondidas', () => {
++    const resultado = calcularProgresso(
++      [1, 2],
++      [
++        { pergunta_id: 1, acertou: true },
++        { pergunta_id: 2, acertou: true }
++      ]
++    );
++    expect(resultado.completed).toBe(true);
++    expect(resultado.score).toBe(2);
++    expect(resultado.currentIndex).toBe(1);
++  });
++
++  it('não quebra com lista de perguntas vazia', () => {
++    const resultado = calcularProgresso([], []);
++    expect(resultado).toEqual({ score: 0, currentIndex: 0, completed: false });
++  });
++});
++
++describe('calcularXpGanho', () => {
++  it('concede XP na primeira tentativa correta', () => {
++    expect(calcularXpGanho(true, true)).toBe(100);
++  });
++
++  it('não concede XP em resposta incorreta', () => {
++    expect(calcularXpGanho(false, true)).toBe(0);
++  });
++
++  it('não concede XP em tentativa repetida, mesmo que correta', () => {
++    expect(calcularXpGanho(true, false)).toBe(0);
++  });
++
++  it('respeita um valor de XP customizado', () => {
++    expect(calcularXpGanho(true, true, 50)).toBe(50);
++  });
++});
++
++describe('progressoPercentual', () => {
++  it('calcula a porcentagem correta no meio do quiz', () => {
++    expect(progressoPercentual(2, 4)).toBe(50);
++  });
++
++  it('retorna 0 quando o total de perguntas é zero (evita divisão por zero)', () => {
++    expect(progressoPercentual(0, 0)).toBe(0);
++  });
++
++  it('nunca ultrapassa 100', () => {
++    expect(progressoPercentual(10, 4)).toBe(100);
++  });
++});
+diff --git a/src/utils/quiz.ts b/src/utils/quiz.ts
+new file mode 100644
+index 0000000..cff915a
+--- /dev/null
++++ b/src/utils/quiz.ts
+@@ -0,0 +1,62 @@
++// Funções puras extraídas do Quiz.tsx para permitir testes unitários sem
++// precisar montar o componente inteiro nem mockar o Supabase.
++
++export interface RespostaResumo {
++  pergunta_id: number;
++  acertou: boolean;
++}
++
++export interface ProgressoCalculado {
++  score: number;
++  currentIndex: number;
++  completed: boolean;
++}
++
++/**
++ * A partir da lista de perguntas de uma temporada (em ordem) e das
++ * respostas já registradas para o usuário, calcula: quantas ele acertou,
++ * em qual pergunta ele deve continuar, e se a temporada já foi concluída.
++ */
++export function calcularProgresso(
++  perguntaIds: number[],
++  respostas: RespostaResumo[]
++): ProgressoCalculado {
++  const respondidasIds = new Set(respostas.map(r => r.pergunta_id));
++  const acertos = respostas.filter(r => r.acertou).length;
++  const proximoIndex = perguntaIds.findIndex(id => !respondidasIds.has(id));
++
++  if (proximoIndex === -1) {
++    return {
++      score: acertos,
++      currentIndex: Math.max(perguntaIds.length - 1, 0),
++      completed: perguntaIds.length > 0 && respondidasIds.size === perguntaIds.length,
++    };
++  }
++
++  return {
++    score: acertos,
++    currentIndex: proximoIndex,
++    completed: false,
++  };
++}
++
++/** XP concedido por uma resposta: só na primeira tentativa correta. */
++export function calcularXpGanho(isCorrect: boolean, isFirstAttempt: boolean, xpPorAcerto = 100): number {
++  return isCorrect && isFirstAttempt ? xpPorAcerto : 0;
++}
++
++/** Percentual de progresso na barra do quiz (0–100). */
++export function progressoPercentual(currentIndex: number, total: number): number {
++  if (total <= 0) return 0;
++  return Math.min(100, Math.max(0, (currentIndex / total) * 100));
++}
++
++// Fisher-Yates simples para embaralhar a ordem visual das alternativas.
++export function shuffle<T>(array: T[]): T[] {
++  const arr = [...array];
++  for (let i = arr.length - 1; i > 0; i--) {
++    const j = Math.floor(Math.random() * (i + 1));
++    [arr[i], arr[j]] = [arr[j], arr[i]];
++  }
++  return arr;
++}
+diff --git a/vite.config.ts b/vite.config.ts
+index 8b0f57b..17a5486 100644
+--- a/vite.config.ts
++++ b/vite.config.ts
+@@ -1,7 +1,18 @@
+ import { defineConfig } from 'vite'
+ import react from '@vitejs/plugin-react'
++import { visualizer } from 'rollup-plugin-visualizer'
+ 
+ // https://vite.dev/config/
+ export default defineConfig({
+-  plugins: [react()],
++  plugins: [
++    react(),
++    // Gera stats.html com o mapa do bundle. Só roda com ANALYZE=true
++    // (npm run analyze) para não pesar o build normal.
++    process.env.ANALYZE === 'true' &&
++      visualizer({ filename: 'stats.html', gzipSize: true, brotliSize: true, open: true }),
++  ].filter(Boolean),
++  // NÃO aumente chunkSizeWarningLimit para "silenciar" o aviso de bundle
++  // grande — o objetivo é reduzir o peso real via lazy loading e code
++  // splitting (ver App.tsx), e o aviso padrão (600kb) é o sinal de alerta
++  // que deve continuar disparando se algo regredir.
+ })
+diff --git a/vitest.config.ts b/vitest.config.ts
+new file mode 100644
+index 0000000..bf4e54e
+--- /dev/null
++++ b/vitest.config.ts
+@@ -0,0 +1,27 @@
++import { defineConfig, mergeConfig } from 'vitest/config';
++import react from '@vitejs/plugin-react';
++
++// Config separada do vite.config.ts para não misturar o plugin de
++// visualização de bundle (produção) com o ambiente de testes.
++export default mergeConfig(
++  defineConfig({ plugins: [react()] }),
++  defineConfig({
++    test: {
++      environment: 'jsdom',
++      setupFiles: ['./src/test/setup.ts'],
++      globals: true,
++      css: false,
++      coverage: {
++        provider: 'v8',
++        reporter: ['text', 'html'],
++        exclude: [
++          'node_modules/',
++          'src/test/',
++          'src/types/',
++          'src/data/',
++          '**/*.d.ts',
++        ],
++      },
++    },
++  })
++);

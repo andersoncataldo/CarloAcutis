@@ -1,218 +1,215 @@
-# 📊 Análise Técnica — Projeto São Carlo Acutis
+# Avaliação Técnica do Projeto Carlo Acutis
 
-## Visão Geral
+**Data da avaliação:** 06/09/2026
+**Escopo analisado:** frontend atual, configuração do Vite/TypeScript, integração Supabase, schema SQL e build de produção.
 
-Projeto full-stack educativo/devocional sobre **Beato Carlo Acutis**, com:
-- Interface web informativa (Home, páginas de categoria)
-- Mini-game de Quiz com sistema de XP e níveis
-- Sistema de Ligas (grupos de usuários)
-- Autenticação JWT
+## 1. Resumo executivo
 
-Stack: **React 19 + TypeScript + Tailwind (frontend)** / **Java 17 + Spring Boot 4 + PostgreSQL (backend)**
+O projeto atual é uma SPA educativa e devocional construída com React, TypeScript e Vite. O Supabase concentra autenticação, persistência, políticas de acesso e funções RPC para o quiz e as ligas. A arquitetura é adequada ao tamanho do produto e está bem separada em páginas, componentes, contexto, dados estáticos e serviço de infraestrutura.
 
----
+A base está funcional, mas ainda não está pronta para ser considerada madura em qualidade e performance. O principal problema funcional é o erro de Hooks no componente do quiz. O maior risco de performance é o carregamento inicial monolítico, agravado por imagens grandes. O maior risco de segurança e consistência é depender apenas de suposições do cliente e de policies para proteger consultas que deveriam ser explicitamente limitadas ao usuário atual.
 
-## 1. ☕ Java + Spring Boot é eficiente para este projeto?
+### Notas indicativas
 
-### Veredicto: **Funciona, mas é um canhão mirando em um pardal**
+| Área | Nota | Avaliação |
+|---|---:|---|
+| Arquitetura e estrutura | 8/10 | Organização clara e adequada ao escopo atual. |
+| Qualidade de código | 6/10 | TypeScript estrito, mas lint quebrado e alguns fluxos frágeis. |
+| Segurança e integridade | 6/10 | RPC/RLS são boas decisões; configuração e consultas precisam endurecimento. |
+| Performance | 5/10 | Build funcional, mas bundle e ativos iniciais estão pesados. |
+| Testabilidade e manutenção | 4/10 | Não há testes automatizados nem uma camada clara de contratos/tipos do banco. |
+| Prontidão para produção | 6/10 | Pode ser publicado, mas recomenda-se tratar os itens de alta prioridade antes. |
 
-#### O que o projeto realmente precisa do backend:
-| Função | Complexidade Real |
-|---|---|
-| Login/Registro com JWT | Baixa — 3 endpoints simples |
-| Buscar perguntas por temporada | Baixíssima — 1 query SELECT |
-| Processar resposta (XP++) | Baixa — lógica de ~10 linhas |
-| Criar/Entrar em Liga | Baixa — 2 endpoints |
-| Ranking da Liga | Baixa — 1 query ordenada |
+## 2. Arquitetura atual
 
-#### Prós do Java + Spring Boot aqui:
-- ✅ Spring Security + JWT já configurado e funcional
-- ✅ JPA/Hibernate com PostgreSQL funciona muito bem para dados relacionais simples
-- ✅ Flyway integrado (migrations versionadas)
-- ✅ Lombok reduz boilerplate
-- ✅ Boa opção se o objetivo é aprendizado de Java enterprise
+### Frontend
 
-#### Contras / Overhead real:
-- ❌ **Spring Boot 4 + JVM** tem cold start de 5–15s na primeira execução. Para um projeto pequeno, isso pode ser problema em ambientes serverless
-- ❌ A lógica de negócio cabe em ~200 linhas; Spring Boot exige muito mais configuração para isso
-- ❌ Para hospedar gratuitamente, alternativas como **Node.js + Express + NeonDB** ou **Supabase** seriam muito mais práticas
-- ❌ O CORS está hardcoded para `localhost:5173` — problema em produção
+- React 19 com TypeScript estrito.
+- Vite como servidor e bundler.
+- React Router para as rotas públicas, autenticadas e administrativas.
+- Tailwind CSS para estilos.
+- Framer Motion para animações.
+- `AuthContext` centralizando sessão, perfil, nível, liga e sequência de acessos.
 
-#### Alternativas que seriam mais leves:
-- **Node.js + Express + Prisma** (mais simples, mesmo PostgreSQL Neon)
-- **Supabase** (auth + DB + real-time prontos, zero backend custom)
-- **Python + FastAPI** (curva menor, performance similar)
+### Backend como serviço
 
-#### Conclusão:
-> Spring Boot é uma escolha **válida como projeto de estudo** e funciona corretamente. Mas para o escopo real do projeto (5 endpoints simples), adiciona complexidade desnecessária de infra. **Se o foco é aprender Spring Boot, mantenha. Se o foco é o produto, considere Node.js ou Supabase.**
+O projeto não possui mais backend Java/Spring. O acesso à infraestrutura é feito pelo cliente Supabase em `src/services/supabase.ts`:
 
----
+- Supabase Auth para cadastro, login e sessão.
+- PostgreSQL para perfis, ligas, temporadas, perguntas e respostas.
+- RLS para restringir dados por usuário.
+- RPCs para validar respostas, conceder XP, registrar acesso e administrar ligas.
 
-## 2. 🔴 Problemas encontrados no Frontend
+### Rotas principais
 
-### 2.1 — CRÍTICO: `api.ts` está apontando para `localhost` em produção
+- `/`: página inicial.
+- `/vida-legado`, `/fe-devocao` e `/santidade`: conteúdo biográfico.
+- `/login` e `/cadastro`: autenticação.
+- `/perfil`: área protegida do usuário.
+- `/quiz`: quiz protegido.
+- `/admin`: área protegida por perfil administrativo.
+- Rota coringa redirecionando para a home.
 
-**Arquivo:** [`api.ts`](file:///c:/Users/ander/Projetos%20-%20Anderson/Projetos%20Pessoais/CarloAcutis/frontend/src/services/api.ts#L4)
+## 3. Pontos positivos
+
+- A separação entre `pages`, `components`, `context`, `data` e `services` é simples de entender e adequada ao produto.
+- As rotas protegidas estão concentradas em `App.tsx`, evitando repetir a mesma regra em cada página.
+- O gabarito não é buscado pelo frontend: a resposta é processada pela RPC `responder_pergunta` no banco.
+- O schema possui entidades separadas para perfis, ligas, temporadas, perguntas e histórico de respostas.
+- O histórico tem restrição única por usuário e pergunta, reduzindo risco de XP duplicado.
+- O cálculo de XP e nível acontece no banco, o que reduz a confiança indevida no estado do cliente.
+- O TypeScript está configurado com `strict`, `noUnusedLocals`, `noUnusedParameters` e outras verificações úteis.
+- O build de produção foi concluído com sucesso.
+
+## 4. Problemas e riscos encontrados
+
+### 4.1 Alta prioridade: Hook condicional no quiz
+
+**Arquivo:** `src/components/Quiz.tsx`
+
+`useMemo` é chamado depois de retornos antecipados para `loading`, lista vazia e conclusão. Isso viola as Rules of Hooks e já é detectado pelo lint:
+
+```text
+React Hook "useMemo" is called conditionally.
+```
+
+Além de manter o pipeline vermelho, a ordem dos Hooks pode mudar entre renders. O cálculo das opções embaralhadas deve ser movido para antes dos retornos condicionais ou substituído por uma estratégia que preserve a ordem dos Hooks.
+
+### 4.2 Alta prioridade: consulta de respostas sem filtro explícito de usuário
+
+**Arquivo:** `src/components/Quiz.tsx`
+
+A consulta do histórico filtra apenas pelos IDs das perguntas:
 
 ```ts
-// PROBLEMA: URL hardcoded — vai quebrar em produção (Vercel)
-baseURL: 'http://localhost:8080/api',
+.from('respostas_usuario')
+.select('pergunta_id, acertou')
+.in('pergunta_id', lista.map(p => p.id));
 ```
 
-**Correção:**
-```ts
-baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
-```
-E criar um arquivo `.env.production` com:
-```
-VITE_API_URL=https://seu-backend-em-producao.com/api
-```
+Ela deveria incluir `.eq('user_id', user.id)`. O RLS pode impedir o retorno de dados de terceiros, mas a regra de negócio não deve depender apenas de uma suposição implícita. O filtro explícito melhora clareza, reduz dados processados e evita que uma alteração futura de policy afete o progresso e a pontuação.
 
----
+### 4.3 Alta prioridade: efeito do quiz ignora dependências relevantes
 
-### 2.2 — CRÍTICO: `SecurityConfig.java` tem CORS hardcoded para localhost
+O efeito que busca perguntas depende de `temporadaId`, mas usa `user` e suprime a verificação de dependências. Se a sessão for carregada depois da lista de perguntas, o progresso existente pode não ser recuperado nessa execução. O fluxo deve reagir à disponibilidade do usuário ou separar a busca das perguntas da busca do histórico.
 
-**Arquivo:** [`SecurityConfig.java`](file:///c:/Users/ander/Projetos%20-%20Anderson/Projetos%20Pessoais/CarloAcutis/backend/src/main/java/com/carloacutis/backend/security/SecurityConfig.java#L68)
+### 4.4 Média prioridade: fallback de credenciais no código-fonte
 
-```java
-// PROBLEMA: Só aceita requisições do Vite local
-config.addAllowedOrigin("http://localhost:5173");
-```
+**Arquivo:** `src/services/supabase.ts`
 
-Deve incluir a URL do frontend em produção (Vercel, etc.).
+O cliente possui URL e chave pública como valores de fallback. A chave publishable/anon não é um segredo, mas manter configuração de ambiente real no código:
 
----
+- dificulta identificar configurações diferentes entre desenvolvimento e produção;
+- pode conectar instalações acidentalmente ao mesmo projeto;
+- mascara a ausência de configuração correta no deploy.
 
-### 2.3 — GRAVE: Senha exposta no campo `senhaHash` no frontend
+O ideal é exigir as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` no build, deixando falha explícita quando estiverem ausentes. A proteção real dos dados continua dependendo de RLS e nunca de esconder a chave pública.
 
-**Arquivo:** [`Register.tsx`](file:///c:/Users/ander/Projetos%20-%20Anderson/Projetos%20Pessoais/CarloAcutis/frontend/src/pages/Register.tsx#L11)
+### 4.5 Média prioridade: bundle inicial acima do limite recomendado
 
-O campo de senha no formulário se chama `senhaHash` no estado React e é enviado diretamente na requisição:
-```ts
-senhaHash: formData.senhaHash  // Nome do campo vaza detalhes da implementação do backend
-```
+O build gerou um bundle JavaScript de aproximadamente **646 kB**, acionando o aviso do Vite para chunks acima de 500 kB. Todas as páginas são importadas de forma eager em `App.tsx`, portanto o usuário baixa também o código do quiz, administração e autenticação ao abrir a home.
 
-O ideal seria o campo ser chamado `senha` ou `password` no frontend, e o backend mapear internamente. É um vazamento de detalhe de implementação (que usa hash) para o cliente.
+Recomendação: usar `React.lazy` e `Suspense` para rotas secundárias, especialmente `/admin`, `/quiz`, `/perfil`, login e cadastro. Isso reduz o JavaScript inicial e melhora o carregamento da página pública.
 
----
+### 4.6 Média prioridade: imagens grandes no carregamento
 
-### 2.4 — MODERADO: `QuizController` expõe a `respostaCorreta` no frontend
+Os ativos mais pesados encontrados incluem:
 
-**Arquivo:** [`QuizController.java`](file:///c:/Users/ander/Projetos%20-%20Anderson/Projetos%20Pessoais/CarloAcutis/backend/src/main/java/com/carloacutis/backend/controllers/QuizController.java#L31)
+- `src/assets/Carlo.jpg`: aproximadamente 1,4 MB.
+- `src/assets/icon.png`: aproximadamente 964 kB.
+- `src/assets/carlo_retrato.png`: aproximadamente 584 kB.
 
-O endpoint `GET /quiz/temporada/{id}/perguntas` retorna a entidade `Pergunta` completa, incluindo o campo `respostaCorreta`. Isso significa que qualquer usuário pode abrir o DevTools, inspecionar a resposta da API e ver as respostas corretas antes de responder.
+A home carrega a imagem principal imediatamente e o build mantém os arquivos em seus formatos originais. Recomenda-se gerar versões WebP/AVIF responsivas, definir dimensões estáveis e usar `srcSet`/`sizes` quando houver variações. O ícone também deve ser reduzido ou substituído por um formato adequado ao uso.
 
-```java
-// PROBLEMA: Retorna Pergunta com respostaCorreta exposta
-return temporada.getPerguntas(); // inclui respostaCorreta!
-```
+### 4.7 Média prioridade: ausência de testes automatizados
 
-**Correção:** Criar um DTO `PerguntaPublicaDTO` sem o campo `respostaCorreta`.
+O `package.json` possui scripts de desenvolvimento, build, lint e preview, mas não possui script de testes. Não há proteção automatizada para fluxos críticos como:
 
----
+- autenticação e redirecionamento de rotas;
+- retomada de progresso do quiz;
+- primeira resposta e concessão única de XP;
+- criação, entrada e saída de ligas;
+- permissões da área administrativa.
 
-### 2.5 — MODERADO: Lógica de verificação de acerto no Quiz é frágil
+Um conjunto pequeno de testes para o quiz, autenticação e funções de banco reduziria o risco de regressões.
 
-**Arquivo:** [`Quiz.tsx`](file:///c:/Users/ander/Projetos%20-%20Anderson/Projetos%20Pessoais/CarloAcutis/frontend/src/components/Quiz.tsx#L58)
+### 4.8 Média prioridade: contratos do banco não estão tipados
 
-```ts
-// Determina acerto comparando XP antes/depois — GAMBIARRA
-const isCorrect = updatedUser.xp > user.xp;
-```
+As respostas do Supabase são convertidas com casts como `as UserProfile`, `as Pergunta` e `as StreakInfo`. Isso acelera o desenvolvimento, mas não valida em tempo de compilação se o schema e o frontend continuam sincronizados. Recomenda-se gerar os tipos do banco a partir do Supabase e usá-los no cliente.
 
-Se o usuário tiver XP atualizado por outro meio simultâneo, isso pode dar falso positivo/negativo. O backend deveria retornar um campo `acertou: boolean` explícito.
+### 4.9 Baixa prioridade: limpeza de ciclo de vida no quiz
 
----
+O quiz agenda um `setTimeout` para avançar a pergunta após o feedback, mas não cancela esse timer quando o componente é desmontado ou quando a temporada muda. Em navegação rápida, isso pode produzir atualizações atrasadas de estado. Um efeito de limpeza ou uma referência ao timer resolveria o problema.
 
-### 2.6 — MODERADO: `QuizPage.tsx` tem `temporadaId={1}` hardcoded
+### 4.10 Baixa prioridade: metadados ainda são os do template
 
-**Arquivo:** [`QuizPage.tsx`](file:///c:/Users/ander/Projetos%20-%20Anderson/Projetos%20Pessoais/CarloAcutis/frontend/src/pages/QuizPage.tsx#L14)
+O `package.json` mantém descrição, autor, palavras-chave e licença genéricos do template inicial. Isso não afeta a execução, mas prejudica a identificação do pacote e a manutenção do projeto.
 
-```tsx
-<Quiz temporadaId={1} />  // Hardcoded — não há seleção de temporada
-```
+## 5. Banco de dados e integridade
 
-O backend tem endpoint `GET /quiz/temporadas` mas ele nunca é chamado. O usuário não pode escolher temporadas.
+O `schema.sql` é uma boa base para o escopo atual:
 
----
+- `profiles` estende o usuário autenticado.
+- `ligas` armazena grupos e códigos de acesso.
+- `temporadas` e `perguntas` organizam o conteúdo do quiz.
+- `respostas_usuario` impede duplicidade por usuário e pergunta.
+- Índices existem para chaves estrangeiras e filtros frequentes.
+- Funções RPC concentram alterações sensíveis de XP e liga no banco.
 
-### 2.7 — LEVE: `LigaController` não valida autenticação para `entrarNaLiga`
+Pontos para evolução:
 
-**Arquivo:** [`LigaController.java`](file:///c:/Users/ander/Projetos%20-%20Anderson/Projetos%20Pessoais/CarloAcutis\backend\src\main\java\com\carloacutis\backend\controllers\LigaController.java)
+1. Confirmar, em ambiente publicado, que todas as tabelas sensíveis possuem RLS habilitado e policies mínimas.
+2. Restringir permissões de execução das RPCs ao papel apropriado e validar o usuário dentro de cada função.
+3. Manter alterações do schema em migrações versionadas, em vez de depender somente da execução manual do arquivo completo.
+4. Adicionar índices conforme o volume real de respostas, ligas e ranking crescer.
+5. Evitar `select('*')` em consultas de perfil quando apenas alguns campos são necessários.
 
-O endpoint `POST /ligas/entrar` recebe `usuarioId` no body — qualquer usuário autenticado pode entrar em nome de outro usuário passando o ID alheio. Deveria usar o `Authentication` do Spring Security para pegar o usuário atual.
+## 6. Avaliação de performance
 
----
+### Situação observada
 
-### 2.8 — LEVE: Diretório de migrations Flyway está vazio
+- `npm run build`: passou.
+- Bundle JavaScript principal: aproximadamente 646 kB.
+- Vite emitiu aviso de chunk acima de 500 kB.
+- Há imagens individuais acima de 500 kB.
+- A aplicação utiliza imports eager para todas as páginas.
+- Perguntas e histórico são buscados separadamente, o que é aceitável, mas pode ser refinado com uma camada de carregamento mais previsível.
 
-**Pasta:** `backend/src/main/resources/db/migration/` está **vazia**.
+### Ordem recomendada de otimização
 
-Isso significa que o schema do banco está sendo criado pelo Hibernate com `ddl-auto` automático, sem versionamento de migrations. Isso é inseguro para produção — qualquer alteração de modelo pode causar perda de dados.
+1. Dividir as rotas com lazy loading.
+2. Converter e redimensionar imagens grandes.
+3. Medir Web Vitals em produção, principalmente LCP, CLS e INP.
+4. Evitar consultas amplas e adicionar filtros explícitos de usuário.
+5. Usar cache ou pré-carregamento apenas para dados realmente reutilizados.
+6. Reavaliar o tamanho dos chunks depois das otimizações, sem aumentar o limite apenas para silenciar o aviso.
 
----
+## 7. Plano de melhoria priorizado
 
-### 2.9 — LEVE: `vitepress` listado como dependência dev desnecessária
+### P0: corrigir antes do próximo deploy
 
-**Arquivo:** [`package.json`](file:///c:/Users/ander/Projetos%20-%20Anderson/Projetos%20Pessoais/CarloAcutis/frontend/package.json#L35)
+- Corrigir o `useMemo` condicional em `Quiz.tsx`.
+- Filtrar o histórico por `user_id`.
+- Revisar as policies RLS e as permissões das RPCs no projeto Supabase publicado.
+- Remover os fallbacks de configuração do cliente Supabase.
 
-```json
-"vitepress": "^0.1.1"  // Não utilizado — peso desnecessário
-```
+### P1: próxima iteração
 
----
+- Implementar lazy loading das rotas.
+- Otimizar `Carlo.jpg`, `icon.png` e demais ativos grandes.
+- Corrigir o ciclo de vida do `setTimeout` do quiz.
+- Separar o carregamento das perguntas do carregamento do progresso do usuário.
+- Gerar tipos oficiais do banco Supabase.
 
-### 2.10 — LEVE: `SecurityConfig` usa API deprecated do Spring Security
+### P2: evolução de qualidade
 
-**Arquivo:** [`SecurityConfig.java`](file:///c:/Users/ander/Projetos%20-%20Anderson/Projetos%20Pessoais/CarloAcutis/backend/src/main/java/com/carloacutis/backend/security/SecurityConfig.java#L46)
+- Adicionar testes unitários e de integração para autenticação, quiz e ligas.
+- Criar migrações versionadas para o schema.
+- Atualizar metadados do `package.json`.
+- Adicionar observabilidade básica de erros e Web Vitals.
 
-```java
-http
-  .cors()           // deprecated no Spring Security 6+
-  .and()            // deprecated — usar lambda config
-  .csrf().disable() // deprecated
-```
+## 8. Conclusão
 
-O Spring Boot 4 usa Spring Security 7 que requer a nova sintaxe lambda-style:
-```java
-http
-  .cors(cors -> cors.configurationSource(...))
-  .csrf(csrf -> csrf.disable())
-  ...
-```
+O projeto tem uma direção técnica coerente para uma aplicação pequena: React/Vite no cliente e Supabase como backend gerenciado. A estrutura é legível e as decisões de manter XP e validações sensíveis no banco são corretas.
 
----
-
-## 3. ✅ O projeto cumpre seus objetivos?
-
-### Objetivos identificados:
-1. **Site informativo sobre Carlo Acutis** — ✅ Parcialmente. Há Home, páginas de categoria (Vida/Fé/Santidade), seções e timeline.
-2. **Mini-game de Quiz** — ✅ Funcional, com XP e feedback visual bonito.
-3. **Sistema de Ligas/Ranking** — ✅ Implementado, mas sem seleção visual de temporada.
-4. **Autenticação de usuários** — ✅ JWT completo (login, registro, me, rotas protegidas).
-5. **Gamificação (XP + Níveis)** — ✅ Funcional com títulos progressivos (Peregrino → Ciberapóstolo).
-
-### O que está faltando para cumprir bem os objetivos:
-
-| Item | Status | Observação |
-|---|---|---|
-| Seleção de Temporadas do Quiz | ❌ Ausente | Backend pronto, frontend ignora |
-| Proteção das respostas corretas | ❌ Exposto | Qualquer um vê via DevTools |
-| Deploy funcional (produção) | ❌ Quebrado | URL localhost hardcoded |
-| Schema de banco versionado | ⚠️ Frágil | Pasta de migrations vazia |
-| Identificação segura de usuário | ⚠️ Frágil | Liga usa `usuarioId` no body |
-| Testes automatizados | ❌ Ausente | Diretório `test/` existe mas vazio |
-
----
-
-## Resumo Executivo
-
-| Categoria | Nota | Comentário |
-|---|---|---|
-| Arquitetura Geral | 7/10 | Bem estruturado, separação clara de responsabilidades |
-| Java + Spring Boot | 6/10 | Funciona, mas superdimensionado para o escopo |
-| Segurança | 4/10 | Respostas do quiz expostas, `usuarioId` no body, CORS hardcoded |
-| Qualidade do Código Backend | 7/10 | Limpo, Lombok bem usado, injeção de dependência correta |
-| Qualidade do Código Frontend | 7/10 | Componentes bem organizados, bom uso de contexto e hooks |
-| Completude de Features | 6/10 | Temporada hardcoded, migrations ausentes, sem testes |
-| Prontidão para Produção | 3/10 | URL hardcoded, CORS bloquearia tudo, schema sem controle |
+A prioridade não é trocar a stack, mas fortalecer a implementação atual. Corrigindo o Hook condicional, explicitando o isolamento por usuário, reduzindo o bundle inicial e otimizando os ativos, o projeto ganha qualidade de manutenção, segurança operacional e tempo de carregamento sem exigir uma reestruturação ampla.
