@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
+<<<<<<< HEAD
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
 
@@ -21,3 +22,9 @@ if (!supabaseUrl || !supabasePublishableKey) {
 // Assim que rodar `npx supabase gen types typescript --project-id <ref>`
 // contra o projeto real, troque a linha abaixo por createClient<Database>.
 export const supabase = createClient(supabaseUrl, supabasePublishableKey);
+=======
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://cagywhslrofuwlmpzbfy.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_mmxRQpS9zKRRmndSiE8i6g_qVvdTSsa';
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+>>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a

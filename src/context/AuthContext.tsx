@@ -1,11 +1,21 @@
+<<<<<<< HEAD
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../services/supabase';
 import type { User as SupabaseUser, AuthChangeEvent, Session } from '@supabase/supabase-js';
+=======
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '../services/supabase';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
+>>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
 
 export interface Liga {
   id: number;
   nome: string;
+<<<<<<< HEAD
   codigoAcesso?: string;
+=======
+  codigoAcesso: string;
+>>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
 }
 
 export interface UserProfile {
@@ -34,8 +44,11 @@ interface AuthContextData {
   refreshUser: () => Promise<void>;
 }
 
+<<<<<<< HEAD
 const PROFILE_COLUMNS = 'id, nome, email, xp, nivel, role, liga_id, liga:ligas(id, nome)';
 
+=======
+>>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -44,6 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [streak, setStreak] = useState<StreakInfo | null>(null);
 
+<<<<<<< HEAD
   // Evita chamadas duplicadas de fetchProfile/registrar_acesso: o Supabase
   // dispara onAuthStateChange tanto na sessão inicial (INITIAL_SESSION)
   // quanto em eventos como TOKEN_REFRESHED, que não exigem recarregar
@@ -65,6 +79,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (err) {
       // Falha ao registrar streak não deve travar o app nem o login.
+=======
+  // Registra o acesso do dia (atualiza sequência/streak) sem bloquear a UI
+  const registrarAcesso = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.rpc('registrar_acesso');
+      if (!error && data) {
+        setStreak(data as StreakInfo);
+      }
+    } catch (err) {
+>>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
       console.error('Erro ao registrar acesso diário:', err);
     }
   }, []);
@@ -73,11 +97,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
+<<<<<<< HEAD
         .select(PROFILE_COLUMNS)
+=======
+        .select('*, liga:ligas(*)')
+>>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
         .eq('id', userId)
         .single();
 
       if (error) {
+<<<<<<< HEAD
         // PGRST116 = nenhuma linha encontrada. Pode acontecer se a trigger
         // de criação de perfil ainda não rodou (corrida rara no cadastro).
         console.error('Erro ao buscar perfil:', error.message);
@@ -95,6 +124,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       console.error('Erro ao conectar ao perfil:', err);
       setUser(null);
+=======
+        console.error('Erro ao buscar perfil:', error);
+      } else {
+        setUser(profile as UserProfile);
+      }
+    } catch (err) {
+      console.error('Erro ao conectar ao perfil:', err);
+>>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
     }
   }, []);
 
@@ -105,6 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [authUser, fetchProfile]);
 
   useEffect(() => {
+<<<<<<< HEAD
     let ativo = true;
 
     const handleSession = async (_event: AuthChangeEvent, session: Session | null) => {
@@ -147,6 +185,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       ativo = false;
       window.clearTimeout(timeoutId);
+=======
+    // Session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+        registrarAcesso();
+      }
+      setLoading(false);
+    });
+
+    // Auth listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setAuthUser(session?.user ?? null);
+      if (session?.user) {
+        await fetchProfile(session.user.id);
+        registrarAcesso();
+      } else {
+        setUser(null);
+        setStreak(null);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+>>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
       subscription.unsubscribe();
     };
   }, [fetchProfile, registrarAcesso]);
@@ -156,8 +220,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setAuthUser(null);
     setStreak(null);
+<<<<<<< HEAD
     perfilCarregadoParaRef.current = null;
     acessoRegistradoParaRef.current = null;
+=======
+>>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
   }, []);
 
   const isAdmin = user?.role === 'admin';

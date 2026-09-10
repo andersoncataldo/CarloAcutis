@@ -19,6 +19,7 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+<<<<<<< HEAD
     rules: {
       // eslint-plugin-react-hooks@7's "recommended" preset ships the
       // experimental React Compiler rule set, including
@@ -35,5 +36,7 @@ export default defineConfig([
       // (pre-existing, not introduced by this patch). Non-blocking.
       'react-hooks/preserve-manual-memoization': 'warn',
     },
+=======
+>>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
   },
 ])

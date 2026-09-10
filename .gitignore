@@ -46,9 +46,12 @@ schema.sql
 
 # arquivos .md
 analise_projeto_carloacutis.md
+<<<<<<< HEAD
 
 # outros arquivos
 *.sql
 *.txt
 *.env
 *.xml
+=======
+>>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
