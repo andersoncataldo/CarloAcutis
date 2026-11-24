@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase } from '../services/supabase';
+import { api, ApiError } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const navigate = useNavigate();
+  const { setAuthSession } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,20 +19,15 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) {
-        setError(authError.message === 'Invalid login credentials' 
-          ? 'Credenciais inválidas. Verifique e-mail e senha.' 
-          : authError.message);
-      } else {
-        navigate('/perfil');
-      }
+      const data = await api.login({ email, password });
+      setAuthSession(data.user, data.streak);
+      navigate('/perfil');
     } catch (err) {
-      setError('Ocorreu um erro inesperado.');
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else {
+        setError('Ocorreu um erro inesperado ao entrar. Tente novamente.');
+      }
       console.error(err);
     } finally {
       setLoading(false);
@@ -39,30 +36,34 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-32 pb-20 flex items-center justify-center px-6 bg-slate-50">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md bg-white p-10 md:p-12 rounded-[2.5rem] shadow-2xl border border-slate-100"
       >
         <div className="text-center mb-10">
-          <h2 className="text-4xl font-black uppercase italic tracking-tighter text-blue-950 mb-2">
+          <h1 className="text-4xl font-black uppercase italic tracking-tighter text-blue-950 mb-2">
             Entrar<span className="text-red-600">.</span>
-          </h2>
+          </h1>
           <p className="text-slate-500 font-medium">Continue sua jornada de santidade</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold uppercase tracking-widest border border-red-100">
+          <div role="alert" className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold uppercase tracking-widest border border-red-100">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">E-mail</label>
-            <input 
-              type="email" 
+            <label htmlFor="login-email" className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4 block">
+              E-mail
+            </label>
+            <input
+              id="login-email"
+              type="email"
               required
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-2xl outline-none transition-all font-medium"
@@ -71,10 +72,14 @@ const Login: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4">Senha</label>
-            <input 
-              type="password" 
+            <label htmlFor="login-password" className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-4 block">
+              Senha
+            </label>
+            <input
+              id="login-password"
+              type="password"
               required
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-2xl outline-none transition-all font-medium"
@@ -82,7 +87,7 @@ const Login: React.FC = () => {
             />
           </div>
 
-          <button 
+          <button
             type="submit"
             disabled={loading}
             className="w-full py-5 bg-blue-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-xl shadow-blue-900/20 active:scale-95 disabled:opacity-50"
@@ -91,11 +96,17 @@ const Login: React.FC = () => {
           </button>
         </form>
 
-        <div className="mt-10 text-center">
+        <div className="mt-10 text-center space-y-3">
           <p className="text-slate-500 text-sm font-medium">
             Ainda não é um ciberapóstolo?{' '}
             <Link to="/cadastro" className="text-red-600 font-black uppercase tracking-widest hover:underline ml-1">
               Cadastre-se
+            </Link>
+          </p>
+          <p className="text-slate-400 text-xs font-medium">
+            Ou{' '}
+            <Link to="/quiz" className="text-blue-900 font-bold hover:underline">
+              jogue o Quiz como visitante
             </Link>
           </p>
         </div>

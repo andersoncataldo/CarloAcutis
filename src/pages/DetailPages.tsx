@@ -5,16 +5,16 @@ import Section from '../components/Section';
 import Timeline from '../components/Timeline';
 
 // Assets
-import carloPortrait from '../assets/carlo_retrato.png';
+import carloPortrait from '../assets/carlo_retrato.webp';
 import carloTech from '../assets/carlo_computador.png';
 import eucaristiaImg from '../assets/eucaristia.png';
-import tumuloImg from '../assets/túmulo_carlo.png';
+import tumuloImg from '../assets/tumulo_carlo.png';
 import familiaCarlo from '../assets/familiaCarlo.jpg';
 import maeCarlo from '../assets/MaeCarlo.png';
 import petCarlo from '../assets/PetCarlo.png';
 import amigosCarlo from '../assets/AmigosCarlo.jpg';
 import amigosCarlo2 from '../assets/AmigosCarlo2.jpg';
-import saintCarlo from '../assets/saintCarlo.jpeg';
+import saintCarlo from '../assets/saintCarlo.webp';
 import milagreBR from '../assets/milagre_BR.png';
 import milagreCR from '../assets/milagre_CR.png';
 
@@ -26,7 +26,7 @@ const PageHeader: React.FC<{ title: string; subtitle: string; color: string }> =
         animate={{ y: 0, opacity: 1 }}
         className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-black uppercase tracking-[0.3em] mb-8"
       >
-        Exclusive Session
+        Seção Temática
       </motion.div>
       <motion.h1 
         initial={{ y: 20, opacity: 0 }}

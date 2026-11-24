@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import iconLogo from '../../assets/icon.png';
+import iconLogo from '../../assets/icon.webp';
 import { navigation } from '../../data/navigation';
 
 const Footer: React.FC = () => {
@@ -67,13 +67,15 @@ const Footer: React.FC = () => {
           
           <div className="flex flex-col gap-4">
             {/* Email Card */}
-            <div 
+            <button 
+              type="button"
               onClick={handleCopy}
-              className="group relative bg-gradient-to-br from-white/[0.03] to-transparent p-5 rounded-[2rem] border border-white/10 hover:border-red-600/30 transition-all duration-500 cursor-pointer overflow-hidden"
+              aria-label={`Copiar endereço de e-mail ${email}`}
+              className="group relative w-full text-left bg-gradient-to-br from-white/[0.03] to-transparent p-5 rounded-[2rem] border border-white/10 hover:border-red-600/30 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-500 cursor-pointer overflow-hidden"
             >
               <div className="flex items-center gap-4 relative z-10">
                 <div className="w-12 h-12 rounded-2xl bg-[#EA4335]/10 flex items-center justify-center text-[#EA4335] group-hover:scale-110 transition-transform duration-500">
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-1.356 1.518-2.158 2.627-1.376L12 11.13l9.373-6.991c1.11-.83 2.627-.028 2.627 1.376z"/>
                   </svg>
                 </div>
@@ -81,13 +83,16 @@ const Footer: React.FC = () => {
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">E-mail</p>
                   <p className="text-sm font-bold text-slate-200 truncate">{email}</p>
                 </div>
-                <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase text-red-600">
+                <div 
+                  aria-live="polite"
+                  className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[9px] font-black uppercase text-red-600"
+                >
                   {copied ? "COPIADO" : "COPIAR"}
                 </div>
               </div>
               {/* Decorative background flare */}
               <div className="absolute top-0 right-0 w-24 h-24 bg-red-600/5 rounded-full blur-3xl group-hover:bg-red-600/10 transition-colors"></div>
-            </div>
+            </button>
 
             {/* LinkedIn Card */}
             <a 

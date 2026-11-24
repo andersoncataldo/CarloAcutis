@@ -4,10 +4,10 @@ import { motion } from 'framer-motion';
 import { biographyContent } from '../data/biographyContent';
 
 // Assets
-import carloHero from '../assets/Carlo.jpg'; 
+import carloHero from '../assets/Carlo.webp'; 
 import familiaCarlo from '../assets/familiaCarlo.jpg';
 import eucaristiaImg from '../assets/eucaristia.png';
-import tumuloImg from '../assets/túmulo_carlo.png';
+import tumuloImg from '../assets/tumulo_carlo.png';
 
 const Home: React.FC = () => {
   const { hero, espiritualidade } = biographyContent;
@@ -62,7 +62,7 @@ const Home: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.3em] mb-10 shadow-xl shadow-red-600/30"
           >
-            Original Saint
+            Santo Original
           </motion.div>
           <motion.h1 
             initial={{ y: 30, opacity: 0 }}
@@ -106,7 +106,7 @@ const Home: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
                 
                 <div className="absolute bottom-10 left-10 right-10 space-y-4">
-                  <span className="text-red-500 font-black text-[10px] uppercase tracking-[0.4em]">Explore Category</span>
+                  <span className="text-red-500 font-black text-[10px] uppercase tracking-[0.4em]">Explorar Tema</span>
                   <h3 className="text-3xl lg:text-4xl font-black italic uppercase tracking-tighter text-white leading-none">
                     {cat.title}
                   </h3>
@@ -123,9 +123,9 @@ const Home: React.FC = () => {
       {/* Quote Section */}
       <section className="bg-slate-950 text-white py-32 px-6 overflow-hidden relative m-3 md:m-6 rounded-[2.5rem] md:rounded-[4rem]">
         <div className="max-w-5xl mx-auto text-center space-y-12 relative z-10">
-          <span className="text-red-600 font-black text-[11px] uppercase tracking-[0.5em]">The Philosophy</span>
+          <span className="text-red-600 font-black text-[11px] uppercase tracking-[0.5em]">A Filosofia</span>
           <h2 className="text-5xl md:text-8xl font-black uppercase italic tracking-tighter leading-[0.85] text-blue-100">
-            Be an <span className="text-red-600">Original</span>, not a photocopy.
+            Seja um <span className="text-red-600">Original</span>, não uma fotocópia.
           </h2>
           <p className="text-xl md:text-3xl text-slate-400 font-serif italic max-w-4xl mx-auto leading-relaxed">
             "{espiritualidade.content.split('\n\n')[0]}"

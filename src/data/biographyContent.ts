@@ -78,7 +78,7 @@ export const biographyContent = {
       { date: "16/06/1998", label: "Primeira Comunhão" },
       { date: "12/10/2006", label: "Falece em Monza (Itália), aos 15 anos" },
       { date: "10/10/2020", label: "Beatificação em Assis" },
-      { date: "07/09/2025", label: "Data prevista para a Canonização" }
+      { date: "07/09/2025", label: "Canonização no Vaticano (São Carlo Acutis)" }
     ]
   }
   };

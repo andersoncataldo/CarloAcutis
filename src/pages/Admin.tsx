@@ -1,64 +1,39 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../services/supabase';
-
-interface Temporada {
-  id: number;
-  titulo: string;
-  descricao: string;
-  ordem: number | null;
-  ativa: boolean;
-}
-
-interface Pergunta {
-  id: number;
-  temporada_id: number;
-  texto_pergunta: string;
-  opcao_a: string;
-  opcao_b: string;
-  opcao_c: string;
-  opcao_d: string;
-  resposta_correta: string;
-  ordem: number | null;
-  ativa: boolean;
-}
+import { api, ApiError } from '../services/api';
+import type { AnswerOption, PerguntaAdmin, TemporadaAdmin } from '../types/api.types';
 
 const MAX_TEXTO_PERGUNTA = 300;
 const MAX_OPCAO = 150;
 const MAX_TITULO_TEMPORADA = 100;
 
-const emptyPergunta = {
+const emptyPergunta: {
+  texto_pergunta: string;
+  opcao_a: string;
+  opcao_b: string;
+  opcao_c: string;
+  opcao_d: string;
+  resposta_correta: AnswerOption;
+} = {
   texto_pergunta: '',
   opcao_a: '',
   opcao_b: '',
   opcao_c: '',
   opcao_d: '',
-  resposta_correta: 'A'
+  resposta_correta: 'A',
 };
 
-// Traduz erros do Postgres/PostgREST para mensagens que fazem sentido para
-// quem está usando o painel, sem vazar detalhes internos (nome de
-// constraint, schema, etc.) — só loga o detalhe técnico no console.
-function mensagemAmigavel(error: { message: string; code?: string } | null, fallback: string): string {
-  if (!error) return fallback;
-  console.error('Erro Supabase:', error);
-  if (error.message?.includes('perguntas_textos_nao_vazios')) return 'Preencha todos os campos de texto.';
-  if (error.message?.includes('perguntas_resposta_valida')) return 'A resposta correta precisa ser A, B, C ou D.';
-  if (error.message?.includes('temporadas_titulo_nao_vazio')) return 'O título da temporada não pode ficar vazio.';
-  if (error.code === '42501' || error.message?.includes('policy')) return 'Você não tem permissão para fazer isso.';
+function getFriendlyError(err: unknown, fallback: string): string {
+  console.error('Erro Admin API:', err);
+  if (err instanceof ApiError) return err.message;
   return fallback;
 }
 
-// Painel de administração de conteúdo (temporadas e perguntas do quiz).
-// Acesso restrito a usuários com profiles.role = 'admin' (garantido pelo RLS
-// no banco — esta tela só evita que um não-admin veja os controles, a
-// segurança de verdade está nas policies do Supabase). Toda alteração aqui
-// é registrada automaticamente na tabela auditoria_admin via trigger.
 const Admin: React.FC = () => {
   const { isAdmin } = useAuth();
-  const [temporadas, setTemporadas] = useState<Temporada[]>([]);
+  const [temporadas, setTemporadas] = useState<TemporadaAdmin[]>([]);
   const [selectedTemporadaId, setSelectedTemporadaId] = useState<number | null>(null);
-  const [perguntas, setPerguntas] = useState<Pergunta[]>([]);
+  const [perguntas, setPerguntas] = useState<PerguntaAdmin[]>([]);
 
   const [novaTemporada, setNovaTemporada] = useState({ titulo: '', descricao: '' });
   const [editingTemporadaId, setEditingTemporadaId] = useState<number | null>(null);
@@ -67,14 +42,13 @@ const Admin: React.FC = () => {
   const [novaPergunta, setNovaPergunta] = useState(emptyPergunta);
   const [editingPerguntaId, setEditingPerguntaId] = useState<number | null>(null);
 
-  // Loading por operação específica (ex: "temporada-3", "pergunta-salvar"),
-  // em vez de um único spinner global que trava a tela inteira.
   const [loadingKeys, setLoadingKeys] = useState<Set<string>>(new Set());
   const isLoading = (key: string) => loadingKeys.has(key);
   const setLoadingKey = (key: string, value: boolean) => {
-    setLoadingKeys(prev => {
+    setLoadingKeys((prev) => {
       const next = new Set(prev);
-      if (value) next.add(key); else next.delete(key);
+      if (value) next.add(key);
+      else next.delete(key);
       return next;
     });
   };
@@ -86,38 +60,33 @@ const Admin: React.FC = () => {
   };
 
   const fetchTemporadas = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('temporadas')
-      .select('id, titulo, descricao, ordem, ativa')
-      .order('ordem', { ascending: true, nullsFirst: false })
-      .order('id', { ascending: true });
-    if (error) {
-      showMsg(mensagemAmigavel(error, 'Não foi possível carregar as temporadas.'), 'error');
-      return;
+    try {
+      const data = await api.getAdminSeasons();
+      setTemporadas(data.temporadas);
+      setSelectedTemporadaId((prev) => prev ?? (data.temporadas.length > 0 ? data.temporadas[0].id : null));
+    } catch (err) {
+      showMsg(getFriendlyError(err, 'Não foi possível carregar as temporadas.'), 'error');
     }
-    const lista = (data ?? []) as Temporada[];
-    setTemporadas(lista);
-    setSelectedTemporadaId(prev => prev ?? (lista.length > 0 ? lista[0].id : null));
   }, []);
 
   const fetchPerguntas = useCallback(async (temporadaId: number) => {
-    const { data, error } = await supabase
-      .from('perguntas')
-      .select('id, temporada_id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, ordem, ativa')
-      .eq('temporada_id', temporadaId)
-      .order('ordem', { ascending: true, nullsFirst: false })
-      .order('id', { ascending: true });
-    if (error) {
-      showMsg(mensagemAmigavel(error, 'Não foi possível carregar as perguntas.'), 'error');
-      return;
+    try {
+      const data = await api.getAdminQuestions(temporadaId);
+      setPerguntas(data.perguntas);
+    } catch (err) {
+      showMsg(getFriendlyError(err, 'Não foi possível carregar as perguntas.'), 'error');
     }
-    setPerguntas((data ?? []) as Pergunta[]);
   }, []);
 
-  useEffect(() => { fetchTemporadas(); }, [fetchTemporadas]);
   useEffect(() => {
-    if (selectedTemporadaId) fetchPerguntas(selectedTemporadaId);
-  }, [selectedTemporadaId, fetchPerguntas]);
+    if (!isAdmin) return;
+    void fetchTemporadas();
+  }, [isAdmin, fetchTemporadas]);
+
+  useEffect(() => {
+    if (!isAdmin || !selectedTemporadaId) return;
+    void fetchPerguntas(selectedTemporadaId);
+  }, [isAdmin, selectedTemporadaId, fetchPerguntas]);
 
   if (!isAdmin) {
     return (
@@ -131,31 +100,45 @@ const Admin: React.FC = () => {
 
   const handleCriarTemporada = async () => {
     const titulo = novaTemporada.titulo.trim();
-    if (!titulo) { showMsg('Dê um título para a temporada.', 'error'); return; }
-    if (titulo.length > MAX_TITULO_TEMPORADA) { showMsg(`Título muito longo (máx. ${MAX_TITULO_TEMPORADA} caracteres).`, 'error'); return; }
+    if (!titulo) {
+      showMsg('Dê um título para a temporada.', 'error');
+      return;
+    }
+    if (titulo.length > MAX_TITULO_TEMPORADA) {
+      showMsg(`Título muito longo (máx. ${MAX_TITULO_TEMPORADA} caracteres).`, 'error');
+      return;
+    }
 
     setLoadingKey('temporada-criar', true);
-    const { error } = await supabase.from('temporadas').insert({
-      titulo,
-      descricao: novaTemporada.descricao.trim(),
-      ordem: temporadas.length + 1
-    });
-    setLoadingKey('temporada-criar', false);
-    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao criar temporada.'), 'error'); return; }
-    setNovaTemporada({ titulo: '', descricao: '' });
-    showMsg('Temporada criada!');
-    fetchTemporadas();
+    try {
+      await api.createSeason({
+        titulo,
+        descricao: novaTemporada.descricao.trim(),
+        ordem: temporadas.length + 1,
+      });
+      setNovaTemporada({ titulo: '', descricao: '' });
+      showMsg('Temporada criada!');
+      await fetchTemporadas();
+    } catch (err) {
+      showMsg(getFriendlyError(err, 'Erro ao criar temporada.'), 'error');
+    } finally {
+      setLoadingKey('temporada-criar', false);
+    }
   };
 
-  const toggleAtivaTemporada = async (t: Temporada) => {
+  const toggleAtivaTemporada = async (t: TemporadaAdmin) => {
     setLoadingKey(`temporada-${t.id}`, true);
-    const { error } = await supabase.from('temporadas').update({ ativa: !t.ativa }).eq('id', t.id);
-    setLoadingKey(`temporada-${t.id}`, false);
-    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao atualizar temporada.'), 'error'); return; }
-    fetchTemporadas();
+    try {
+      await api.updateSeason({ id: t.id, ativa: !t.ativa });
+      await fetchTemporadas();
+    } catch (err) {
+      showMsg(getFriendlyError(err, 'Erro ao atualizar temporada.'), 'error');
+    } finally {
+      setLoadingKey(`temporada-${t.id}`, false);
+    }
   };
 
-  const startEditTemporada = (t: Temporada) => {
+  const startEditTemporada = (t: TemporadaAdmin) => {
     setEditingTemporadaId(t.id);
     setEditTemporadaForm({ titulo: t.titulo, descricao: t.descricao ?? '' });
   };
@@ -167,19 +150,30 @@ const Admin: React.FC = () => {
 
   const salvarEdicaoTemporada = async (id: number) => {
     const titulo = editTemporadaForm.titulo.trim();
-    if (!titulo) { showMsg('O título não pode ficar vazio.', 'error'); return; }
-    if (titulo.length > MAX_TITULO_TEMPORADA) { showMsg(`Título muito longo (máx. ${MAX_TITULO_TEMPORADA} caracteres).`, 'error'); return; }
+    if (!titulo) {
+      showMsg('O título não pode ficar vazio.', 'error');
+      return;
+    }
+    if (titulo.length > MAX_TITULO_TEMPORADA) {
+      showMsg(`Título muito longo (máx. ${MAX_TITULO_TEMPORADA} caracteres).`, 'error');
+      return;
+    }
 
     setLoadingKey(`temporada-salvar-${id}`, true);
-    const { error } = await supabase
-      .from('temporadas')
-      .update({ titulo, descricao: editTemporadaForm.descricao.trim() })
-      .eq('id', id);
-    setLoadingKey(`temporada-salvar-${id}`, false);
-    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao salvar temporada.'), 'error'); return; }
-    showMsg('Temporada atualizada!');
-    cancelEditTemporada();
-    fetchTemporadas();
+    try {
+      await api.updateSeason({
+        id,
+        titulo,
+        descricao: editTemporadaForm.descricao.trim(),
+      });
+      showMsg('Temporada atualizada!');
+      cancelEditTemporada();
+      await fetchTemporadas();
+    } catch (err) {
+      showMsg(getFriendlyError(err, 'Erro ao salvar temporada.'), 'error');
+    } finally {
+      setLoadingKey(`temporada-salvar-${id}`, false);
+    }
   };
 
   // ---------- Perguntas ----------
@@ -191,7 +185,7 @@ const Admin: React.FC = () => {
     if (p.texto_pergunta.trim().length > MAX_TEXTO_PERGUNTA) {
       return `A pergunta está muito longa (máx. ${MAX_TEXTO_PERGUNTA} caracteres).`;
     }
-    if ([p.opcao_a, p.opcao_b, p.opcao_c, p.opcao_d].some(o => o.trim().length > MAX_OPCAO)) {
+    if ([p.opcao_a, p.opcao_b, p.opcao_c, p.opcao_d].some((o) => o.trim().length > MAX_OPCAO)) {
       return `Cada opção pode ter no máximo ${MAX_OPCAO} caracteres.`;
     }
     return null;
@@ -200,28 +194,35 @@ const Admin: React.FC = () => {
   const handleCriarPergunta = async () => {
     if (!selectedTemporadaId) return;
     const erro = validarPergunta(novaPergunta);
-    if (erro) { showMsg(erro, 'error'); return; }
+    if (erro) {
+      showMsg(erro, 'error');
+      return;
+    }
 
     setLoadingKey('pergunta-criar', true);
-    const p = novaPergunta;
-    const { error } = await supabase.from('perguntas').insert({
-      temporada_id: selectedTemporadaId,
-      texto_pergunta: p.texto_pergunta.trim(),
-      opcao_a: p.opcao_a.trim(),
-      opcao_b: p.opcao_b.trim(),
-      opcao_c: p.opcao_c.trim(),
-      opcao_d: p.opcao_d.trim(),
-      resposta_correta: p.resposta_correta,
-      ordem: perguntas.length + 1
-    });
-    setLoadingKey('pergunta-criar', false);
-    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao criar pergunta.'), 'error'); return; }
-    setNovaPergunta(emptyPergunta);
-    showMsg('Pergunta adicionada!');
-    fetchPerguntas(selectedTemporadaId);
+    try {
+      const p = novaPergunta;
+      await api.createQuestion({
+        temporada_id: selectedTemporadaId,
+        texto_pergunta: p.texto_pergunta.trim(),
+        opcao_a: p.opcao_a.trim(),
+        opcao_b: p.opcao_b.trim(),
+        opcao_c: p.opcao_c.trim(),
+        opcao_d: p.opcao_d.trim(),
+        resposta_correta: p.resposta_correta,
+        ordem: perguntas.length + 1,
+      });
+      setNovaPergunta(emptyPergunta);
+      showMsg('Pergunta adicionada!');
+      await fetchPerguntas(selectedTemporadaId);
+    } catch (err) {
+      showMsg(getFriendlyError(err, 'Erro ao criar pergunta.'), 'error');
+    } finally {
+      setLoadingKey('pergunta-criar', false);
+    }
   };
 
-  const startEditPergunta = (p: Pergunta) => {
+  const startEditPergunta = (p: PerguntaAdmin) => {
     setEditingPerguntaId(p.id);
     setNovaPergunta({
       texto_pergunta: p.texto_pergunta,
@@ -229,7 +230,7 @@ const Admin: React.FC = () => {
       opcao_b: p.opcao_b,
       opcao_c: p.opcao_c,
       opcao_d: p.opcao_d,
-      resposta_correta: p.resposta_correta
+      resposta_correta: p.resposta_correta,
     });
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
@@ -242,42 +243,51 @@ const Admin: React.FC = () => {
   const salvarEdicaoPergunta = async () => {
     if (!editingPerguntaId || !selectedTemporadaId) return;
     const erro = validarPergunta(novaPergunta);
-    if (erro) { showMsg(erro, 'error'); return; }
+    if (erro) {
+      showMsg(erro, 'error');
+      return;
+    }
 
     setLoadingKey('pergunta-salvar', true);
-    const p = novaPergunta;
-    const { error } = await supabase.from('perguntas').update({
-      texto_pergunta: p.texto_pergunta.trim(),
-      opcao_a: p.opcao_a.trim(),
-      opcao_b: p.opcao_b.trim(),
-      opcao_c: p.opcao_c.trim(),
-      opcao_d: p.opcao_d.trim(),
-      resposta_correta: p.resposta_correta
-    }).eq('id', editingPerguntaId);
-    setLoadingKey('pergunta-salvar', false);
-    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao salvar pergunta.'), 'error'); return; }
-    showMsg('Pergunta atualizada!');
-    cancelEditPergunta();
-    fetchPerguntas(selectedTemporadaId);
+    try {
+      const p = novaPergunta;
+      await api.updateQuestion({
+        id: editingPerguntaId,
+        texto_pergunta: p.texto_pergunta.trim(),
+        opcao_a: p.opcao_a.trim(),
+        opcao_b: p.opcao_b.trim(),
+        opcao_c: p.opcao_c.trim(),
+        opcao_d: p.opcao_d.trim(),
+        resposta_correta: p.resposta_correta,
+      });
+      showMsg('Pergunta atualizada!');
+      cancelEditPergunta();
+      await fetchPerguntas(selectedTemporadaId);
+    } catch (err) {
+      showMsg(getFriendlyError(err, 'Erro ao salvar pergunta.'), 'error');
+    } finally {
+      setLoadingKey('pergunta-salvar', false);
+    }
   };
 
-  // Em vez de excluir fisicamente (o que apagaria em cascata o histórico de
-  // respostas dos usuários via ON DELETE CASCADE), desativamos a pergunta.
-  // Ela some do quiz para novos jogadores, mas o histórico de quem já
-  // respondeu continua íntegro.
-  const toggleAtivaPergunta = async (p: Pergunta) => {
+  const toggleAtivaPergunta = async (p: PerguntaAdmin) => {
     if (p.ativa) {
       const confirmado = window.confirm(
         `Arquivar esta pergunta? Ela deixará de aparecer no quiz, mas o histórico de quem já respondeu é mantido.\n\n"${p.texto_pergunta}"`
       );
       if (!confirmado) return;
     }
+
     setLoadingKey(`pergunta-${p.id}`, true);
-    const { error } = await supabase.from('perguntas').update({ ativa: !p.ativa }).eq('id', p.id);
-    setLoadingKey(`pergunta-${p.id}`, false);
-    if (error) { showMsg(mensagemAmigavel(error, 'Erro ao atualizar pergunta.'), 'error'); return; }
-    showMsg(p.ativa ? 'Pergunta arquivada.' : 'Pergunta reativada.');
-    if (selectedTemporadaId) fetchPerguntas(selectedTemporadaId);
+    try {
+      await api.updateQuestion({ id: p.id, ativa: !p.ativa });
+      showMsg(p.ativa ? 'Pergunta arquivada.' : 'Pergunta reativada.');
+      if (selectedTemporadaId) await fetchPerguntas(selectedTemporadaId);
+    } catch (err) {
+      showMsg(getFriendlyError(err, 'Erro ao atualizar pergunta.'), 'error');
+    } finally {
+      setLoadingKey(`pergunta-${p.id}`, false);
+    }
   };
 
   return (
@@ -292,8 +302,13 @@ const Admin: React.FC = () => {
         <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-8 space-y-6">
           <h2 className="text-lg font-black uppercase text-blue-950">Temporadas</h2>
           <div className="space-y-2">
-            {temporadas.map(t => (
-              <div key={t.id} className={`rounded-xl border-2 ${selectedTemporadaId === t.id ? 'border-blue-600 bg-blue-50' : 'border-transparent bg-slate-50'}`}>
+            {temporadas.map((t) => (
+              <div
+                key={t.id}
+                className={`rounded-xl border-2 ${
+                  selectedTemporadaId === t.id ? 'border-blue-600 bg-blue-50' : 'border-transparent bg-slate-50'
+                }`}
+              >
                 {editingTemporadaId === t.id ? (
                   <div className="p-4 space-y-3">
                     <label className="sr-only" htmlFor={`titulo-temporada-${t.id}`}>Título</label>
@@ -301,39 +316,49 @@ const Admin: React.FC = () => {
                       id={`titulo-temporada-${t.id}`}
                       value={editTemporadaForm.titulo}
                       maxLength={MAX_TITULO_TEMPORADA}
-                      onChange={e => setEditTemporadaForm(s => ({ ...s, titulo: e.target.value }))}
+                      onChange={(e) => setEditTemporadaForm((s) => ({ ...s, titulo: e.target.value }))}
                       className="w-full px-4 py-2 bg-white rounded-lg text-sm border-2 border-blue-200 focus:border-blue-600 outline-none"
                     />
                     <label className="sr-only" htmlFor={`descricao-temporada-${t.id}`}>Descrição</label>
                     <input
                       id={`descricao-temporada-${t.id}`}
                       value={editTemporadaForm.descricao}
-                      onChange={e => setEditTemporadaForm(s => ({ ...s, descricao: e.target.value }))}
+                      onChange={(e) => setEditTemporadaForm((s) => ({ ...s, descricao: e.target.value }))}
                       className="w-full px-4 py-2 bg-white rounded-lg text-sm border-2 border-blue-200 focus:border-blue-600 outline-none"
                     />
                     <div className="flex gap-2">
                       <button
+                        type="button"
                         onClick={() => salvarEdicaoTemporada(t.id)}
                         disabled={isLoading(`temporada-salvar-${t.id}`)}
                         className="px-4 py-2 bg-blue-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
                       >
                         {isLoading(`temporada-salvar-${t.id}`) ? 'Salvando...' : 'Salvar'}
                       </button>
-                      <button onClick={cancelEditTemporada} className="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                      <button
+                        type="button"
+                        onClick={cancelEditTemporada}
+                        className="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-widest"
+                      >
                         Cancelar
                       </button>
                     </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between p-4 gap-3">
-                    <button onClick={() => setSelectedTemporadaId(t.id)} className="text-left flex-1">
+                    <button type="button" onClick={() => setSelectedTemporadaId(t.id)} className="text-left flex-1">
                       <div className="font-bold text-slate-800">{t.titulo}</div>
                       <div className="text-xs text-slate-400">{t.descricao}</div>
                     </button>
-                    <button onClick={() => startEditTemporada(t)} className="text-[10px] font-black uppercase tracking-widest text-blue-700 hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => startEditTemporada(t)}
+                      className="text-[10px] font-black uppercase tracking-widest text-blue-700 hover:underline"
+                    >
                       Editar
                     </button>
                     <button
+                      type="button"
                       onClick={() => toggleAtivaTemporada(t)}
                       disabled={isLoading(`temporada-${t.id}`)}
                       className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest disabled:opacity-50 ${
@@ -350,20 +375,32 @@ const Admin: React.FC = () => {
           <div className="grid md:grid-cols-2 gap-3 pt-4 border-t border-slate-100">
             <div>
               <label className="sr-only" htmlFor="nova-temporada-titulo">Título da nova temporada</label>
-              <input id="nova-temporada-titulo" placeholder="Título da nova temporada" value={novaTemporada.titulo}
+              <input
+                id="nova-temporada-titulo"
+                placeholder="Título da nova temporada"
+                value={novaTemporada.titulo}
                 maxLength={MAX_TITULO_TEMPORADA}
-                onChange={e => setNovaTemporada(s => ({ ...s, titulo: e.target.value }))}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
+                onChange={(e) => setNovaTemporada((s) => ({ ...s, titulo: e.target.value }))}
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none"
+              />
             </div>
             <div>
               <label className="sr-only" htmlFor="nova-temporada-descricao">Descrição</label>
-              <input id="nova-temporada-descricao" placeholder="Descrição" value={novaTemporada.descricao}
-                onChange={e => setNovaTemporada(s => ({ ...s, descricao: e.target.value }))}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" />
+              <input
+                id="nova-temporada-descricao"
+                placeholder="Descrição"
+                value={novaTemporada.descricao}
+                onChange={(e) => setNovaTemporada((s) => ({ ...s, descricao: e.target.value }))}
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none"
+              />
             </div>
           </div>
-          <button onClick={handleCriarTemporada} disabled={isLoading('temporada-criar')}
-            className="px-6 py-3 bg-blue-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50">
+          <button
+            type="button"
+            onClick={handleCriarTemporada}
+            disabled={isLoading('temporada-criar')}
+            className="px-6 py-3 bg-blue-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+          >
             {isLoading('temporada-criar') ? 'Criando...' : 'Criar Temporada'}
           </button>
         </div>
@@ -373,8 +410,13 @@ const Admin: React.FC = () => {
           <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-8 space-y-6">
             <h2 className="text-lg font-black uppercase text-blue-950">Perguntas desta Temporada</h2>
             <div className="space-y-2">
-              {perguntas.map(p => (
-                <div key={p.id} className={`p-4 rounded-xl flex justify-between items-start gap-4 ${p.ativa ? 'bg-slate-50' : 'bg-slate-100 opacity-60'}`}>
+              {perguntas.map((p) => (
+                <div
+                  key={p.id}
+                  className={`p-4 rounded-xl flex justify-between items-start gap-4 ${
+                    p.ativa ? 'bg-slate-50' : 'bg-slate-100 opacity-60'
+                  }`}
+                >
                   <div className="text-sm">
                     <div className="font-bold text-slate-800">{p.texto_pergunta}</div>
                     <div className="text-xs text-slate-400 mt-1">
@@ -382,10 +424,15 @@ const Admin: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex gap-3 whitespace-nowrap">
-                    <button onClick={() => startEditPergunta(p)} className="text-[10px] font-black uppercase tracking-widest text-blue-700 hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => startEditPergunta(p)}
+                      className="text-[10px] font-black uppercase tracking-widest text-blue-700 hover:underline"
+                    >
                       Editar
                     </button>
                     <button
+                      type="button"
                       onClick={() => toggleAtivaPergunta(p)}
                       disabled={isLoading(`pergunta-${p.id}`)}
                       className="text-[10px] font-black uppercase tracking-widest text-red-600 hover:underline disabled:opacity-50"
@@ -395,7 +442,9 @@ const Admin: React.FC = () => {
                   </div>
                 </div>
               ))}
-              {perguntas.length === 0 && <p className="text-sm text-slate-400 italic">Nenhuma pergunta cadastrada ainda.</p>}
+              {perguntas.length === 0 && (
+                <p className="text-sm text-slate-400 italic">Nenhuma pergunta cadastrada ainda.</p>
+              )}
             </div>
 
             <div className="pt-4 border-t border-slate-100 space-y-3">
@@ -403,10 +452,15 @@ const Admin: React.FC = () => {
                 {editingPerguntaId ? 'Editando pergunta' : 'Nova pergunta'}
               </h3>
               <label className="sr-only" htmlFor="pergunta-texto">Texto da pergunta</label>
-              <textarea id="pergunta-texto" placeholder="Texto da pergunta" value={novaPergunta.texto_pergunta}
+              <textarea
+                id="pergunta-texto"
+                placeholder="Texto da pergunta"
+                value={novaPergunta.texto_pergunta}
                 maxLength={MAX_TEXTO_PERGUNTA}
-                onChange={e => setNovaPergunta(s => ({ ...s, texto_pergunta: e.target.value }))}
-                className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none" rows={2} />
+                onChange={(e) => setNovaPergunta((s) => ({ ...s, texto_pergunta: e.target.value }))}
+                className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none"
+                rows={2}
+              />
               <div className="grid md:grid-cols-2 gap-3">
                 {(['opcao_a', 'opcao_b', 'opcao_c', 'opcao_d'] as const).map((campo, i) => (
                   <div key={campo}>
@@ -416,34 +470,57 @@ const Admin: React.FC = () => {
                       placeholder={`Opção ${String.fromCharCode(65 + i)}`}
                       value={novaPergunta[campo]}
                       maxLength={MAX_OPCAO}
-                      onChange={e => setNovaPergunta(s => ({ ...s, [campo]: e.target.value }))}
+                      onChange={(e) => setNovaPergunta((s) => ({ ...s, [campo]: e.target.value }))}
                       className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none"
                     />
                   </div>
                 ))}
               </div>
               <div className="flex items-center gap-3">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400" htmlFor="pergunta-resposta-correta">Resposta correta</label>
-                <select id="pergunta-resposta-correta" value={novaPergunta.resposta_correta}
-                  onChange={e => setNovaPergunta(s => ({ ...s, resposta_correta: e.target.value }))}
-                  className="px-4 py-2 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none">
-                  {['A', 'B', 'C', 'D'].map(l => <option key={l} value={l}>{l}</option>)}
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400" htmlFor="pergunta-resposta-correta">
+                  Resposta correta
+                </label>
+                <select
+                  id="pergunta-resposta-correta"
+                  value={novaPergunta.resposta_correta}
+                  onChange={(e) =>
+                    setNovaPergunta((s) => ({ ...s, resposta_correta: e.target.value as AnswerOption }))
+                  }
+                  className="px-4 py-2 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none"
+                >
+                  {(['A', 'B', 'C', 'D'] as const).map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="flex gap-3">
                 {editingPerguntaId ? (
                   <>
-                    <button onClick={salvarEdicaoPergunta} disabled={isLoading('pergunta-salvar')}
-                      className="px-6 py-3 bg-blue-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50">
+                    <button
+                      type="button"
+                      onClick={salvarEdicaoPergunta}
+                      disabled={isLoading('pergunta-salvar')}
+                      className="px-6 py-3 bg-blue-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                    >
                       {isLoading('pergunta-salvar') ? 'Salvando...' : 'Salvar Alterações'}
                     </button>
-                    <button onClick={cancelEditPergunta} className="px-6 py-3 bg-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                    <button
+                      type="button"
+                      onClick={cancelEditPergunta}
+                      className="px-6 py-3 bg-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest"
+                    >
                       Cancelar
                     </button>
                   </>
                 ) : (
-                  <button onClick={handleCriarPergunta} disabled={isLoading('pergunta-criar')}
-                    className="px-6 py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50">
+                  <button
+                    type="button"
+                    onClick={handleCriarPergunta}
+                    disabled={isLoading('pergunta-criar')}
+                    className="px-6 py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                  >
                     {isLoading('pergunta-criar') ? 'Adicionando...' : 'Adicionar Pergunta'}
                   </button>
                 )}

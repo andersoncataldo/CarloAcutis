@@ -1,54 +1,62 @@
 # Carlo Acutis
 
-Plataforma web educativa e interativa sobre a vida, a espiritualidade e o legado de Carlo Acutis. O projeto combina conteúdo biográfico organizado por temas com um quiz protegido por autenticação, progressão por XP e participação em ligas paroquiais.
+Plataforma web educativa e devocional sobre a vida, a espiritualidade e o legado de São Carlo Acutis. O projeto combina conteúdo biográfico público organizado por temas com um quiz interativo por temporadas (acessível em modo visitante ou autenticado), progressão por XP/títulos, sequência diária (streak), conquistas, ligas paroquiais e painel administrativo.
 
 ## Escopo atual
 
-- Página inicial com apresentação de Carlo Acutis, conteúdos em destaque e acesso às áreas principais.
-- Conteúdo biográfico dividido em três áreas:
-  - **Vida e Legado**: família, fé, amigos, escola e ações de Carlo.
-   - **Fé e Devoção**: Eucaristia, Nossa Senhora, espiritualidade e comunicação.
-   - **Caminho da Santidade**: atuação digital, morte, milagres e processo de canonização.
-- Cadastro, login, logout e persistência de sessão por meio do Supabase Auth.
-- Perfil autenticado com acompanhamento de XP, nível e participação em liga.
-- Quiz autenticado com perguntas organizadas por temporadas, registro das respostas e concessão de XP no banco de dados.
-- Ligas paroquiais: criação, entrada por código, saída e ranking dos participantes.
-- Área administrativa protegida para gerenciamento do conteúdo do quiz.
-- Layout responsivo, navegação por rotas e animações de interface.
+- Página inicial pública com apresentação de São Carlo Acutis, temas em destaque e atalho direto para o quiz.
+- Conteúdo biográfico dividido em três áreas temáticas:
+  - **Vida e Legado**: família, fé, animais, amigos e escola.
+  - **Fé e Devoção**: Eucaristia, Nossa Senhora, espiritualidade e comunicação.
+  - **Caminho da Santidade**: cultura digital, partida, milagres e canonização (`07/09/2025`).
+- **Quiz Carlo Acutis** com validação de respostas no servidor (sem expor o gabarito ao navegador):
+  - **Modo Visitante:** jogue imediatamente sem cadastro, com progresso e XP salvos no navegador.
+  - **Modo Autenticado:** progresso persistido no PostgreSQL (Neon), conquistas, streak diário e ranking por liga.
+- Cadastro, login, logout e persistência de sessão via autenticação própria (`scrypt` + cookie `HttpOnly` validado na tabela `sessions`).
+- Ligas paroquiais: criação (até 3 por usuário), entrada por código, saída e ranking dos participantes sem exposição de e-mails.
+- Área administrativa (`/admin`) protegida por papel `admin` no servidor para gestão de temporadas/perguntas com trilha de auditoria.
 
 ## Tecnologias
 
-- React 19 e TypeScript
-- Vite
-- React Router DOM
-- Tailwind CSS
-- Framer Motion
-- Supabase (`@supabase/supabase-js`) para autenticação, banco de dados e funções RPC
+- **Frontend:** React 19 + TypeScript 5.9 + Vite 7 + React Router DOM 7 + Tailwind CSS 3.4 + Framer Motion 12
+- **Backend Serverless:** Vercel Functions (`api/*`, Node.js 24 LTS)
+- **Banco de Dados:** Neon PostgreSQL Serverless (`@neondatabase/serverless`)
+- **Testes:** Vitest 2 + Testing Library + jsdom
+- **Deploy:** Vercel (SPA + Serverless Functions no mesmo repositório)
 
 ## Estrutura do projeto
 
 ```text
 .
-├── public/                 # Arquivos estáticos e regras de deploy
+├── api/                    # Vercel Functions (Node.js)
+│   ├── _lib/               # Conexão lazy Neon, auth scrypt/cookie, gamificação e HTTP
+│   ├── admin/              # Gestão administrativa de temporadas e perguntas (/api/admin/*)
+│   ├── auth/               # Cadastro, login, logout e sessão (/api/auth/*)
+│   ├── leagues/            # Criação, entrada, saída e ranking (/api/leagues/*)
+│   ├── profile/            # Conquistas do usuário (/api/profile/achievements)
+│   └── quiz/               # Temporadas, perguntas sem gabarito e correção (/api/quiz/*)
+├── db/
+│   ├── schema.sql          # Schema PostgreSQL idempotente, índices e seeds
+│   └── migrate.mjs         # Script de aplicação do schema no Neon
+├── public/                 # Favicon e arquivos estáticos
 ├── src/
-│   ├── assets/             # Imagens usadas pela interface
-│   ├── components/         # Navbar, quiz, timeline, seções e layout
-│   ├── context/            # Contexto de autenticação
-│   ├── data/               # Conteúdo biográfico e navegação
-│   ├── pages/              # Home, autenticação, perfil, quiz e administração
-│   ├── services/           # Cliente Supabase
-│   ├── App.tsx             # Rotas e proteção de acesso
-│   └── index.css           # Estilos globais
-├── schema.sql              # Schema, policies, funções RPC e dados iniciais
-├── index.html
+│   ├── assets/             # Imagens otimizadas da interface
+│   ├── components/         # Navbar, Quiz, Section, Timeline, ErrorBoundary, layout/*
+│   ├── context/            # AuthContext (consumindo /api/auth/me)
+│   ├── data/               # Conteúdo biográfico e catálogo de navegação
+│   ├── pages/              # Home, DetailPages, QuizPage, Login, Register, Profile, Admin, NotFound
+│   ├── services/           # Cliente HTTP tipado (api.ts)
+│   ├── types/              # Contratos TypeScript compartilhados (api.types.ts)
+│   └── utils/              # Funções puras de quiz, progresso visitante e Web Audio
+├── vercel.json             # Rewrites preservando /api/* + cabeçalhos HTTP de segurança (incluindo CSP)
 └── package.json
 ```
 
 ## Pré-requisitos
 
-- Node.js 18 ou superior
+- Node.js 20 ou superior (recomendado Node.js 24 LTS)
 - npm
-- Projeto no Supabase
+- Banco PostgreSQL no Neon (provisionado via Vercel Marketplace ou [neon.tech](https://neon.tech))
 
 ## Configuração local
 
@@ -58,87 +66,63 @@ Plataforma web educativa e interativa sobre a vida, a espiritualidade e o legado
    npm install
    ```
 
-2. Copie `.env.example` para `.env.local` e preencha as variáveis com os dados do seu projeto Supabase:
+2. Copie `.env.example` para `.env` (ou `.env.local`) e preencha `DATABASE_URL` com a string de conexão do seu banco Neon:
 
    ```env
-   VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-   VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_publica_anon
+   DATABASE_URL=postgresql://usuario:senha@ep-seu-banco-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require
    ```
 
-   Nunca use a chave `service_role` no frontend. Ela ignora as políticas de segurança (RLS) e não deve chegar ao navegador.
+   **Importante:** `DATABASE_URL` é usada apenas no servidor (`api/*` e `db/migrate.mjs`). Nunca exponha credenciais de banco em variáveis com prefixo `VITE_`.
 
-3. No SQL Editor do Supabase, execute o conteúdo de [`schema.sql`](schema.sql). O script cria as tabelas, índices, trigger de perfil, policies de RLS e funções RPC usadas pelo quiz e pelas ligas.
+3. Aplique o schema idempotente e os seeds iniciais no Neon:
 
-4. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run db:migrate
+   ```
+
+4. Inicie o ambiente de desenvolvimento (SPA + rotas `/api/*` conectadas ao Neon já funcionam juntas no Vite):
 
    ```bash
    npm run dev
    ```
 
-   A aplicação ficará disponível no endereço exibido pelo Vite, normalmente `http://localhost:5173`.
+   A aplicação ficará disponível em `http://localhost:5173`. *(Opcionalmente, `npx vercel dev` também pode ser usado; no Windows ele requer o **Modo de Desenvolvedor** ativado para permitir symlinks do cache da CLI.)*
 
 ## Scripts disponíveis
 
 ```bash
-npm run dev      # Servidor de desenvolvimento com HMR
-npm run build    # Verificação TypeScript e build de produção
-npm run lint     # Verificação de lint
-npm run check     # Lint, typecheck e testes
-npm run test      # Apenas os testes (Vitest)
-npm run test:coverage
-npm run preview  # Pré-visualização do build de produção
+npm run dev           # Servidor Vite (frontend)
+npm run build         # Verificação TypeScript (app + api) e build de produção
+npm run lint          # Verificação ESLint (src + api)
+npm run typecheck     # Verificação TypeScript sem emitir arquivos
+npm run test          # Suíte de testes unitários e de handlers (Vitest)
+npm run check         # Lint + typecheck + testes
+npm run db:migrate    # Aplica db/schema.sql no banco Neon de forma idempotente
+npm run preview       # Pré-visualização do build de produção
 ```
 
 ## Operação e manutenção
 
-### Arquitetura
-
-SPA em React + Vite, hospedada como site estático (Vercel). A autenticação,
-os dados e as regras de negócio (XP, ligas e conquistas) vivem no Supabase
-(Postgres, Auth, RLS e RPCs `SECURITY DEFINER`). As regras importantes são
-reforçadas no banco, não apenas no cliente.
-
-### Fluxo de autenticação
-
-1. Login e cadastro usam o Supabase Auth (`src/pages/Login.tsx` e `Register.tsx`).
-2. A trigger `handle_new_user` cria o perfil em `profiles`.
-3. `AuthContext` acompanha a sessão, carrega o perfil e registra o acesso do dia.
-4. As rotas protegidas verificam o contexto, enquanto a proteção real está nas policies de RLS.
-
-### Processo de migração
-
-O schema vive em `schema.sql` e é idempotente. Para aplicar uma atualização:
-
-1. Abra o SQL Editor do projeto Supabase.
-2. Cole o conteúdo completo de `schema.sql` e execute.
-3. Aplique as mudanças no banco antes de publicar um frontend que dependa delas.
-
 ### Criar um administrador
 
-Depois que a pessoa criar uma conta pelo app:
+Após criar uma conta pelo `/cadastro`, promova o usuário no SQL Editor do Neon:
 
 ```sql
-UPDATE public.profiles SET role = 'admin' WHERE email = 'email-da-pessoa@exemplo.com';
+UPDATE public.users SET role = 'admin' WHERE LOWER(email) = 'email-da-pessoa@exemplo.com';
 ```
 
-### Deploy e rollback
+### Ordem de deploy e rollback
 
-Configure `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` na Vercel.
-O frontend pode ser revertido para um deploy anterior pelo painel. Mudanças
-destrutivas no banco devem ser testadas antes em homologação e acompanhadas de backup.
+1. Conecte a store Neon ao projeto na Vercel (garantindo `DATABASE_URL` em Production e Preview).
+2. Aplique eventuais alterações de banco (`npm run db:migrate`) **antes** do deploy do frontend que depende delas.
+3. Faça o deploy na Vercel (Git push ou `vercel --prod`). Em caso de problema, o deploy pode ser revertido instantaneamente pelo painel da Vercel.
 
-## Modelo de dados
+## Modelo de dados (`db/schema.sql`)
 
-O arquivo `schema.sql` define as entidades principais:
-
-- `profiles`: nome, e-mail, XP, nível e liga do usuário.
-- `ligas`: grupos paroquiais com código de acesso.
-- `temporadas`: agrupamentos de perguntas do quiz.
-- `perguntas`: questões e alternativas de cada temporada.
-- `respostas_usuario`: histórico individual, evitando pontuação duplicada.
-
-As funções RPC validam no banco as respostas do quiz e as operações de liga. O RLS restringe o acesso aos dados conforme o usuário autenticado.
-
-## Propósito
-
-O projeto tem finalidade educativa e devocional: apresentar a história de Carlo Acutis e incentivar o aprendizado sobre sua vida e espiritualidade por meio de uma experiência digital interativa.
+- `users`: nome, e-mail único, `password_hash` (`scrypt`), XP, papel (`user`/`admin`) e `liga_id`.
+- `sessions`: sessões ativas armazenadas apenas como `SHA-256` do token do cookie `HttpOnly`.
+- `ligas`: grupos paroquiais com código de acesso único e referência ao criador.
+- `temporadas` e `perguntas`: conteúdo do quiz com controle de ordem e arquivamento (`ativa = false`).
+- `respostas_usuario`: histórico único `(user_id, pergunta_id)` garantindo +100 XP somente na primeira tentativa correta.
+- `streaks`, `conquistas` e `usuario_conquistas`: gamificação idempotente controlada exclusivamente no servidor.
+- `auditoria_admin`: registro de alterações feitas pelo painel administrativo.

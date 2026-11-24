@@ -41,17 +41,13 @@ coverage/
 *.bak
 *.orig
 
-# ===== Banco de Dados =====
-schema.sql
+# pasta de documentos do projeto
+documents/
 
-# arquivos .md
-analise_projeto_carloacutis.md
-<<<<<<< HEAD
+# ===== Agentes de IA e OpenSpec =====
+.agents/
+.gemini/
+openspec/
+GEMINI.md
 
-# outros arquivos
-*.sql
-*.txt
-*.env
-*.xml
-=======
->>>>>>> 1c9dddf3020316eaaa9e1fdf62452ec18491ea3a
+.vercel
