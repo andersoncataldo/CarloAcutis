@@ -6,17 +6,17 @@ import Timeline from '../components/Timeline';
 
 // Assets
 import carloPortrait from '../assets/carlo_retrato.webp';
-import carloTech from '../assets/carlo_computador.png';
-import eucaristiaImg from '../assets/eucaristia.png';
-import tumuloImg from '../assets/tumulo_carlo.png';
-import familiaCarlo from '../assets/familiaCarlo.jpg';
-import maeCarlo from '../assets/MaeCarlo.png';
-import petCarlo from '../assets/PetCarlo.png';
-import amigosCarlo from '../assets/AmigosCarlo.jpg';
-import amigosCarlo2 from '../assets/AmigosCarlo2.jpg';
+import carloTech from '../assets/carlo_computador.webp';
+import eucaristiaImg from '../assets/eucaristia.webp';
+import tumuloImg from '../assets/tumulo_carlo.webp';
+import familiaCarlo from '../assets/familiaCarlo.webp';
+import maeCarlo from '../assets/MaeCarlo.webp';
+import petCarlo from '../assets/PetCarlo.webp';
+import amigosCarlo from '../assets/AmigosCarlo.webp';
+import amigosCarlo2 from '../assets/AmigosCarlo2.webp';
 import saintCarlo from '../assets/saintCarlo.webp';
-import milagreBR from '../assets/milagre_BR.png';
-import milagreCR from '../assets/milagre_CR.png';
+import milagreBR from '../assets/milagre_BR.webp';
+import milagreCR from '../assets/milagre_CR.webp';
 
 const PageHeader: React.FC<{ title: string; subtitle: string; color: string }> = ({ title, subtitle, color }) => (
   <header className={`relative py-24 md:py-32 lg:py-48 px-6 md:px-10 ${color} text-white overflow-hidden m-3 md:m-6 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl`}>

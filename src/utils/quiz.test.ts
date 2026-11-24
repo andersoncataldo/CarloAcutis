@@ -6,6 +6,8 @@ import {
   progressoPercentual,
   calcularTitulo,
   calcularProgressoTitulo,
+  formatDailyShareText,
+  calcularPontosRelampago,
 } from './quiz';
 import {
   getGuestAnswersForQuestions,
@@ -155,5 +157,23 @@ describe('guestProgress', () => {
 
     resetGuestSeasonProgress([10]);
     expect(getGuestAnswersForQuestions([10])).toEqual([]);
+  });
+});
+
+describe('Desafio Diário e Modo Relâmpago (helpers)', () => {
+  it('formata o placar em grade de emojis do Desafio Diário', () => {
+    const text = formatDailyShareText('2026-11-24', [true, false, true], 'https://exemplo.app/quiz');
+    expect(text).toContain('24/11/2026');
+    expect(text).toContain('2/3 🟩🟥🟩');
+    expect(text).toContain('https://exemplo.app/quiz');
+  });
+
+  it('calcula pontuação crescente com combo e tempo restante no Modo Relâmpago', () => {
+    const p1 = calcularPontosRelampago(1, 10); // (100 + 50) * 1.0 = 150
+    const p3 = calcularPontosRelampago(3, 10); // (100 + 50) * 2.0 = 300
+    const pCap = calcularPontosRelampago(10, 20); // (100 + 100) * 3.0 = 600
+    expect(p1).toBe(150);
+    expect(p3).toBe(300);
+    expect(pCap).toBe(600);
   });
 });

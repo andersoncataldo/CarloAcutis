@@ -74,10 +74,15 @@ CREATE TABLE IF NOT EXISTS public.perguntas (
     opcao_c VARCHAR(150) NOT NULL CHECK (length(trim(opcao_c)) > 0),
     opcao_d VARCHAR(150) NOT NULL CHECK (length(trim(opcao_d)) > 0),
     resposta_correta CHAR(1) NOT NULL CHECK (resposta_correta IN ('A', 'B', 'C', 'D')),
+    explicacao TEXT NOT NULL DEFAULT '',
     ordem INT NOT NULL DEFAULT 1,
     ativa BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Garante a coluna explicacao em bancos já existentes (migração idempotente)
+ALTER TABLE public.perguntas
+    ADD COLUMN IF NOT EXISTS explicacao TEXT NOT NULL DEFAULT '';
 
 -- 6. HISTÓRICO DE RESPOSTAS (único por usuário + pergunta)
 CREATE TABLE IF NOT EXISTS public.respostas_usuario (
@@ -235,6 +240,28 @@ VALUES
     ('criou_liga', 'Fundador de Liga', 'Criou uma liga paroquial para reunir amigos', '🏛️'),
     ('streak_7', 'Constância na Fé', 'Manteve uma sequência de 7 dias seguidos', '🔥')
 ON CONFLICT (codigo) DO NOTHING;
+
+-- Explicações educativas idempotentes para as 20 perguntas iniciais (não sobrescreve edições do admin)
+UPDATE public.perguntas SET explicacao = 'Carlo Acutis nasceu em Londres, em 3 de maio de 1991, onde seus pais trabalhavam na época, mudando-se para Milão poucos meses depois.' WHERE id = 1 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Carlo chamava a Eucaristia de sua "autoestrada para o céu", participando da Missa diariamente desde sua Primeira Comunhão.' WHERE id = 2 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Por sua maturidade espiritual e insistência amorosa, Carlo recebeu autorização especial para fazer a Primeira Comunhão aos 7 anos, em 16 de junho de 1998.' WHERE id = 3 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Ainda criança, Carlo resumiu sua vocação em uma frase célebre: "Estar sempre unido a Jesus, este é o meu projeto de vida."' WHERE id = 4 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Carlo amava Assis por sua admiração a São Francisco; hoje seu corpo repousa lá, no Santuário da Espoliação.' WHERE id = 5 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Unindo fé e programação, Carlo criou um site catalogando milagres eucarísticos reconhecidos pela Igreja, que originou exposições em todos os continentes.' WHERE id = 6 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Autodidata em informática, Carlo estudava linguagens como C++ e Java e usava ferramentas de design e edição para projetos de evangelização.' WHERE id = 7 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Carlo dedicou cerca de dois anos e meio pesquisando, viajando com a família e organizando a documentação dos milagres eucarísticos para a exposição virtual.' WHERE id = 8 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Além dos Milagres Eucarísticos, Carlo também desenvolveu pesquisas e catálogos digitais sobre Aparições Marianas, Anjos e Demônios.' WHERE id = 9 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Apaixonado pela criação de Deus, Carlo convivia em casa com cães, gatos e peixes dourados, e costumava acolher animais abandonados.' WHERE id = 10 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Com grande espírito de caridade, Carlo usava suas economias para comprar sacos de dormir, roupas e alimentos para pessoas em situação de rua em Milão.' WHERE id = 11 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'No Instituto Leone XIII, Carlo defendia ativamente colegas que sofriam bullying, especialmente crianças com deficiência ou em famílias fragilizadas.' WHERE id = 12 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'O testemunho de fé e doçura de Carlo tocou profundamente Rajesh Mohur, funcionário hindu da família Acutis, que pediu o Batismo e se tornou católico.' WHERE id = 13 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'São Francisco de Assis era um de seus maiores modelos de humildade, pobreza evangélica e amor pela Eucaristia e pela criação.' WHERE id = 14 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Mesmo brilhante na informática, Carlo nunca se exaltava: era lembrado por colegas e funcionários da escola pela alegria, gentileza e amizade.' WHERE id = 15 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Em outubro de 2006, Carlo foi diagnosticado com leucemia mieloide aguda fulminante (M3), encarando a enfermidade com serenidade exemplar.' WHERE id = 16 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'No hospital, Carlo afirmou oferecer todos os seus sofrimentos "ao Senhor, pelo Papa e pela Igreja", desejando ir direto para o Paraíso.' WHERE id = 17 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Carlo faleceu em Monza (Itália) em 12 de outubro de 2006, aos 15 anos — data em que hoje se celebra sua memória litúrgica.' WHERE id = 18 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'O primeiro milagre reconhecido foi a cura instantânea do menino Mattheus, em Campo Grande (MS), em 2013, após tocar uma relíquia de Carlo.' WHERE id = 19 AND explicacao = '';
+UPDATE public.perguntas SET explicacao = 'Carlo Acutis foi beatificado em Assis em 10 de outubro de 2020 e canonizado em 7 de setembro de 2025, tornando-se o primeiro santo da geração millennial.' WHERE id = 20 AND explicacao = '';
 
 -- Sincroniza sequences para evitar colisão em novos INSERTs após os seeds
 SELECT setval(

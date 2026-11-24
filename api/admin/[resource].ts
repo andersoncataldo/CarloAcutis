@@ -14,6 +14,7 @@ const VALID_OPTIONS = new Set<AnswerOption>(['A', 'B', 'C', 'D']);
 const MAX_TITULO_TEMPORADA = 100;
 const MAX_TEXTO_PERGUNTA = 300;
 const MAX_OPCAO = 150;
+const MAX_EXPLICACAO = 500;
 
 async function requireAdmin(
   sql: NeonQueryFunction<false, false>,
@@ -91,6 +92,7 @@ export async function GET(request: Request): Promise<Response> {
           opcao_c,
           opcao_d,
           resposta_correta,
+          explicacao,
           ordem,
           ativa
         FROM public.perguntas
@@ -107,6 +109,7 @@ export async function GET(request: Request): Promise<Response> {
         opcao_c: p.opcao_c,
         opcao_d: p.opcao_d,
         resposta_correta: p.resposta_correta.trim().toUpperCase() as AnswerOption,
+        explicacao: p.explicacao ?? '',
         ordem: Number(p.ordem),
         ativa: Boolean(p.ativa),
       }));
@@ -172,6 +175,7 @@ export async function POST(request: Request): Promise<Response> {
         typeof body.resposta_correta === 'string'
           ? body.resposta_correta.trim().toUpperCase()
           : '';
+      const explicacao = typeof body.explicacao === 'string' ? body.explicacao.trim() : '';
       const ordem = parsePositiveInt(body.ordem) ?? 1;
 
       if (!temporadaId) return errorResponse('Temporada inválida.', 400);
@@ -184,18 +188,21 @@ export async function POST(request: Request): Promise<Response> {
       if ([opcaoA, opcaoB, opcaoC, opcaoD].some((o) => o.length > MAX_OPCAO)) {
         return errorResponse(`Cada opção pode ter no máximo ${MAX_OPCAO} caracteres.`, 400);
       }
+      if (explicacao.length > MAX_EXPLICACAO) {
+        return errorResponse(`A explicação pode ter no máximo ${MAX_EXPLICACAO} caracteres.`, 400);
+      }
       if (!VALID_OPTIONS.has(resposta as AnswerOption)) {
         return errorResponse('A resposta correta precisa ser A, B, C ou D.', 400);
       }
 
       const inserted = await sql`
         INSERT INTO public.perguntas (
-          temporada_id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, ordem, ativa
+          temporada_id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, explicacao, ordem, ativa
         )
         VALUES (
-          ${temporadaId}, ${texto}, ${opcaoA}, ${opcaoB}, ${opcaoC}, ${opcaoD}, ${resposta}, ${ordem}, true
+          ${temporadaId}, ${texto}, ${opcaoA}, ${opcaoB}, ${opcaoC}, ${opcaoD}, ${resposta}, ${explicacao}, ${ordem}, true
         )
-        RETURNING id, temporada_id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, ordem, ativa
+        RETURNING id, temporada_id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, explicacao, ordem, ativa
       `;
       const created = inserted[0] as PerguntaAdmin;
       const result: PerguntaAdmin = {
@@ -207,6 +214,7 @@ export async function POST(request: Request): Promise<Response> {
         opcao_c: created.opcao_c,
         opcao_d: created.opcao_d,
         resposta_correta: created.resposta_correta.trim().toUpperCase() as AnswerOption,
+        explicacao: created.explicacao ?? '',
         ordem: Number(created.ordem),
         ativa: Boolean(created.ativa),
       };
@@ -294,7 +302,7 @@ export async function PATCH(request: Request): Promise<Response> {
 
     if (resource === 'questions') {
       const existingRows = await sql`
-        SELECT id, temporada_id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, ordem, ativa
+        SELECT id, temporada_id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, explicacao, ordem, ativa
         FROM public.perguntas
         WHERE id = ${id}
         LIMIT 1
@@ -318,6 +326,8 @@ export async function PATCH(request: Request): Promise<Response> {
         typeof body.resposta_correta === 'string'
           ? body.resposta_correta.trim().toUpperCase()
           : existing.resposta_correta.trim().toUpperCase();
+      const explicacao =
+        typeof body.explicacao === 'string' ? body.explicacao.trim() : (existing.explicacao ?? '');
       const ordem =
         body.ordem !== undefined ? (parsePositiveInt(body.ordem) ?? Number(existing.ordem)) : Number(existing.ordem);
       const ativa = typeof body.ativa === 'boolean' ? body.ativa : Boolean(existing.ativa);
@@ -330,6 +340,9 @@ export async function PATCH(request: Request): Promise<Response> {
       }
       if ([opcaoA, opcaoB, opcaoC, opcaoD].some((o) => o.length > MAX_OPCAO)) {
         return errorResponse(`Cada opção pode ter no máximo ${MAX_OPCAO} caracteres.`, 400);
+      }
+      if (explicacao.length > MAX_EXPLICACAO) {
+        return errorResponse(`A explicação pode ter no máximo ${MAX_EXPLICACAO} caracteres.`, 400);
       }
       if (!VALID_OPTIONS.has(resposta as AnswerOption)) {
         return errorResponse('A resposta correta precisa ser A, B, C ou D.', 400);
@@ -344,10 +357,11 @@ export async function PATCH(request: Request): Promise<Response> {
           opcao_c = ${opcaoC},
           opcao_d = ${opcaoD},
           resposta_correta = ${resposta},
+          explicacao = ${explicacao},
           ordem = ${ordem},
           ativa = ${ativa}
         WHERE id = ${id}
-        RETURNING id, temporada_id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, ordem, ativa
+        RETURNING id, temporada_id, texto_pergunta, opcao_a, opcao_b, opcao_c, opcao_d, resposta_correta, explicacao, ordem, ativa
       `;
       const updated = updatedRows[0] as PerguntaAdmin;
       const result: PerguntaAdmin = {
@@ -359,6 +373,7 @@ export async function PATCH(request: Request): Promise<Response> {
         opcao_c: updated.opcao_c,
         opcao_d: updated.opcao_d,
         resposta_correta: updated.resposta_correta.trim().toUpperCase() as AnswerOption,
+        explicacao: updated.explicacao ?? '',
         ordem: Number(updated.ordem),
         ativa: Boolean(updated.ativa),
       };

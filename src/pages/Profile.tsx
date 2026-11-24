@@ -5,6 +5,7 @@ import { api, ApiError } from '../services/api';
 import type { ConquistaItem, RankingMembro } from '../types/api.types';
 import { calcularProgressoTitulo } from '../utils/quiz';
 import { isSoundEnabled, setSoundEnabled, playClickSound } from '../utils/sound';
+import CelebrationToast, { type CelebrationPayload } from '../components/CelebrationToast';
 
 const Profile: React.FC = () => {
   const { user, signOut, refreshUser, streak } = useAuth();
@@ -14,6 +15,7 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [rankingLoading, setRankingLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [celebration, setCelebration] = useState<CelebrationPayload | null>(null);
   const [showSairModal, setShowSairModal] = useState(false);
   const [conquistas, setConquistas] = useState<ConquistaItem[]>([]);
   const [conquistasLoading, setConquistasLoading] = useState(false);
@@ -111,10 +113,14 @@ const Profile: React.FC = () => {
     if (!ligaNome.trim() || !user) return;
     setLoading(true);
     try {
-      await api.createLeague(ligaNome.trim());
+      const res = await api.createLeague(ligaNome.trim());
       await refreshUser();
+      await fetchConquistas();
       setLigaNome('');
       showToast('Liga criada com sucesso!', 'success');
+      if (res.unlocked_achievements && res.unlocked_achievements.length > 0) {
+        setCelebration({ achievements: res.unlocked_achievements });
+      }
     } catch (err) {
       console.error(err);
       showToast(
@@ -130,10 +136,14 @@ const Profile: React.FC = () => {
     if (!codigoAcesso.trim() || !user) return;
     setLoading(true);
     try {
-      await api.joinLeague(codigoAcesso.trim().toUpperCase());
+      const res = await api.joinLeague(codigoAcesso.trim().toUpperCase());
       await refreshUser();
+      await fetchConquistas();
       setCodigoAcesso('');
       showToast('Entrou na liga com sucesso!', 'success');
+      if (res.unlocked_achievements && res.unlocked_achievements.length > 0) {
+        setCelebration({ achievements: res.unlocked_achievements });
+      }
     } catch (err) {
       console.error(err);
       showToast(
@@ -433,14 +443,14 @@ const Profile: React.FC = () => {
                             <div className="font-bold text-slate-800 flex items-center gap-2">
                               <span>{membro.nome}</span>
                               {membro.id === user.id && (
-                                <span className="text-[8px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-600 text-white">Você</span>
+                                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-600 text-white">Você</span>
                               )}
                             </div>
-                            <div className="text-[9px] font-black uppercase text-blue-600">{membro.nivel}</div>
+                            <div className="text-xs font-black uppercase text-blue-700">{membro.nivel}</div>
                           </div>
                         </div>
                         <div className="font-black italic text-blue-950 text-base">
-                          {membro.xp} <span className="text-xs text-slate-400 font-bold">XP</span>
+                          {membro.xp} <span className="text-xs text-slate-500 font-bold">XP</span>
                         </div>
                       </div>
                     ))}
@@ -517,6 +527,7 @@ const Profile: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+      <CelebrationToast celebration={celebration} onDismiss={() => setCelebration(null)} />
     </div>
   );
 };

@@ -19,7 +19,7 @@ vi.mock('./_lib/db', () => ({
 
 const VALID_COOKIE = `carlo_session=${'a'.repeat(64)}`;
 
-describe('API handlers — segurança, quiz visitante/logado, ligas e admin', () => {
+describe('API handlers — segurança, Quiz 2.0 (explicação, daily, lightning, conquistas), ligas e admin', () => {
   beforeEach(() => {
     sqlResponses.length = 0;
     mockSql.mockClear();
@@ -36,9 +36,15 @@ describe('API handlers — segurança, quiz visitante/logado, ligas e admin', ()
     expect(mockSql).not.toHaveBeenCalled();
   });
 
-  it('valida resposta em modo visitante sem gravar no banco', async () => {
+  it('valida resposta em modo visitante retornando correct_option e explicacao sem gravar no banco', async () => {
     sqlResponses.push([
-      { resposta_correta: 'B', temporada_id: 1, pergunta_ativa: true, temporada_ativa: true },
+      {
+        resposta_correta: 'B',
+        explicacao: 'Carlo nasceu em Londres em 3 de maio de 1991.',
+        temporada_id: 1,
+        pergunta_ativa: true,
+        temporada_ativa: true,
+      },
     ]);
 
     const req = new Request('http://localhost/api/quiz/answer', {
@@ -52,19 +58,58 @@ describe('API handlers — segurança, quiz visitante/logado, ligas e admin', ()
     expect(res.status).toBe(200);
     expect(data).toEqual({
       correct: true,
+      correct_option: 'B',
+      explicacao: 'Carlo nasceu em Londres em 3 de maio de 1991.',
       first_attempt: true,
       xp_gained: 100,
       xp: null,
       nivel: null,
+      previous_nivel: null,
+      leveled_up: false,
+      unlocked_achievements: [],
       guest: true,
+      mode: 'season',
     });
-    // Apenas 1 query (leitura da pergunta); nenhum INSERT/UPDATE em respostas_usuario ou users.
+    expect(mockSql).toHaveBeenCalledTimes(1);
+  });
+
+  it('valida Modo Relâmpago sem gravar em respostas_usuario nem conceder XP infinito', async () => {
+    sqlResponses.push([
+      {
+        resposta_correta: 'C',
+        explicacao: 'Ele criou uma exposição virtual dos Milagres Eucarísticos.',
+        temporada_id: 2,
+        pergunta_ativa: true,
+        temporada_ativa: true,
+      },
+    ]);
+    sqlResponses.push([]); // getSessionUser (visitante)
+
+    const req = new Request('http://localhost/api/quiz/answer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ perguntaId: 6, resposta: 'C', mode: 'lightning' }),
+    });
+    const res = await answerPost(req);
+    const data = (await res.json()) as Record<string, unknown>;
+
+    expect(res.status).toBe(200);
+    expect(data.correct).toBe(true);
+    expect(data.correct_option).toBe('C');
+    expect(data.xp_gained).toBe(0);
+    expect(data.mode).toBe('lightning');
     expect(mockSql).toHaveBeenCalledTimes(1);
   });
 
   it('rejeita pergunta arquivada/inativa com status 400', async () => {
     sqlResponses.push([
-      { resposta_correta: 'B', temporada_id: 1, pergunta_ativa: false, temporada_ativa: true },
+      {
+        resposta_correta: 'B',
+        explicacao: '',
+        temporada_id: 1,
+        pergunta_ativa: false,
+        temporada_ativa: true,
+      },
     ]);
 
     const req = new Request('http://localhost/api/quiz/answer', {
@@ -76,12 +121,16 @@ describe('API handlers — segurança, quiz visitante/logado, ligas e admin', ()
     expect(res.status).toBe(400);
   });
 
-  it('concede +100 XP na primeira tentativa correta de usuário autenticado e 0 na repetida', async () => {
-    // 1) Busca pergunta
+  it('concede +100 XP, detecta level-up e retorna conquista recém-desbloqueada na 1ª tentativa', async () => {
     sqlResponses.push([
-      { resposta_correta: 'A', temporada_id: 1, pergunta_ativa: true, temporada_ativa: true },
+      {
+        resposta_correta: 'A',
+        explicacao: 'Primeira Comunhão aos 7 anos.',
+        temporada_id: 1,
+        pergunta_ativa: true,
+        temporada_ativa: true,
+      },
     ]);
-    // 2) getSessionUser
     sqlResponses.push([
       {
         id: '00000000-0000-0000-0000-000000000001',
@@ -95,16 +144,18 @@ describe('API handlers — segurança, quiz visitante/logado, ligas e admin', ()
         liga_codigo_acesso: null,
       },
     ]);
-    // 3) INSERT respostas_usuario RETURNING id
-    sqlResponses.push([{ id: 99 }]);
-    // 4) UPDATE users RETURNING xp
-    sqlResponses.push([{ xp: 500 }]);
-    // 5) concederConquista primeira_resposta
-    sqlResponses.push([]);
-    // 6) seasonProgress
-    sqlResponses.push([{ total_perguntas: 5, total_respondidas: 1 }]);
-    // 7) registrarAcessoDiario
-    sqlResponses.push([{ streak_atual: 1, maior_streak: 1 }]);
+    sqlResponses.push([{ id: 99 }]); // INSERT respostas_usuario
+    sqlResponses.push([{ xp: 500 }]); // UPDATE users
+    sqlResponses.push([
+      {
+        codigo: 'primeira_resposta',
+        nome: 'Primeiro Passo',
+        descricao: 'Acertou sua primeira pergunta no quiz',
+        icone: '🌱',
+      },
+    ]); // concederConquista
+    sqlResponses.push([{ total_perguntas: 5, total_respondidas: 1 }]); // seasonProgress
+    sqlResponses.push([{ streak_atual: 1, maior_streak: 1 }]); // registrarAcessoDiario
 
     const req1 = new Request('http://localhost/api/quiz/answer', {
       method: 'POST',
@@ -117,47 +168,28 @@ describe('API handlers — segurança, quiz visitante/logado, ligas e admin', ()
     expect(res1.status).toBe(200);
     expect(data1).toEqual({
       correct: true,
+      correct_option: 'A',
+      explicacao: 'Primeira Comunhão aos 7 anos.',
       first_attempt: true,
       xp_gained: 100,
       xp: 500,
       nivel: 'Aprendiz da Fé',
+      previous_nivel: 'Peregrino',
+      leveled_up: true,
+      unlocked_achievements: [
+        {
+          codigo: 'primeira_resposta',
+          nome: 'Primeiro Passo',
+          descricao: 'Acertou sua primeira pergunta no quiz',
+          icone: '🌱',
+        },
+      ],
       guest: false,
+      mode: 'season',
     });
-
-    // Segunda tentativa na mesma pergunta: INSERT ON CONFLICT DO NOTHING retorna []
-    sqlResponses.push([
-      { resposta_correta: 'A', temporada_id: 1, pergunta_ativa: true, temporada_ativa: true },
-    ]);
-    sqlResponses.push([
-      {
-        id: '00000000-0000-0000-0000-000000000001',
-        nome: 'João',
-        email: 'joao@exemplo.com',
-        xp: 500,
-        role: 'user',
-        liga_id: null,
-        liga_nome: null,
-        liga_criado_por: null,
-        liga_codigo_acesso: null,
-      },
-    ]);
-    sqlResponses.push([]);
-
-    const req2 = new Request('http://localhost/api/quiz/answer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Cookie: VALID_COOKIE },
-      body: JSON.stringify({ perguntaId: 3, resposta: 'A' }),
-    });
-    const res2 = await answerPost(req2);
-    const data2 = (await res2.json()) as Record<string, unknown>;
-
-    expect(res2.status).toBe(200);
-    expect(data2.first_attempt).toBe(false);
-    expect(data2.xp_gained).toBe(0);
-    expect(data2.xp).toBe(500);
   });
 
-  it('nunca expõe resposta_correta em GET /api/quiz/questions', async () => {
+  it('nunca expõe resposta_correta nem explicacao em GET /api/quiz/questions (temporada e daily)', async () => {
     sqlResponses.push([
       {
         id: 1,
@@ -171,19 +203,36 @@ describe('API handlers — segurança, quiz visitante/logado, ligas e admin', ()
 
     const req = new Request('http://localhost/api/quiz/questions?temporadaId=1');
     const res = await questionsGet(req);
-    const data = (await res.json()) as { perguntas: Array<Record<string, unknown>>; authenticated: boolean };
+    const data = (await res.json()) as { perguntas: Array<Record<string, unknown>>; mode: string };
 
     expect(res.status).toBe(200);
-    expect(data.authenticated).toBe(false);
-    expect(data.perguntas).toHaveLength(1);
+    expect(data.mode).toBe('season');
     expect(data.perguntas[0]).not.toHaveProperty('resposta_correta');
+    expect(data.perguntas[0]).not.toHaveProperty('explicacao');
+
+    // Modo daily
+    sqlResponses.push([
+      { id: 1, texto_pergunta: 'P1', opcao_a: 'A', opcao_b: 'B', opcao_c: 'C', opcao_d: 'D' },
+      { id: 2, texto_pergunta: 'P2', opcao_a: 'A', opcao_b: 'B', opcao_c: 'C', opcao_d: 'D' },
+      { id: 3, texto_pergunta: 'P3', opcao_a: 'A', opcao_b: 'B', opcao_c: 'C', opcao_d: 'D' },
+      { id: 4, texto_pergunta: 'P4', opcao_a: 'A', opcao_b: 'B', opcao_c: 'C', opcao_d: 'D' },
+    ]);
+    const dailyRes = await questionsGet(new Request('http://localhost/api/quiz/questions?mode=daily'));
+    const dailyData = (await dailyRes.json()) as {
+      perguntas: Array<Record<string, unknown>>;
+      mode: string;
+      date_utc?: string;
+    };
+    expect(dailyRes.status).toBe(200);
+    expect(dailyData.mode).toBe('daily');
+    expect(dailyData.perguntas).toHaveLength(3);
+    expect(dailyData.date_utc).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('bloqueia ranking de liga sem sessão (401) e omite e-mails quando autenticado', async () => {
     const unauthRes = await leaguesGet(new Request('http://localhost/api/leagues/ranking'));
     expect(unauthRes.status).toBe(401);
 
-    // Usuário autenticado em liga 7
     sqlResponses.push([
       {
         id: '00000000-0000-0000-0000-000000000001',

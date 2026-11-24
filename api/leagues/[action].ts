@@ -130,14 +130,18 @@ export async function POST(request: Request): Promise<Response> {
         WHERE id = ${user.id}::uuid
       `;
 
-      await concederConquista(sql, user.id, 'criou_liga');
-      await concederConquista(sql, user.id, 'entrou_liga');
+      const unlocked = [];
+      const achCreate = await concederConquista(sql, user.id, 'criou_liga');
+      if (achCreate) unlocked.push(achCreate);
+      const achJoin = await concederConquista(sql, user.id, 'entrou_liga');
+      if (achJoin) unlocked.push(achJoin);
 
       return jsonResponse(
         {
           liga_id: ligaId,
           nome: createdLeague.nome,
           codigo_acesso: createdLeague.codigo_acesso,
+          unlocked_achievements: unlocked,
         },
         201
       );
@@ -168,9 +172,11 @@ export async function POST(request: Request): Promise<Response> {
         WHERE id = ${user.id}::uuid
       `;
 
-      await concederConquista(sql, user.id, 'entrou_liga');
+      const unlocked = [];
+      const achJoin = await concederConquista(sql, user.id, 'entrou_liga');
+      if (achJoin) unlocked.push(achJoin);
 
-      return jsonResponse({ liga_id: ligaId, nome: liga.nome }, 200);
+      return jsonResponse({ liga_id: ligaId, nome: liga.nome, unlocked_achievements: unlocked }, 200);
     }
 
     return errorResponse('Rota de liga não encontrada.', 404);

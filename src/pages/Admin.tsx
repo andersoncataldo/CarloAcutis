@@ -6,6 +6,7 @@ import type { AnswerOption, PerguntaAdmin, TemporadaAdmin } from '../types/api.t
 const MAX_TEXTO_PERGUNTA = 300;
 const MAX_OPCAO = 150;
 const MAX_TITULO_TEMPORADA = 100;
+const MAX_EXPLICACAO = 500;
 
 const emptyPergunta: {
   texto_pergunta: string;
@@ -14,6 +15,7 @@ const emptyPergunta: {
   opcao_c: string;
   opcao_d: string;
   resposta_correta: AnswerOption;
+  explicacao: string;
 } = {
   texto_pergunta: '',
   opcao_a: '',
@@ -21,6 +23,7 @@ const emptyPergunta: {
   opcao_c: '',
   opcao_d: '',
   resposta_correta: 'A',
+  explicacao: '',
 };
 
 function getFriendlyError(err: unknown, fallback: string): string {
@@ -188,6 +191,9 @@ const Admin: React.FC = () => {
     if ([p.opcao_a, p.opcao_b, p.opcao_c, p.opcao_d].some((o) => o.trim().length > MAX_OPCAO)) {
       return `Cada opção pode ter no máximo ${MAX_OPCAO} caracteres.`;
     }
+    if (p.explicacao.trim().length > MAX_EXPLICACAO) {
+      return `A explicação pode ter no máximo ${MAX_EXPLICACAO} caracteres.`;
+    }
     return null;
   };
 
@@ -210,6 +216,7 @@ const Admin: React.FC = () => {
         opcao_c: p.opcao_c.trim(),
         opcao_d: p.opcao_d.trim(),
         resposta_correta: p.resposta_correta,
+        explicacao: p.explicacao.trim(),
         ordem: perguntas.length + 1,
       });
       setNovaPergunta(emptyPergunta);
@@ -231,6 +238,7 @@ const Admin: React.FC = () => {
       opcao_c: p.opcao_c,
       opcao_d: p.opcao_d,
       resposta_correta: p.resposta_correta,
+      explicacao: p.explicacao ?? '',
     });
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
@@ -259,6 +267,7 @@ const Admin: React.FC = () => {
         opcao_c: p.opcao_c.trim(),
         opcao_d: p.opcao_d.trim(),
         resposta_correta: p.resposta_correta,
+        explicacao: p.explicacao.trim(),
       });
       showMsg('Pergunta atualizada!');
       cancelEditPergunta();
@@ -494,6 +503,20 @@ const Admin: React.FC = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label className="sr-only" htmlFor="pergunta-explicacao">
+                  Explicação educativa (opcional)
+                </label>
+                <textarea
+                  id="pergunta-explicacao"
+                  placeholder="Explicação educativa exibida após o jogador responder (opcional, máx. 500 caracteres)"
+                  value={novaPergunta.explicacao}
+                  maxLength={MAX_EXPLICACAO}
+                  onChange={(e) => setNovaPergunta((s) => ({ ...s, explicacao: e.target.value }))}
+                  className="w-full px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 outline-none"
+                  rows={2}
+                />
               </div>
               <div className="flex gap-3">
                 {editingPerguntaId ? (

@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { MotionConfig, AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -50,8 +50,25 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return isAdmin ? <>{children}</> : <Navigate to="/perfil" replace />;
 };
 
+const ROUTE_TITLES: Record<string, string> = {
+  '/': 'Carlo Acutis | O Primeiro Santo Millennial',
+  '/vida-legado': 'Vida e Legado | São Carlo Acutis',
+  '/fe-devocao': 'Fé e Devoção | São Carlo Acutis',
+  '/santidade': 'Caminho da Santidade | São Carlo Acutis',
+  '/quiz': 'Quiz & Mini-Games | São Carlo Acutis',
+  '/perfil': 'Meu Perfil & Ligas | São Carlo Acutis',
+  '/login': 'Entrar | São Carlo Acutis',
+  '/cadastro': 'Cadastro | São Carlo Acutis',
+  '/admin': 'Administração | São Carlo Acutis',
+};
+
 const AnimatedRoutes = () => {
   const location = useLocation();
+
+  useEffect(() => {
+    document.title = ROUTE_TITLES[location.pathname] ?? 'Página não encontrada | São Carlo Acutis';
+  }, [location.pathname]);
+
   return (
     <AnimatePresence mode="wait">
       <motion.div

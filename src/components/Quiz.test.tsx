@@ -55,7 +55,12 @@ describe('Quiz', () => {
   });
 
   it('mostra o skeleton de carregamento antes de resolver as consultas', async () => {
-    mockGetQuizQuestions.mockResolvedValueOnce({ perguntas: [], respostas: [], authenticated: true });
+    mockGetQuizQuestions.mockResolvedValueOnce({
+      perguntas: [],
+      respostas: [],
+      authenticated: true,
+      mode: 'season',
+    });
     const { container } = render(
       <MemoryRouter>
         <Quiz temporadaId={1} />
@@ -67,7 +72,7 @@ describe('Quiz', () => {
     });
   });
 
-  it('exibe rótulos visuais sequenciais A–D e envia a chave original da alternativa', async () => {
+  it('exibe rótulos A–D, explicação pós-resposta, conquista e botão Próxima Pergunta', async () => {
     const user = userEvent.setup();
     mockGetQuizQuestions.mockResolvedValueOnce({
       perguntas: [
@@ -79,17 +84,39 @@ describe('Quiz', () => {
           opcao_c: 'Roma',
           opcao_d: 'Assis',
         },
+        {
+          id: 11,
+          texto_pergunta: 'Segunda pergunta da temporada',
+          opcao_a: 'A1',
+          opcao_b: 'B1',
+          opcao_c: 'C1',
+          opcao_d: 'D1',
+        },
       ],
       respostas: [],
       authenticated: true,
+      mode: 'season',
     });
     mockAnswerQuestion.mockResolvedValueOnce({
       correct: true,
+      correct_option: 'B',
+      explicacao: 'Carlo nasceu em Londres em 3 de maio de 1991.',
       first_attempt: true,
       xp_gained: 100,
       xp: 400,
       nivel: 'Peregrino',
+      previous_nivel: 'Peregrino',
+      leveled_up: false,
+      unlocked_achievements: [
+        {
+          codigo: 'primeira_resposta',
+          nome: 'Primeiro Passo',
+          descricao: 'Acertou sua primeira pergunta no quiz',
+          icone: '🌱',
+        },
+      ],
       guest: false,
+      mode: 'season',
     });
 
     render(
@@ -106,12 +133,20 @@ describe('Quiz', () => {
     expect(radios).toHaveLength(4);
     expect(radios.map((btn) => btn.querySelector('span')?.textContent)).toEqual(['A', 'B', 'C', 'D']);
 
-    const londresButton = screen.getByRole('radio', { name: /Londres/i });
-    await user.click(londresButton);
+    await user.click(screen.getByRole('radio', { name: /Londres/i }));
 
     await waitFor(() => {
-      expect(mockAnswerQuestion).toHaveBeenCalledWith(10, 'B');
+      expect(mockAnswerQuestion).toHaveBeenCalledWith(10, 'B', 'season');
       expect(screen.getByText(/Correto! \+100 XP/i)).toBeInTheDocument();
+      expect(screen.getByText(/Carlo nasceu em Londres em 3 de maio de 1991/i)).toBeInTheDocument();
+      expect(screen.getByText('Primeiro Passo')).toBeInTheDocument();
+    });
+
+    // Avança somente após clicar no botão Próxima Pergunta
+    await user.click(screen.getByRole('button', { name: /Próxima Pergunta/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Segunda pergunta da temporada')).toBeInTheDocument();
     });
   });
 
@@ -131,14 +166,21 @@ describe('Quiz', () => {
       ],
       respostas: [],
       authenticated: false,
+      mode: 'season',
     });
     mockAnswerQuestion.mockResolvedValueOnce({
       correct: true,
+      correct_option: 'B',
+      explicacao: 'Autoestrada para o céu.',
       first_attempt: true,
       xp_gained: 100,
       xp: null,
       nivel: null,
+      previous_nivel: null,
+      leveled_up: false,
+      unlocked_achievements: [],
       guest: true,
+      mode: 'season',
     });
 
     render(
@@ -154,8 +196,9 @@ describe('Quiz', () => {
     await user.click(screen.getByRole('radio', { name: /Autoestrada para o céu/i }));
 
     await waitFor(() => {
-      expect(mockAnswerQuestion).toHaveBeenCalledWith(21, 'B');
+      expect(mockAnswerQuestion).toHaveBeenCalledWith(21, 'B', 'season');
       expect(screen.getByText(/XP Local: 100/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Ver Resultado Final/i })).toBeInTheDocument();
     });
   });
 });

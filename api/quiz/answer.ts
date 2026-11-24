@@ -2,12 +2,21 @@ import { getSql } from '../_lib/db';
 import { getSessionUser } from '../_lib/auth';
 import { calcularTitulo, concederConquista, registrarAcessoDiario } from '../_lib/gamification';
 import { errorResponse, jsonResponse, parseJsonBody, parsePositiveInt } from '../_lib/http';
-import type { AnswerOption, ResponderPerguntaResult } from '../../src/types/api.types';
+import type {
+  AnswerOption,
+  ConquistaDesbloqueada,
+  QuizMode,
+  ResponderPerguntaResult,
+} from '../../src/types/api.types';
 
 const VALID_OPTIONS = new Set<AnswerOption>(['A', 'B', 'C', 'D']);
 
 export async function POST(request: Request): Promise<Response> {
-  const body = await parseJsonBody<{ perguntaId?: unknown; resposta?: unknown }>(request);
+  const body = await parseJsonBody<{
+    perguntaId?: unknown;
+    resposta?: unknown;
+    mode?: unknown;
+  }>(request);
   if (!body) {
     return errorResponse('Corpo da requisição inválido.', 400);
   }
@@ -15,6 +24,9 @@ export async function POST(request: Request): Promise<Response> {
   const perguntaId = parsePositiveInt(body.perguntaId);
   const respostaLimpa =
     typeof body.resposta === 'string' ? body.resposta.trim().toUpperCase() : '';
+  const rawMode = typeof body.mode === 'string' ? body.mode.trim().toLowerCase() : 'season';
+  const mode: QuizMode =
+    rawMode === 'daily' || rawMode === 'lightning' ? rawMode : 'season';
 
   if (!perguntaId) {
     return errorResponse('Identificador da pergunta inválido.', 400);
@@ -29,6 +41,7 @@ export async function POST(request: Request): Promise<Response> {
     const rows = await sql`
       SELECT
         p.resposta_correta,
+        p.explicacao,
         p.temporada_id,
         p.ativa AS pergunta_ativa,
         t.ativa AS temporada_ativa
@@ -41,6 +54,7 @@ export async function POST(request: Request): Promise<Response> {
     const pergunta = rows[0] as
       | {
           resposta_correta: string;
+          explicacao: string | null;
           temporada_id: number;
           pergunta_ativa: boolean;
           temporada_ativa: boolean;
@@ -55,18 +69,47 @@ export async function POST(request: Request): Promise<Response> {
       return errorResponse('Esta pergunta não está mais disponível.', 400);
     }
 
-    const isCorrect = pergunta.resposta_correta.trim().toUpperCase() === respostaLimpa;
+    const correctOption = pergunta.resposta_correta.trim().toUpperCase() as AnswerOption;
+    const explicacao = pergunta.explicacao ?? '';
+    const isCorrect = correctOption === respostaLimpa;
+
+    // Modos Desafio Diário e Relâmpago validam no servidor sem alterar histórico de temporada nem inflar XP.
+    if (mode !== 'season') {
+      const sessionUser = await getSessionUser(sql, request);
+      const practiceResult: ResponderPerguntaResult = {
+        correct: isCorrect,
+        correct_option: correctOption,
+        explicacao,
+        first_attempt: false,
+        xp_gained: 0,
+        xp: sessionUser ? sessionUser.xp : null,
+        nivel: sessionUser ? sessionUser.nivel : null,
+        previous_nivel: sessionUser ? sessionUser.nivel : null,
+        leveled_up: false,
+        unlocked_achievements: [],
+        guest: !sessionUser,
+        mode,
+      };
+      return jsonResponse(practiceResult, 200);
+    }
+
     const sessionUser = await getSessionUser(sql, request);
 
-    // Modo visitante: valida no servidor sem expor gabarito e sem gravar no banco.
+    // Modo visitante: valida no servidor sem gravar no banco.
     if (!sessionUser) {
       const guestResult: ResponderPerguntaResult = {
         correct: isCorrect,
+        correct_option: correctOption,
+        explicacao,
         first_attempt: true,
         xp_gained: isCorrect ? 100 : 0,
         xp: null,
         nivel: null,
+        previous_nivel: null,
+        leveled_up: false,
+        unlocked_achievements: [],
         guest: true,
+        mode: 'season',
       };
       return jsonResponse(guestResult, 200);
     }
@@ -80,8 +123,10 @@ export async function POST(request: Request): Promise<Response> {
     `;
 
     const isFirstAttempt = inserted.length > 0;
+    const previousNivel = sessionUser.nivel;
     let currentXp = sessionUser.xp;
     let xpGained = 0;
+    const unlockedAchievements: ConquistaDesbloqueada[] = [];
 
     if (isFirstAttempt) {
       if (isCorrect) {
@@ -94,10 +139,10 @@ export async function POST(request: Request): Promise<Response> {
         `;
         currentXp = Number((updated[0] as { xp: number } | undefined)?.xp ?? sessionUser.xp + 100);
 
-        await concederConquista(sql, sessionUser.id, 'primeira_resposta');
+        const achFirst = await concederConquista(sql, sessionUser.id, 'primeira_resposta');
+        if (achFirst) unlockedAchievements.push(achFirst);
       }
 
-      // Verifica se concluiu todas as perguntas ativas da temporada.
       const seasonProgress = await sql`
         SELECT
           (SELECT COUNT(*)::int FROM public.perguntas WHERE temporada_id = ${Number(pergunta.temporada_id)} AND ativa = true) AS total_perguntas,
@@ -116,19 +161,27 @@ export async function POST(request: Request): Promise<Response> {
         Number(counts.total_perguntas) > 0 &&
         Number(counts.total_respondidas) >= Number(counts.total_perguntas)
       ) {
-        await concederConquista(sql, sessionUser.id, 'temporada_completa');
+        const achSeason = await concederConquista(sql, sessionUser.id, 'temporada_completa');
+        if (achSeason) unlockedAchievements.push(achSeason);
       }
 
-      await registrarAcessoDiario(sql, sessionUser.id);
+      await registrarAcessoDiario(sql, sessionUser.id, unlockedAchievements);
     }
 
+    const newNivel = calcularTitulo(currentXp);
     const result: ResponderPerguntaResult = {
       correct: isCorrect,
+      correct_option: correctOption,
+      explicacao,
       first_attempt: isFirstAttempt,
       xp_gained: xpGained,
       xp: currentXp,
-      nivel: calcularTitulo(currentXp),
+      nivel: newNivel,
+      previous_nivel: previousNivel,
+      leveled_up: isFirstAttempt && newNivel !== previousNivel,
+      unlocked_achievements: unlockedAchievements,
       guest: false,
+      mode: 'season',
     };
 
     return jsonResponse(result, 200);

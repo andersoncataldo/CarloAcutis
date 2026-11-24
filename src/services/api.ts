@@ -4,6 +4,7 @@ import type {
   ConquistaItem,
   LeagueMutationResult,
   PerguntaAdmin,
+  QuizMode,
   QuizQuestionsResponse,
   RankingMembro,
   ResponderPerguntaResult,
@@ -21,10 +22,7 @@ export class ApiError extends Error {
   }
 }
 
-async function requestJson<T>(
-  url: string,
-  init: RequestInit = {}
-): Promise<T> {
+async function requestJson<T>(url: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   if (init.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
@@ -44,7 +42,10 @@ async function requestJson<T>(
 
   if (!response.ok) {
     const message =
-      payload && typeof payload === 'object' && 'error' in payload && typeof (payload as { error: unknown }).error === 'string'
+      payload &&
+      typeof payload === 'object' &&
+      'error' in payload &&
+      typeof (payload as { error: unknown }).error === 'string'
         ? (payload as { error: string }).error
         : 'Não foi possível completar a solicitação. Tente novamente.';
     throw new ApiError(message, response.status);
@@ -87,15 +88,33 @@ export const api = {
 
   getQuizQuestions(temporadaId: number, signal?: AbortSignal): Promise<QuizQuestionsResponse> {
     return requestJson<QuizQuestionsResponse>(
-      `/api/quiz/questions?temporadaId=${encodeURIComponent(String(temporadaId))}`,
+      `/api/quiz/questions?mode=season&temporadaId=${encodeURIComponent(String(temporadaId))}`,
       { method: 'GET', signal }
     );
   },
 
-  answerQuestion(perguntaId: number, resposta: AnswerOption): Promise<ResponderPerguntaResult> {
+  getDailyQuestions(signal?: AbortSignal): Promise<QuizQuestionsResponse> {
+    return requestJson<QuizQuestionsResponse>('/api/quiz/questions?mode=daily', {
+      method: 'GET',
+      signal,
+    });
+  },
+
+  getLightningQuestions(signal?: AbortSignal): Promise<QuizQuestionsResponse> {
+    return requestJson<QuizQuestionsResponse>('/api/quiz/questions?mode=lightning', {
+      method: 'GET',
+      signal,
+    });
+  },
+
+  answerQuestion(
+    perguntaId: number,
+    resposta: AnswerOption,
+    mode: QuizMode = 'season'
+  ): Promise<ResponderPerguntaResult> {
     return requestJson<ResponderPerguntaResult>('/api/quiz/answer', {
       method: 'POST',
-      body: JSON.stringify({ perguntaId, resposta }),
+      body: JSON.stringify({ perguntaId, resposta, mode }),
     });
   },
 
@@ -139,7 +158,11 @@ export const api = {
     return requestJson<{ temporadas: TemporadaAdmin[] }>('/api/admin/seasons', { method: 'GET' });
   },
 
-  createSeason(input: { titulo: string; descricao: string; ordem: number }): Promise<{ temporada: TemporadaAdmin }> {
+  createSeason(input: {
+    titulo: string;
+    descricao: string;
+    ordem: number;
+  }): Promise<{ temporada: TemporadaAdmin }> {
     return requestJson<{ temporada: TemporadaAdmin }>('/api/admin/seasons', {
       method: 'POST',
       body: JSON.stringify(input),
@@ -174,6 +197,7 @@ export const api = {
     opcao_c: string;
     opcao_d: string;
     resposta_correta: AnswerOption;
+    explicacao?: string;
     ordem: number;
   }): Promise<{ pergunta: PerguntaAdmin }> {
     return requestJson<{ pergunta: PerguntaAdmin }>('/api/admin/questions', {
@@ -190,6 +214,7 @@ export const api = {
     opcao_c?: string;
     opcao_d?: string;
     resposta_correta?: AnswerOption;
+    explicacao?: string;
     ordem?: number;
     ativa?: boolean;
   }): Promise<{ pergunta: PerguntaAdmin }> {

@@ -110,6 +110,27 @@ export function progressoPercentual(currentIndex: number, total: number): number
   return Math.min(100, Math.max(0, (currentIndex / total) * 100));
 }
 
+/** Formata o texto compartilhável em grade de emojis do Desafio Diário. */
+export function formatDailyShareText(
+  dateUtc: string,
+  results: boolean[],
+  shareUrl: string
+): string {
+  const acertos = results.filter(Boolean).length;
+  const grid = results.map((ok) => (ok ? '🟩' : '🟥')).join('');
+  const [y, m, d] = dateUtc.split('-');
+  const dateLabel = y && m && d ? `${d}/${m}/${y}` : dateUtc;
+  return `🔥 Desafio Diário São Carlo Acutis (${dateLabel})\nPlacar: ${acertos}/${results.length} ${grid}\nJogue também: ${shareUrl}`;
+}
+
+/** Calcula pontuação de um acerto no Modo Relâmpago (base 100 + bônus de combo e tempo). */
+export function calcularPontosRelampago(combo: number, remainingSeconds: number): number {
+  const safeCombo = Math.max(1, Math.floor(combo));
+  const safeSeconds = Math.max(0, Math.min(20, Math.floor(remainingSeconds)));
+  const multiplicador = Math.min(3, 1 + (safeCombo - 1) * 0.5);
+  return Math.round((100 + safeSeconds * 5) * multiplicador);
+}
+
 // Fisher-Yates simples para embaralhar a ordem visual das alternativas.
 export function shuffle<T>(array: T[]): T[] {
   const arr = [...array];

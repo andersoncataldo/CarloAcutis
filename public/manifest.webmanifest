@@ -1,0 +1,19 @@
+{
+  "name": "São Carlo Acutis | Memorial Digital & Quiz",
+  "short_name": "Carlo Acutis",
+  "description": "Plataforma educativa e devocional sobre São Carlo Acutis com biografia, quiz por temporadas, Desafio Diário, Modo Relâmpago e ligas paroquiais.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#dc2626",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

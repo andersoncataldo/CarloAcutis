@@ -10,8 +10,10 @@ Plataforma web educativa e devocional sobre a vida, a espiritualidade e o legado
   - **Fé e Devoção**: Eucaristia, Nossa Senhora, espiritualidade e comunicação.
   - **Caminho da Santidade**: cultura digital, partida, milagres e canonização (`07/09/2025`).
 - **Quiz Carlo Acutis** com validação de respostas no servidor (sem expor o gabarito ao navegador):
-  - **Modo Visitante:** jogue imediatamente sem cadastro, com progresso e XP salvos no navegador.
-  - **Modo Autenticado:** progresso persistido no PostgreSQL (Neon), conquistas, streak diário e ranking por liga.
+  - **Temporadas:** cards com descrição, barra de progresso (`respondidas/total`), explicação educativa pós-resposta e notificações celebrativas de conquistas e mudança de título.
+  - **Desafio Diário:** 3 perguntas determinísticas por data UTC com placar compartilhável em grade de emojis no WhatsApp.
+  - **Modo Relâmpago:** perguntas aleatórias cronometradas (20s), contador de combo (`2x`, `3x 🔥`) e recorde pessoal salvo no navegador.
+  - **Modo Visitante e Autenticado:** jogue imediatamente sem cadastro (progresso local) ou crie uma conta gratuita para persistência no Neon, conquistas, streak diário e ranking por liga.
 - Cadastro, login, logout e persistência de sessão via autenticação própria (`scrypt` + cookie `HttpOnly` validado na tabela `sessions`).
 - Ligas paroquiais: criação (até 3 por usuário), entrada por código, saída e ranking dos participantes sem exposição de e-mails.
 - Área administrativa (`/admin`) protegida por papel `admin` no servidor para gestão de temporadas/perguntas com trilha de auditoria.

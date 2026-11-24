@@ -9,7 +9,7 @@ import {
   SESSION_COOKIE_NAME,
   verifyPassword,
 } from './auth';
-import { calcularTitulo } from './gamification';
+import { calcularTitulo, selectDailyQuestionIds } from './gamification';
 
 describe('api/_lib/auth', () => {
   it('gera hash scrypt distinto com salt aleatório e valida senha corretamente', async () => {
@@ -56,5 +56,17 @@ describe('api/_lib/gamification — calcularTitulo', () => {
     expect(calcularTitulo(4999)).toBe('Discípulo');
     expect(calcularTitulo(5000)).toBe('Apóstolo');
     expect(calcularTitulo(12000)).toBe('Apóstolo');
+  });
+
+  it('seleciona 3 perguntas determinísticas e distintas por data UTC no Desafio Diário', () => {
+    const ids = Array.from({ length: 20 }, (_, i) => i + 1);
+    const day1a = selectDailyQuestionIds(ids, '2026-11-24', 3);
+    const day1b = selectDailyQuestionIds([...ids].reverse(), '2026-11-24', 3);
+    const day2 = selectDailyQuestionIds(ids, '2026-11-25', 3);
+
+    expect(day1a).toHaveLength(3);
+    expect(new Set(day1a).size).toBe(3);
+    expect(day1a).toEqual(day1b);
+    expect(day1a).not.toEqual(day2);
   });
 });

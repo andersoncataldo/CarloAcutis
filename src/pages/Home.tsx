@@ -4,10 +4,10 @@ import { motion } from 'framer-motion';
 import { biographyContent } from '../data/biographyContent';
 
 // Assets
-import carloHero from '../assets/Carlo.webp'; 
-import familiaCarlo from '../assets/familiaCarlo.jpg';
-import eucaristiaImg from '../assets/eucaristia.png';
-import tumuloImg from '../assets/tumulo_carlo.png';
+import carloHero from '../assets/Carlo.webp';
+import familiaCarlo from '../assets/familiaCarlo.webp';
+import eucaristiaImg from '../assets/eucaristia.webp';
+import tumuloImg from '../assets/tumulo_carlo.webp';
 
 const Home: React.FC = () => {
   const { hero, espiritualidade } = biographyContent;
