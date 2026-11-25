@@ -1,7 +1,7 @@
-import { getSql } from '../_lib/db';
-import { getSessionUser } from '../_lib/auth';
-import { calcularTitulo, concederConquista, registrarAcessoDiario } from '../_lib/gamification';
-import { errorResponse, jsonResponse, parseJsonBody, parsePositiveInt } from '../_lib/http';
+import { getSql } from '../_lib/db.js';
+import { getSessionUser } from '../_lib/auth.js';
+import { calcularTitulo, concederConquista, registrarAcessoDiario } from '../_lib/gamification.js';
+import { errorResponse, jsonResponse, parseJsonBody, parsePositiveInt } from '../_lib/http.js';
 import type {
   AnswerOption,
   ConquistaDesbloqueada,

@@ -1,7 +1,7 @@
-import { getSql } from '../_lib/db';
-import { getSessionUser } from '../_lib/auth';
-import { selectDailyQuestionIds } from '../_lib/gamification';
-import { errorResponse, jsonResponse, parsePositiveInt } from '../_lib/http';
+import { getSql } from '../_lib/db.js';
+import { getSessionUser } from '../_lib/auth.js';
+import { selectDailyQuestionIds } from '../_lib/gamification.js';
+import { errorResponse, jsonResponse, parsePositiveInt } from '../_lib/http.js';
 import type { PerguntaPublica, QuizMode, RespostaUsuarioResumo } from '../../src/types/api.types';
 
 interface PublicQuestionRow {

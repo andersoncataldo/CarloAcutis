@@ -1,8 +1,8 @@
 import { randomBytes } from 'node:crypto';
-import { getSql } from '../_lib/db';
-import { getSessionUser } from '../_lib/auth';
-import { calcularTitulo, concederConquista } from '../_lib/gamification';
-import { errorResponse, getLastPathSegment, jsonResponse, parseJsonBody } from '../_lib/http';
+import { getSql } from '../_lib/db.js';
+import { getSessionUser } from '../_lib/auth.js';
+import { calcularTitulo, concederConquista } from '../_lib/gamification.js';
+import { errorResponse, getLastPathSegment, jsonResponse, parseJsonBody } from '../_lib/http.js';
 import type { RankingMembro } from '../../src/types/api.types';
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

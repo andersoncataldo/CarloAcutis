@@ -2,7 +2,7 @@ import { randomBytes, scrypt, timingSafeEqual, createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 import type { NeonQueryFunction } from '@neondatabase/serverless';
 import type { UserProfile, UserRole } from '../../src/types/api.types';
-import { calcularTitulo } from './gamification';
+import { calcularTitulo } from './gamification.js';
 
 const scryptAsync = promisify(scrypt);
 

@@ -1,6 +1,6 @@
-import { getSql } from '../_lib/db';
-import { getSessionUser } from '../_lib/auth';
-import { errorResponse, jsonResponse } from '../_lib/http';
+import { getSql } from '../_lib/db.js';
+import { getSessionUser } from '../_lib/auth.js';
+import { errorResponse, jsonResponse } from '../_lib/http.js';
 import type { ConquistaItem } from '../../src/types/api.types';
 
 export async function GET(request: Request): Promise<Response> {

@@ -1,4 +1,4 @@
-import { getSql } from '../_lib/db';
+import { getSql } from '../_lib/db.js';
 import {
   buildClearSessionCookie,
   buildSessionCookie,
@@ -8,15 +8,15 @@ import {
   hashPassword,
   revokeSession,
   verifyPassword,
-} from '../_lib/auth';
-import { calcularTitulo, registrarAcessoDiario } from '../_lib/gamification';
+} from '../_lib/auth.js';
+import { calcularTitulo, registrarAcessoDiario } from '../_lib/gamification.js';
 import {
   errorResponse,
   getLastPathSegment,
   isSecureRequest,
   jsonResponse,
   parseJsonBody,
-} from '../_lib/http';
+} from '../_lib/http.js';
 import type { UserProfile, UserRole } from '../../src/types/api.types';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

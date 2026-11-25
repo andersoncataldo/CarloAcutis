@@ -1,13 +1,13 @@
 import type { NeonQueryFunction } from '@neondatabase/serverless';
-import { getSql } from '../_lib/db';
-import { getSessionUser } from '../_lib/auth';
+import { getSql } from '../_lib/db.js';
+import { getSessionUser } from '../_lib/auth.js';
 import {
   errorResponse,
   getLastPathSegment,
   jsonResponse,
   parseJsonBody,
   parsePositiveInt,
-} from '../_lib/http';
+} from '../_lib/http.js';
 import type { AnswerOption, PerguntaAdmin, TemporadaAdmin, UserProfile } from '../../src/types/api.types';
 
 const VALID_OPTIONS = new Set<AnswerOption>(['A', 'B', 'C', 'D']);
