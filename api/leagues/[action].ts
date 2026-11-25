@@ -2,7 +2,13 @@ import { randomBytes } from 'node:crypto';
 import { getSql } from '../_lib/db.js';
 import { getSessionUser } from '../_lib/auth.js';
 import { calcularTitulo, concederConquista } from '../_lib/gamification.js';
-import { errorResponse, getLastPathSegment, jsonResponse, parseJsonBody } from '../_lib/http.js';
+import {
+  errorResponse,
+  getLastPathSegment,
+  jsonResponse,
+  parseJsonBody,
+  validateSameOrigin,
+} from '../_lib/http.js';
 import type { RankingMembro } from '../../src/types/api.types';
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -62,6 +68,9 @@ export async function GET(request: Request): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const originErr = validateSameOrigin(request);
+  if (originErr) return originErr;
+
   const action = getLastPathSegment(request);
 
   try {

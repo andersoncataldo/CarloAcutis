@@ -63,3 +63,59 @@ export function isSecureRequest(request: Request): boolean {
     return false;
   }
 }
+
+export function getClientIp(request: Request): string {
+  const vercelForwarded = request.headers.get('x-vercel-forwarded-for');
+  if (vercelForwarded) {
+    const first = vercelForwarded.split(',')[0]?.trim();
+    if (first) return first;
+  }
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) {
+    const first = forwarded.split(',')[0]?.trim();
+    if (first) return first;
+  }
+  const realIp = request.headers.get('x-real-ip')?.trim();
+  if (realIp) return realIp;
+  return 'unknown';
+}
+
+export function validateSameOrigin(request: Request): Response | null {
+  const secFetchSite = request.headers.get('sec-fetch-site')?.trim().toLowerCase();
+  if (secFetchSite === 'cross-site') {
+    return errorResponse('Origem da requisição não autorizada.', 403);
+  }
+
+  const origin = request.headers.get('origin')?.trim();
+  if (!origin) {
+    return null;
+  }
+
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host.toLowerCase();
+  } catch {
+    return errorResponse('Origem da requisição não autorizada.', 403);
+  }
+
+  let expectedHost = '';
+  const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
+  const hostHeader = request.headers.get('host')?.split(',')[0]?.trim();
+  if (forwardedHost) {
+    expectedHost = forwardedHost.toLowerCase();
+  } else if (hostHeader) {
+    expectedHost = hostHeader.toLowerCase();
+  } else {
+    try {
+      expectedHost = new URL(request.url).host.toLowerCase();
+    } catch {
+      return errorResponse('Origem da requisição não autorizada.', 403);
+    }
+  }
+
+  if (originHost !== expectedHost) {
+    return errorResponse('Origem da requisição não autorizada.', 403);
+  }
+
+  return null;
+}

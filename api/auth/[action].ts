@@ -12,15 +12,22 @@ import {
 import { calcularTitulo, registrarAcessoDiario } from '../_lib/gamification.js';
 import {
   errorResponse,
+  getClientIp,
   getLastPathSegment,
   isSecureRequest,
   jsonResponse,
   parseJsonBody,
+  validateSameOrigin,
 } from '../_lib/http.js';
+import { checkRateLimit, cleanupExpiredRateLimits } from '../_lib/rateLimit.js';
 import type { UserProfile, UserRole } from '../../src/types/api.types';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
+const RATE_LIMIT_WINDOW_SECONDS = 15 * 60;
+const MAX_LOGIN_ATTEMPTS_PER_IP = 15;
+const MAX_LOGIN_ATTEMPTS_PER_EMAIL = 10;
+const MAX_REGISTER_ATTEMPTS_PER_IP = 8;
 
 interface DbUserRow {
   id: string;
@@ -81,6 +88,9 @@ export async function GET(request: Request): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const originErr = validateSameOrigin(request);
+  if (originErr) return originErr;
+
   const action = getLastPathSegment(request);
 
   if (action === 'logout') {
@@ -120,6 +130,20 @@ export async function POST(request: Request): Promise<Response> {
 
     try {
       const sql = getSql();
+      const ipLimit = await checkRateLimit(sql, {
+        scope: 'register:ip',
+        identifier: getClientIp(request),
+        maxHits: MAX_REGISTER_ATTEMPTS_PER_IP,
+        windowSeconds: RATE_LIMIT_WINDOW_SECONDS,
+      });
+      if (!ipLimit.allowed) {
+        return errorResponse(
+          'Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.',
+          429,
+          { 'Retry-After': String(ipLimit.retryAfter) }
+        );
+      }
+
       const passwordHash = await hashPassword(password);
 
       const inserted = await sql`
@@ -139,6 +163,7 @@ export async function POST(request: Request): Promise<Response> {
 
       const token = await createSession(sql, created.id);
       const streak = await registrarAcessoDiario(sql, created.id);
+      await cleanupExpiredRateLimits(sql);
 
       const user: UserProfile = {
         id: created.id,
@@ -172,6 +197,34 @@ export async function POST(request: Request): Promise<Response> {
 
     try {
       const sql = getSql();
+      const ipLimit = await checkRateLimit(sql, {
+        scope: 'login:ip',
+        identifier: getClientIp(request),
+        maxHits: MAX_LOGIN_ATTEMPTS_PER_IP,
+        windowSeconds: RATE_LIMIT_WINDOW_SECONDS,
+      });
+      if (!ipLimit.allowed) {
+        return errorResponse(
+          'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.',
+          429,
+          { 'Retry-After': String(ipLimit.retryAfter) }
+        );
+      }
+
+      const emailLimit = await checkRateLimit(sql, {
+        scope: 'login:email',
+        identifier: rawEmail,
+        maxHits: MAX_LOGIN_ATTEMPTS_PER_EMAIL,
+        windowSeconds: RATE_LIMIT_WINDOW_SECONDS,
+      });
+      if (!emailLimit.allowed) {
+        return errorResponse(
+          'Muitas tentativas para esta conta. Aguarde alguns minutos e tente novamente.',
+          429,
+          { 'Retry-After': String(emailLimit.retryAfter) }
+        );
+      }
+
       const rows = await sql`
         SELECT
           u.id,
@@ -202,6 +255,7 @@ export async function POST(request: Request): Promise<Response> {
 
       const token = await createSession(sql, row.id);
       const streak = await registrarAcessoDiario(sql, row.id);
+      await cleanupExpiredRateLimits(sql);
       const user = mapUserRow(row);
 
       return jsonResponse(
@@ -216,4 +270,101 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   return errorResponse('Rota de autenticação não encontrada.', 404);
+}
+
+export async function PATCH(request: Request): Promise<Response> {
+  const originErr = validateSameOrigin(request);
+  if (originErr) return originErr;
+
+  const action = getLastPathSegment(request);
+  if (action !== 'me') {
+    return errorResponse('Rota de autenticação não encontrada.', 404);
+  }
+
+  const body = await parseJsonBody<{ nome?: unknown }>(request);
+  if (!body) {
+    return errorResponse('Corpo da requisição inválido.', 400);
+  }
+
+  const nome = typeof body.nome === 'string' ? body.nome.trim() : '';
+  if (!nome || nome.length > 120) {
+    return errorResponse('Informe um nome válido (entre 1 e 120 caracteres).', 400);
+  }
+
+  try {
+    const sql = getSql();
+    const sessionUser = await getSessionUser(sql, request);
+    if (!sessionUser) {
+      return errorResponse('Usuário não autenticado.', 401);
+    }
+
+    await sql`
+      UPDATE public.users
+      SET nome = ${nome}, updated_at = now()
+      WHERE id = ${sessionUser.id}::uuid
+    `;
+
+    return jsonResponse({ user: { ...sessionUser, nome } }, 200);
+  } catch (err) {
+    console.error('Erro em PATCH /api/auth/me:', err);
+    return errorResponse('Não foi possível atualizar seu nome agora.', 500);
+  }
+}
+
+export async function DELETE(request: Request): Promise<Response> {
+  const originErr = validateSameOrigin(request);
+  if (originErr) return originErr;
+
+  const action = getLastPathSegment(request);
+  if (action !== 'me') {
+    return errorResponse('Rota de autenticação não encontrada.', 404);
+  }
+
+  const body = await parseJsonBody<{ password?: unknown }>(request);
+  if (!body) {
+    return errorResponse('Informe sua senha atual para confirmar a exclusão da conta.', 400);
+  }
+
+  const password = typeof body.password === 'string' ? body.password : '';
+  if (!password) {
+    return errorResponse('Informe sua senha atual para confirmar a exclusão da conta.', 400);
+  }
+
+  try {
+    const sql = getSql();
+    const sessionUser = await getSessionUser(sql, request);
+    if (!sessionUser) {
+      return errorResponse('Usuário não autenticado.', 401);
+    }
+
+    const rows = await sql`
+      SELECT password_hash
+      FROM public.users
+      WHERE id = ${sessionUser.id}::uuid
+      LIMIT 1
+    `;
+    const row = rows[0] as { password_hash: string } | undefined;
+    if (!row) {
+      return errorResponse('Conta não encontrada.', 404);
+    }
+
+    const valid = await verifyPassword(password, row.password_hash);
+    if (!valid) {
+      return errorResponse('Senha incorreta. Confirme sua senha atual para excluir a conta.', 401);
+    }
+
+    await sql`
+      DELETE FROM public.users
+      WHERE id = ${sessionUser.id}::uuid
+    `;
+
+    return jsonResponse(
+      { ok: true },
+      200,
+      { 'Set-Cookie': buildClearSessionCookie(isSecureRequest(request)) }
+    );
+  } catch (err) {
+    console.error('Erro em DELETE /api/auth/me:', err);
+    return errorResponse('Não foi possível excluir sua conta agora. Tente novamente.', 500);
+  }
 }

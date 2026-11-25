@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
+import { m, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { api, ApiError } from '../services/api';
 import type { ConquistaItem, RankingMembro } from '../types/api.types';
@@ -8,7 +9,8 @@ import { isSoundEnabled, setSoundEnabled, playClickSound } from '../utils/sound'
 import CelebrationToast, { type CelebrationPayload } from '../components/CelebrationToast';
 
 const Profile: React.FC = () => {
-  const { user, signOut, refreshUser, streak } = useAuth();
+  const { user, signOut, refreshUser, setAuthSession, streak } = useAuth();
+  const navigate = useNavigate();
   const [ranking, setRanking] = useState<RankingMembro[]>([]);
   const [ligaNome, setLigaNome] = useState('');
   const [codigoAcesso, setCodigoAcesso] = useState('');
@@ -19,8 +21,20 @@ const Profile: React.FC = () => {
   const [showSairModal, setShowSairModal] = useState(false);
   const [conquistas, setConquistas] = useState<ConquistaItem[]>([]);
   const [conquistasLoading, setConquistasLoading] = useState(false);
+  const [novoNome, setNovoNome] = useState('');
+  const [savingName, setSavingName] = useState(false);
+  const [showExcluirModal, setShowExcluirModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const [soundOn, setSoundOn] = useState<boolean>(() => isSoundEnabled());
+
+  useEffect(() => {
+    if (user?.nome) {
+      setNovoNome(user.nome);
+    }
+  }, [user?.nome]);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -56,15 +70,16 @@ const Profile: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!showSairModal) return;
+    if (!showSairModal && !showExcluirModal) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setShowSairModal(false);
+        setShowExcluirModal(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSairModal]);
+  }, [showSairModal, showExcluirModal]);
 
   const fetchRanking = useCallback(async (signal?: AbortSignal) => {
     if (!user?.liga_id) {
@@ -177,6 +192,58 @@ const Profile: React.FC = () => {
     showToast('Código copiado!', 'success');
   };
 
+  const handleAtualizarNome = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    const limpo = novoNome.trim();
+    if (!limpo) {
+      showToast('Informe um nome válido.', 'error');
+      return;
+    }
+    if (limpo === user.nome) {
+      showToast('Seu nome já está atualizado.', 'success');
+      return;
+    }
+    setSavingName(true);
+    try {
+      const res = await api.updateProfileName(limpo);
+      setAuthSession(res.user, streak);
+      await fetchRanking();
+      showToast('Nome atualizado com sucesso!', 'success');
+    } catch (err) {
+      showToast(
+        err instanceof ApiError ? err.message : 'Não foi possível atualizar seu nome.',
+        'error'
+      );
+    } finally {
+      setSavingName(false);
+    }
+  };
+
+  const handleExcluirConta = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDeleteError('');
+    if (!deletePassword) {
+      setDeleteError('Digite sua senha atual para confirmar.');
+      return;
+    }
+    setDeletingAccount(true);
+    try {
+      await api.deleteAccount(deletePassword);
+      setAuthSession(null, null);
+      setShowExcluirModal(false);
+      navigate('/', { replace: true });
+    } catch (err) {
+      setDeleteError(
+        err instanceof ApiError
+          ? err.message
+          : 'Não foi possível excluir a conta. Tente novamente.'
+      );
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
   if (!user) return null;
 
   const progresso = calcularProgressoTitulo(user.xp);
@@ -186,7 +253,7 @@ const Profile: React.FC = () => {
     <div className="min-h-screen pt-32 pb-20 px-6 bg-slate-50">
       <div className="max-w-5xl mx-auto space-y-12">
         {/* Header Profile */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-blue-900 rounded-[3rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
+        <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-blue-900 rounded-[3rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/20 rounded-full -mr-32 -mt-32 blur-3xl"></div>
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
@@ -230,7 +297,7 @@ const Profile: React.FC = () => {
               </button>
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* XP & Progress */}
@@ -250,7 +317,7 @@ const Profile: React.FC = () => {
                   aria-valuemax={100}
                   className="w-full h-3 bg-slate-100 rounded-full overflow-hidden"
                 >
-                  <motion.div
+                  <m.div
                     initial={{ width: 0 }}
                     animate={{ width: `${progresso.percentual}%` }}
                     className="h-full bg-gradient-to-r from-blue-600 to-red-600"
@@ -393,8 +460,8 @@ const Profile: React.FC = () => {
             )}
           </div>
 
-          {/* Ranking */}
-          <div className="lg:col-span-2">
+          {/* Ranking & Privacidade */}
+          <div className="lg:col-span-2 space-y-8">
             <div className="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden">
               <div className="p-8 border-b border-slate-50 flex justify-between items-center">
                 <h2 className="text-xl font-black italic uppercase text-blue-950">Ranking da Liga</h2>
@@ -462,6 +529,65 @@ const Profile: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Privacidade e Conta (LGPD) */}
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-xl font-black italic uppercase text-blue-950">Privacidade e Conta</h2>
+                  <p className="text-xs text-slate-500 font-medium mt-1">
+                    Gerencie seus dados pessoais conforme a LGPD.
+                  </p>
+                </div>
+                <Link
+                  to="/privacidade"
+                  className="text-[11px] font-black uppercase tracking-widest text-blue-800 hover:text-red-600 underline underline-offset-4"
+                >
+                  Política de Privacidade
+                </Link>
+              </div>
+
+              <form onSubmit={handleAtualizarNome} className="flex flex-col sm:flex-row gap-3">
+                <label htmlFor="editar-nome-exibicao" className="sr-only">
+                  Nome de exibição
+                </label>
+                <input
+                  id="editar-nome-exibicao"
+                  type="text"
+                  required
+                  maxLength={120}
+                  value={novoNome}
+                  onChange={(e) => setNovoNome(e.target.value)}
+                  placeholder="Seu nome de exibição"
+                  className="flex-1 px-4 py-3 bg-slate-50 rounded-xl text-sm border-2 border-transparent focus:border-blue-600 focus:bg-white outline-none font-medium"
+                />
+                <button
+                  type="submit"
+                  disabled={savingName}
+                  className="px-6 py-3 bg-blue-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-950 transition-colors disabled:opacity-50"
+                >
+                  {savingName ? 'Salvando...' : 'Salvar Nome'}
+                </button>
+              </form>
+
+              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="text-xs text-slate-500">
+                  <strong className="text-slate-700 block">Excluir conta permanentemente</strong>
+                  Apaga seu perfil, sessões, histórico de respostas, XP e conquistas.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeletePassword('');
+                    setDeleteError('');
+                    setShowExcluirModal(true);
+                  }}
+                  className="px-5 py-2.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors shrink-0"
+                >
+                  Excluir minha conta
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -469,7 +595,7 @@ const Profile: React.FC = () => {
       {/* Toast Notification */}
       <AnimatePresence>
         {toast && (
-          <motion.div
+          <m.div
             role="status"
             aria-live="polite"
             initial={{ opacity: 0, y: 50, x: '-50%' }}
@@ -480,7 +606,7 @@ const Profile: React.FC = () => {
             }`}
           >
             {toast.type === 'success' ? '✅' : '❌'} {toast.message}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -493,7 +619,7 @@ const Profile: React.FC = () => {
               if (e.target === e.currentTarget) setShowSairModal(false);
             }}
           >
-            <motion.div
+            <m.div
               role="dialog"
               aria-modal="true"
               aria-labelledby="modal-sair-title"
@@ -523,7 +649,76 @@ const Profile: React.FC = () => {
                   {loading ? 'Saindo...' : 'Sim, Sair'}
                 </button>
               </div>
-            </motion.div>
+            </m.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Excluir Conta (LGPD) */}
+      <AnimatePresence>
+        {showExcluirModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+            onClick={(e) => {
+              if (e.target === e.currentTarget && !deletingAccount) setShowExcluirModal(false);
+            }}
+          >
+            <m.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-excluir-title"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white p-8 rounded-[2rem] shadow-2xl max-w-md w-full space-y-5"
+            >
+              <h3 id="modal-excluir-title" className="text-2xl font-black italic uppercase text-red-600">
+                Excluir Conta?
+              </h3>
+              <p className="text-slate-600 font-medium text-sm leading-relaxed">
+                Esta ação é <strong>irreversível</strong>. Todos os seus dados pessoais, respostas do
+                quiz, XP, streak e conquistas serão apagados definitivamente.
+              </p>
+              {deleteError && (
+                <div role="alert" className="p-3 bg-red-50 text-red-600 rounded-xl text-xs font-bold border border-red-100">
+                  {deleteError}
+                </div>
+              )}
+              <form onSubmit={handleExcluirConta} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="delete-account-password" className="text-[10px] font-black uppercase tracking-widest text-slate-500 block">
+                    Confirme sua senha atual
+                  </label>
+                  <input
+                    id="delete-account-password"
+                    type="password"
+                    required
+                    autoComplete="current-password"
+                    value={deletePassword}
+                    onChange={(e) => setDeletePassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-transparent focus:border-red-600 focus:bg-white rounded-xl outline-none font-medium"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    disabled={deletingAccount}
+                    onClick={() => setShowExcluirModal(false)}
+                    className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-colors disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={deletingAccount}
+                    className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-700 transition-colors disabled:opacity-50"
+                  >
+                    {deletingAccount ? 'Excluindo...' : 'Excluir Tudo'}
+                  </button>
+                </div>
+              </form>
+            </m.div>
           </div>
         )}
       </AnimatePresence>

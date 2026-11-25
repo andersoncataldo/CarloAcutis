@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 interface SectionProps {
   id?: string;
@@ -15,7 +15,7 @@ const Section: React.FC<SectionProps> = ({ id, title, content, image, reverse, c
   const paragraphs = content.split('\n\n');
 
   return (
-    <motion.section 
+    <m.section 
       id={id} 
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -49,7 +49,7 @@ const Section: React.FC<SectionProps> = ({ id, title, content, image, reverse, c
         {/* Image Side */}
         {image && (
           <div className={`relative ${reverse ? 'lg:order-1' : 'lg:order-2'}`}>
-            <motion.div 
+            <m.div 
               initial={{ scale: 0.9, opacity: 0 }}
               whileInView={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.6 }}
@@ -63,14 +63,14 @@ const Section: React.FC<SectionProps> = ({ id, title, content, image, reverse, c
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-blue-950/40 via-transparent to-transparent"></div>
-            </motion.div>
+            </m.div>
             
             {/* Abstract background elements */}
             <div className={`absolute -z-10 w-full h-full border-2 border-red-600/20 rounded-[4rem] transition-transform duration-700 group-hover:rotate-3 ${reverse ? 'top-4 right-4' : 'bottom-4 left-4'}`}></div>
           </div>
         )}
       </div>
-    </motion.section>
+    </m.section>
   );
 };
 

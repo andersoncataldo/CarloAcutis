@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { api, ApiError } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,6 +11,7 @@ const Register: React.FC = () => {
     password: '',
     confirmPassword: '',
   });
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -19,6 +20,11 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!acceptedPrivacy) {
+      setError('Leia e aceite a Política de Privacidade para criar sua conta.');
+      return;
+    }
 
     if (formData.password.length < 6) {
       setError('A senha deve ter pelo menos 6 caracteres.');
@@ -53,7 +59,7 @@ const Register: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-32 pb-20 flex items-center justify-center px-6 bg-slate-50">
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-lg bg-white p-10 md:p-12 rounded-[2.5rem] shadow-2xl border border-slate-100"
@@ -140,6 +146,25 @@ const Register: React.FC = () => {
             </div>
           </div>
 
+          <label className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer text-xs text-slate-600 leading-relaxed">
+            <input
+              id="register-privacy"
+              type="checkbox"
+              required
+              checked={acceptedPrivacy}
+              onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+              className="mt-1 w-4 h-4 accent-red-600 rounded shrink-0"
+            />
+            <span>
+              Li e concordo com a{' '}
+              <Link to="/privacidade" className="text-blue-900 font-bold underline hover:text-red-600">
+                Política de Privacidade (LGPD)
+              </Link>
+              . Se for menor de idade, confirmo estar ciente da recomendação de orientação dos pais
+              ou responsáveis.
+            </span>
+          </label>
+
           <button
             type="submit"
             disabled={loading}
@@ -157,7 +182,7 @@ const Register: React.FC = () => {
             </Link>
           </p>
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { MotionConfig, AnimatePresence, motion } from 'framer-motion';
+import { LazyMotion, domAnimation, MotionConfig, AnimatePresence, m } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/layout/Footer';
@@ -13,6 +13,7 @@ const Register = lazy(() => import('./pages/Register'));
 const Profile = lazy(() => import('./pages/Profile'));
 const QuizPage = lazy(() => import('./pages/QuizPage'));
 const Admin = lazy(() => import('./pages/Admin'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 const VidaLegadoPage = lazy(() => import('./pages/DetailPages').then(m => ({ default: m.VidaLegadoPage })));
@@ -59,6 +60,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/perfil': 'Meu Perfil & Ligas | São Carlo Acutis',
   '/login': 'Entrar | São Carlo Acutis',
   '/cadastro': 'Cadastro | São Carlo Acutis',
+  '/privacidade': 'Política de Privacidade | São Carlo Acutis',
   '/admin': 'Administração | São Carlo Acutis',
 };
 
@@ -71,7 +73,7 @@ const AnimatedRoutes = () => {
 
   return (
     <AnimatePresence mode="wait">
-      <motion.div
+      <m.div
         key={location.pathname}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -83,6 +85,7 @@ const AnimatedRoutes = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/cadastro" element={<Register />} />
+            <Route path="/privacidade" element={<PrivacyPolicy />} />
 
             {/* Quiz aberto para visitantes (modo convidado) e usuários autenticados */}
             <Route path="/quiz" element={<QuizPage />} />
@@ -113,7 +116,7 @@ const AnimatedRoutes = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 };
@@ -121,28 +124,30 @@ const AnimatedRoutes = () => {
 export default function App() {
   return (
     <ErrorBoundary>
-      <MotionConfig reducedMotion="user">
-        <AuthProvider>
-          <Router>
-            <ScrollToTop />
-            <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-red-500 selection:text-white">
-              <a
-                href="#main-content"
-                className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-5 focus:py-3 focus:bg-red-600 focus:text-white focus:rounded-full focus:shadow-2xl focus:font-black focus:text-xs focus:uppercase focus:tracking-widest focus:outline-none focus:ring-4 focus:ring-red-400"
-              >
-                Pular para o conteúdo principal
-              </a>
-              <Navbar />
+      <LazyMotion features={domAnimation} strict>
+        <MotionConfig reducedMotion="user">
+          <AuthProvider>
+            <Router>
+              <ScrollToTop />
+              <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-red-500 selection:text-white">
+                <a
+                  href="#main-content"
+                  className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-5 focus:py-3 focus:bg-red-600 focus:text-white focus:rounded-full focus:shadow-2xl focus:font-black focus:text-xs focus:uppercase focus:tracking-widest focus:outline-none focus:ring-4 focus:ring-red-400"
+                >
+                  Pular para o conteúdo principal
+                </a>
+                <Navbar />
 
-              <main id="main-content" tabIndex={-1} className="outline-none">
-                <AnimatedRoutes />
-              </main>
+                <main id="main-content" tabIndex={-1} className="outline-none">
+                  <AnimatedRoutes />
+                </main>
 
-              <Footer />
-            </div>
-          </Router>
-        </AuthProvider>
-      </MotionConfig>
+                <Footer />
+              </div>
+            </Router>
+          </AuthProvider>
+        </MotionConfig>
+      </LazyMotion>
     </ErrorBoundary>
   );
 }

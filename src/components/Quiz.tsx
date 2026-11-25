@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { api, ApiError } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -311,12 +311,12 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId, onProgressChange }) => {
   if (completed) {
     return (
       <>
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-3xl mx-auto p-10 md:p-12 bg-white rounded-[3rem] shadow-2xl text-center space-y-8 relative overflow-hidden"
         >
-          <motion.div
+          <m.div
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -327,14 +327,14 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId, onProgressChange }) => {
             <p className="text-slate-600 font-medium">
               Você acertou {score} de {perguntas.length} perguntas.
             </p>
-            <motion.div
+            <m.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', delay: 0.5 }}
               className="text-6xl md:text-7xl font-black text-red-600 py-4"
             >
               +{score * 100} XP
-            </motion.div>
+            </m.div>
 
             {!user && (
               <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
@@ -389,20 +389,20 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId, onProgressChange }) => {
                 Voltar ao Início
               </Link>
             </div>
-          </motion.div>
-          <motion.div
+          </m.div>
+          <m.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3, duration: 1 }}
             className="absolute -top-20 -left-20 w-64 h-64 bg-yellow-300/20 rounded-full blur-3xl"
-          ></motion.div>
-          <motion.div
+          ></m.div>
+          <m.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.4, duration: 1 }}
             className="absolute -bottom-20 -right-20 w-64 h-64 bg-red-500/20 rounded-full blur-3xl"
-          ></motion.div>
-        </motion.div>
+          ></m.div>
+        </m.div>
         <CelebrationToast celebration={celebration} onDismiss={() => setCelebration(null)} />
       </>
     );
@@ -421,7 +421,7 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId, onProgressChange }) => {
         aria-valuemax={perguntas.length}
         className="w-full h-2 bg-slate-200 rounded-full overflow-hidden"
       >
-        <motion.div
+        <m.div
           initial={{ width: 0 }}
           animate={{ width: `${progressPercent}%` }}
           className="h-full bg-blue-600"
@@ -436,7 +436,7 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId, onProgressChange }) => {
         </span>
       </div>
 
-      <motion.div
+      <m.div
         key={currentIndex}
         initial={{ x: 20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -489,7 +489,7 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId, onProgressChange }) => {
         <div aria-live="polite">
           <AnimatePresence>
             {feedback && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
@@ -528,22 +528,22 @@ const Quiz: React.FC<QuizProps> = ({ temporadaId, onProgressChange }) => {
                     {isLastQuestion ? 'Ver Resultado Final 🎉' : 'Próxima Pergunta →'}
                   </button>
                 </div>
-              </motion.div>
+              </m.div>
             )}
 
             {answerError && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 className="text-center font-black uppercase tracking-[0.15em] text-red-600 text-xs pt-2"
               >
                 {answerError}
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
+      </m.div>
 
       <CelebrationToast celebration={celebration} onDismiss={() => setCelebration(null)} />
     </div>

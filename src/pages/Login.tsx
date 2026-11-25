@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { api, ApiError } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -36,7 +36,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-32 pb-20 flex items-center justify-center px-6 bg-slate-50">
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md bg-white p-10 md:p-12 rounded-[2.5rem] shadow-2xl border border-slate-100"
@@ -110,7 +110,7 @@ const Login: React.FC = () => {
             </Link>
           </p>
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 };

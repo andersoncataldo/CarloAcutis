@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { api, ApiError } from '../services/api';
 import type { AnswerOption, PerguntaPublica } from '../types/api.types';
@@ -208,7 +208,7 @@ const DailyChallenge: React.FC = () => {
   if (completed) {
     const acertos = results.filter(Boolean).length;
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-3xl mx-auto bg-white p-10 md:p-12 rounded-[3rem] shadow-2xl border border-slate-100 text-center space-y-6"
@@ -243,7 +243,7 @@ const DailyChallenge: React.FC = () => {
             📱 Compartilhar Placar
           </button>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -256,7 +256,7 @@ const DailyChallenge: React.FC = () => {
         <span className="text-red-600">{dateUtc.split('-').reverse().join('/')}</span>
       </div>
 
-      <motion.div
+      <m.div
         key={perguntaAtual.id}
         initial={{ x: 20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -308,7 +308,7 @@ const DailyChallenge: React.FC = () => {
         <div aria-live="polite">
           <AnimatePresence>
             {feedback && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`rounded-3xl p-6 border-2 space-y-4 ${
@@ -334,14 +334,14 @@ const DailyChallenge: React.FC = () => {
                     {currentIndex >= perguntas.length - 1 ? 'Ver Placar do Dia' : 'Próxima Pergunta →'}
                   </button>
                 </div>
-              </motion.div>
+              </m.div>
             )}
             {answerError && (
               <p className="text-center font-black text-xs uppercase text-red-600 pt-2">{answerError}</p>
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 };

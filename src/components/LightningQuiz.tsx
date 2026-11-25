@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { api, ApiError } from '../services/api';
 import type { AnswerOption, PerguntaPublica } from '../types/api.types';
@@ -218,7 +218,7 @@ const LightningQuiz: React.FC = () => {
 
   if (completed) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-3xl mx-auto bg-white p-10 md:p-12 rounded-[3rem] shadow-2xl border border-slate-100 text-center space-y-6"
@@ -245,7 +245,7 @@ const LightningQuiz: React.FC = () => {
             ⚡ Jogar Novamente
           </button>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -280,7 +280,7 @@ const LightningQuiz: React.FC = () => {
         />
       </div>
 
-      <motion.div
+      <m.div
         key={`${perguntaAtual.id}-${currentIndex}`}
         initial={{ x: 20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -332,7 +332,7 @@ const LightningQuiz: React.FC = () => {
         <div aria-live="polite">
           <AnimatePresence>
             {feedback && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`rounded-3xl p-6 border-2 space-y-4 ${
@@ -362,11 +362,11 @@ const LightningQuiz: React.FC = () => {
                     {currentIndex >= perguntas.length - 1 ? 'Ver Resultado' : 'Próxima →'}
                   </button>
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 };

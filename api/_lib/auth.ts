@@ -84,10 +84,24 @@ export function buildClearSessionCookie(secure: boolean): string {
   return parts.join('; ');
 }
 
+export async function cleanupExpiredSessions(
+  sql: NeonQueryFunction<false, false>
+): Promise<void> {
+  try {
+    await sql`
+      DELETE FROM public.sessions
+      WHERE expires_at <= now()
+    `;
+  } catch (err) {
+    console.error('Aviso ao limpar sessões expiradas:', err);
+  }
+}
+
 export async function createSession(
   sql: NeonQueryFunction<false, false>,
   userId: string
 ): Promise<string> {
+  await cleanupExpiredSessions(sql);
   const token = randomBytes(32).toString('hex');
   const tokenHash = hashSessionToken(token);
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000).toISOString();
@@ -108,6 +122,7 @@ export async function revokeSession(
   await sql`
     DELETE FROM public.sessions
     WHERE token_hash = ${tokenHash}
+       OR expires_at <= now()
   `;
 }
 

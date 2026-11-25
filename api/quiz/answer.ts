@@ -1,7 +1,13 @@
 import { getSql } from '../_lib/db.js';
 import { getSessionUser } from '../_lib/auth.js';
 import { calcularTitulo, concederConquista, registrarAcessoDiario } from '../_lib/gamification.js';
-import { errorResponse, jsonResponse, parseJsonBody, parsePositiveInt } from '../_lib/http.js';
+import {
+  errorResponse,
+  jsonResponse,
+  parseJsonBody,
+  parsePositiveInt,
+  validateSameOrigin,
+} from '../_lib/http.js';
 import type {
   AnswerOption,
   ConquistaDesbloqueada,
@@ -12,6 +18,8 @@ import type {
 const VALID_OPTIONS = new Set<AnswerOption>(['A', 'B', 'C', 'D']);
 
 export async function POST(request: Request): Promise<Response> {
+  const originErr = validateSameOrigin(request);
+  if (originErr) return originErr;
   const body = await parseJsonBody<{
     perguntaId?: unknown;
     resposta?: unknown;

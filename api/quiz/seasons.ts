@@ -16,7 +16,8 @@ interface SeasonDbRow {
 export async function GET(request?: Request): Promise<Response> {
   try {
     const sql = getSql();
-    const sessionUser = request ? await getSessionUser(sql, request) : null;
+    const hasCookieHeader = Boolean(request?.headers.get('cookie')?.trim());
+    const sessionUser = request && hasCookieHeader ? await getSessionUser(sql, request) : null;
 
     const rows = sessionUser
       ? await sql`
@@ -70,7 +71,14 @@ export async function GET(request?: Request): Promise<Response> {
       acertos: r.acertos !== null && r.acertos !== undefined ? Number(r.acertos) : null,
     }));
 
-    return jsonResponse({ temporadas }, 200);
+    const cacheHeaders: Record<string, string> = hasCookieHeader
+      ? { 'Cache-Control': 'private, no-store' }
+      : {
+          'Cache-Control': 'public, max-age=0, must-revalidate',
+          'CDN-Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        };
+
+    return jsonResponse({ temporadas }, 200, cacheHeaders);
   } catch (err) {
     console.error('Erro em GET /api/quiz/seasons:', err);
     return errorResponse('Não foi possível carregar as temporadas do quiz.', 500);

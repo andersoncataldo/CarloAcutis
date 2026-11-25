@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { biographyContent } from '../data/biographyContent';
 import Section from '../components/Section';
 import Timeline from '../components/Timeline';
@@ -21,29 +21,29 @@ import milagreCR from '../assets/milagre_CR.webp';
 const PageHeader: React.FC<{ title: string; subtitle: string; color: string }> = ({ title, subtitle, color }) => (
   <header className={`relative py-24 md:py-32 lg:py-48 px-6 md:px-10 ${color} text-white overflow-hidden m-3 md:m-6 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl`}>
     <div className="relative z-10 max-w-6xl mx-auto text-center md:text-left">
-      <motion.div 
+      <m.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-black uppercase tracking-[0.3em] mb-8"
       >
         Seção Temática
-      </motion.div>
-      <motion.h1 
+      </m.div>
+      <m.h1 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
         className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black uppercase italic tracking-tighter leading-[0.85] md:leading-none"
       >
         {title}
-      </motion.h1>
-      <motion.p 
+      </m.h1>
+      <m.p 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
         className="text-lg md:text-2xl lg:text-3xl font-bold opacity-80 mt-8 md:mt-10 uppercase tracking-widest max-w-3xl mx-auto md:mx-0 leading-tight"
       >
         {subtitle}
-      </motion.p>
+      </m.p>
     </div>
     {/* Decorative Elements */}
     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full -mr-64 -mt-64 blur-[120px]"></div>

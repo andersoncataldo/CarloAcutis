@@ -134,6 +134,13 @@ CREATE TABLE IF NOT EXISTS public.auditoria_admin (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- 10. CONTROLE DE TAXA (RATE LIMITING DISTRIBUÍDO — APENAS HASHES SHA-256)
+CREATE TABLE IF NOT EXISTS public.rate_limits (
+    key TEXT PRIMARY KEY,
+    hits INT NOT NULL DEFAULT 1 CHECK (hits >= 1),
+    window_start TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- =================================================================
 -- ÍNDICES
 -- =================================================================
@@ -164,6 +171,9 @@ CREATE INDEX IF NOT EXISTS idx_usuario_conquistas_user_id
 
 CREATE INDEX IF NOT EXISTS idx_auditoria_admin_created_at
     ON public.auditoria_admin (created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limits_window_start
+    ON public.rate_limits (window_start);
 
 -- =================================================================
 -- SEEDS IDEMPOTENTES

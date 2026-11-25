@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import iconLogo from '../assets/icon.webp';
 import { navigation, type NavCategory } from '../data/navigation';
 import { useAuth } from '../context/AuthContext';
@@ -38,7 +38,7 @@ const NavDropdown: React.FC<{ category: NavCategory; closeMenu: () => void }> = 
           aria-label={`Submenu de ${category.title}`}
           className="p-1 text-blue-950/40 hover:text-red-600 focus:outline-none focus:text-red-600"
         >
-          <motion.svg
+          <m.svg
             animate={{ rotate: isOpen ? 180 : 0 }}
             className="w-3 h-3"
             fill="none"
@@ -47,13 +47,13 @@ const NavDropdown: React.FC<{ category: NavCategory; closeMenu: () => void }> = 
             aria-hidden="true"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
-          </motion.svg>
+          </m.svg>
         </button>
       </div>
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -78,7 +78,7 @@ const NavDropdown: React.FC<{ category: NavCategory; closeMenu: () => void }> = 
                 </Link>
               ))}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -186,7 +186,7 @@ const Navbar: React.FC = () => {
       {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <m.div
             id="mobile-nav-panel"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -211,7 +211,7 @@ const Navbar: React.FC = () => {
                       aria-expanded={activeMobileCategory === category.title}
                       aria-label={`Expandir links de ${category.title}`}
                     >
-                      <motion.svg
+                      <m.svg
                         animate={{ rotate: activeMobileCategory === category.title ? 180 : 0 }}
                         className="w-4 h-4"
                         fill="none"
@@ -220,13 +220,13 @@ const Navbar: React.FC = () => {
                         aria-hidden="true"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </motion.svg>
+                      </m.svg>
                     </button>
                   </div>
 
                   <AnimatePresence>
                     {activeMobileCategory === category.title && (
-                      <motion.div
+                      <m.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
@@ -242,7 +242,7 @@ const Navbar: React.FC = () => {
                             {link.name}
                           </Link>
                         ))}
-                      </motion.div>
+                      </m.div>
                     )}
                   </AnimatePresence>
                 </div>
@@ -265,7 +265,7 @@ const Navbar: React.FC = () => {
                 </Link>
               )}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </nav>

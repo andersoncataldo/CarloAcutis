@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { biographyContent } from '../data/biographyContent';
 
 // Assets
@@ -40,7 +40,7 @@ const Home: React.FC = () => {
     <div className="bg-white">
       {/* Hero Section */}
       <header className="relative h-[85vh] md:h-[90vh] flex items-center justify-center bg-blue-950 text-white overflow-hidden m-3 md:m-6 rounded-[2.5rem] md:rounded-[4rem] shadow-2xl">
-        <motion.div 
+        <m.div 
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 0.4 }}
           transition={{ duration: 1.5 }}
@@ -54,32 +54,32 @@ const Home: React.FC = () => {
             fetchPriority="high"
             decoding="async"
           />
-        </motion.div>
+        </m.div>
         
         <div className="relative z-10 text-center px-6 max-w-5xl">
-          <motion.div 
+          <m.div 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-[0.3em] mb-10 shadow-xl shadow-red-600/30"
           >
             Santo Original
-          </motion.div>
-          <motion.h1 
+          </m.div>
+          <m.h1 
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
             className="text-6xl sm:text-8xl md:text-[10rem] lg:text-[12rem] font-black mb-8 tracking-tighter leading-none uppercase italic drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
           >
             Carlo<span className="text-red-600">.</span>
-          </motion.h1>
-          <motion.p 
+          </m.h1>
+          <m.p 
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
             className="text-lg md:text-2xl font-bold text-blue-100 tracking-tight uppercase italic max-w-3xl mx-auto leading-relaxed"
           >
             {hero.subtitle}
-          </motion.p>
+          </m.p>
         </div>
       </header>
 
@@ -87,7 +87,7 @@ const Home: React.FC = () => {
       <section className="max-w-7xl mx-auto px-6 py-24 md:py-32">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {mainCategories.map((cat, index) => (
-            <motion.div
+            <m.div
               key={cat.path}
               initial={{ y: 30, opacity: 0 }}
               whileInView={{ y: 0, opacity: 1 }}
@@ -115,7 +115,7 @@ const Home: React.FC = () => {
                   </p>
                 </div>
               </Link>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </section>

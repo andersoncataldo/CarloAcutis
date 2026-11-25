@@ -2,8 +2,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST as answerPost } from './quiz/answer';
 import { GET as questionsGet } from './quiz/questions';
+import { GET as seasonsGet } from './quiz/seasons';
 import { GET as leaguesGet, POST as leaguesPost } from './leagues/[action]';
 import { GET as adminGet } from './admin/[resource]';
+import { POST as authPost, PATCH as authPatch, DELETE as authDelete } from './auth/[action]';
+import { hashPassword } from './_lib/auth';
 
 const { sqlResponses, mockSql } = vi.hoisted(() => {
   const responses: unknown[][] = [];
@@ -302,5 +305,149 @@ describe('API handlers — segurança, Quiz 2.0 (explicação, daily, lightning,
       new Request('http://localhost/api/admin/seasons', { headers: { Cookie: VALID_COOKIE } })
     );
     expect(res.status).toBe(403);
+  });
+
+  it('bloqueia requisições mutáveis cross-site (Origin diferente ou Sec-Fetch-Site: cross-site) com 403', async () => {
+    const crossOriginReq = new Request('https://carlo-acutis-virid.vercel.app/api/quiz/answer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://evil.example',
+      },
+      body: JSON.stringify({ perguntaId: 1, resposta: 'B' }),
+    });
+    const res1 = await answerPost(crossOriginReq);
+    expect(res1.status).toBe(403);
+
+    const crossSiteFetchReq = new Request('https://carlo-acutis-virid.vercel.app/api/auth/logout', {
+      method: 'POST',
+      headers: { 'Sec-Fetch-Site': 'cross-site' },
+    });
+    const res2 = await authPost(crossSiteFetchReq);
+    expect(res2.status).toBe(403);
+    expect(mockSql).not.toHaveBeenCalled();
+  });
+
+  it('retorna 429 + Retry-After quando o rate limit de login é excedido', async () => {
+    sqlResponses.push([{ hits: 16, retry_after: 420 }]);
+
+    const req = new Request('https://carlo-acutis-virid.vercel.app/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-forwarded-for': '203.0.113.10',
+      },
+      body: JSON.stringify({ email: 'joao@exemplo.com', password: 'password123' }),
+    });
+    const res = await authPost(req);
+    expect(res.status).toBe(429);
+    expect(res.headers.get('Retry-After')).toBe('420');
+  });
+
+  it('permite atualizar o nome de exibição em PATCH /api/auth/me', async () => {
+    sqlResponses.push([
+      {
+        id: '00000000-0000-0000-0000-000000000001',
+        nome: 'João',
+        email: 'joao@exemplo.com',
+        xp: 200,
+        role: 'user',
+        liga_id: null,
+        liga_nome: null,
+        liga_criado_por: null,
+        liga_codigo_acesso: null,
+      },
+    ]);
+    sqlResponses.push([]); // UPDATE users
+
+    const req = new Request('http://localhost/api/auth/me', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Cookie: VALID_COOKIE },
+      body: JSON.stringify({ nome: 'João Acutis' }),
+    });
+    const res = await authPatch(req);
+    const data = (await res.json()) as { user: { nome: string } };
+    expect(res.status).toBe(200);
+    expect(data.user.nome).toBe('João Acutis');
+  });
+
+  it('exige senha atual correta para excluir conta em DELETE /api/auth/me e limpa cookie ao confirmar', async () => {
+    const hash = await hashPassword('segredo123');
+    const sessionRow = {
+      id: '00000000-0000-0000-0000-000000000001',
+      nome: 'João',
+      email: 'joao@exemplo.com',
+      xp: 200,
+      role: 'user',
+      liga_id: null,
+      liga_nome: null,
+      liga_criado_por: null,
+      liga_codigo_acesso: null,
+    };
+
+    // Senha errada -> 401
+    sqlResponses.push([sessionRow]);
+    sqlResponses.push([{ password_hash: hash }]);
+    const badRes = await authDelete(
+      new Request('http://localhost/api/auth/me', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Cookie: VALID_COOKIE },
+        body: JSON.stringify({ password: 'errada' }),
+      })
+    );
+    expect(badRes.status).toBe(401);
+
+    // Senha correta -> 200 + limpa cookie
+    sqlResponses.push([sessionRow]);
+    sqlResponses.push([{ password_hash: hash }]);
+    sqlResponses.push([]); // DELETE users
+    const okRes = await authDelete(
+      new Request('http://localhost/api/auth/me', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Cookie: VALID_COOKIE },
+        body: JSON.stringify({ password: 'segredo123' }),
+      })
+    );
+    expect(okRes.status).toBe(200);
+    expect(okRes.headers.get('Set-Cookie')).toContain('Max-Age=0');
+  });
+
+  it('envia CDN-Cache-Control em GET /api/quiz/seasons apenas para visitantes sem cookie', async () => {
+    const seasonRow = {
+      id: 1,
+      titulo: 'Temporada 1',
+      descricao: 'Desc',
+      total_perguntas: 5,
+      pergunta_ids: [1, 2, 3, 4, 5],
+      respondidas: null,
+      acertos: null,
+    };
+
+    sqlResponses.push([seasonRow]);
+    const anonRes = await seasonsGet(new Request('http://localhost/api/quiz/seasons'));
+    expect(anonRes.status).toBe(200);
+    expect(anonRes.headers.get('CDN-Cache-Control')).toContain('s-maxage=60');
+    expect(anonRes.headers.get('Cache-Control')).toContain('max-age=0');
+
+    sqlResponses.push([
+      {
+        id: '00000000-0000-0000-0000-000000000001',
+        nome: 'Maria',
+        email: 'maria@exemplo.com',
+        xp: 100,
+        role: 'user',
+        liga_id: null,
+        liga_nome: null,
+        liga_criado_por: null,
+        liga_codigo_acesso: null,
+      },
+    ]);
+    sqlResponses.push([{ ...seasonRow, respondidas: 2, acertos: 2 }]);
+    const authRes = await seasonsGet(
+      new Request('http://localhost/api/quiz/seasons', { headers: { Cookie: VALID_COOKIE } })
+    );
+    expect(authRes.status).toBe(200);
+    expect(authRes.headers.get('CDN-Cache-Control')).toBeNull();
+    expect(authRes.headers.get('Cache-Control')).toBe('private, no-store');
   });
 });

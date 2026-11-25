@@ -10,6 +10,7 @@ import type {
   ResponderPerguntaResult,
   TemporadaAdmin,
   TemporadaPublica,
+  UserProfile,
 } from '../types/api.types';
 
 export class ApiError extends Error {
@@ -76,6 +77,20 @@ export const api = {
 
   logout(): Promise<{ ok: boolean }> {
     return requestJson<{ ok: boolean }>('/api/auth/logout', { method: 'POST' });
+  },
+
+  updateProfileName(nome: string): Promise<{ user: UserProfile }> {
+    return requestJson<{ user: UserProfile }>('/api/auth/me', {
+      method: 'PATCH',
+      body: JSON.stringify({ nome }),
+    });
+  },
+
+  deleteAccount(password: string): Promise<{ ok: boolean }> {
+    return requestJson<{ ok: boolean }>('/api/auth/me', {
+      method: 'DELETE',
+      body: JSON.stringify({ password }),
+    });
   },
 
   // ---------- Quiz ----------

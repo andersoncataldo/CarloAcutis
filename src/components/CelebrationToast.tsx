@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import type { ConquistaDesbloqueada } from '../types/api.types';
 
 export interface CelebrationPayload {
@@ -28,7 +28,7 @@ const CelebrationToast: React.FC<CelebrationToastProps> = ({ celebration, onDism
   return (
     <AnimatePresence>
       {hasContent && celebration && (
-        <motion.div
+        <m.div
           role="status"
           aria-live="polite"
           initial={{ opacity: 0, y: 40, scale: 0.95 }}
@@ -73,7 +73,7 @@ const CelebrationToast: React.FC<CelebrationToastProps> = ({ celebration, onDism
               ✕
             </button>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

@@ -125,13 +125,17 @@ const Footer: React.FC = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="max-w-7xl mx-auto mt-24 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 opacity-40">
+      <div className="max-w-7xl mx-auto mt-24 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-slate-400">
         <div className="text-[10px] font-black uppercase tracking-[0.4em]">
           © 2026 Memorial Digital • #BeOriginal
         </div>
-        <div className="flex gap-8 text-[10px] font-black uppercase tracking-[0.4em]">
+        <div className="flex flex-wrap items-center justify-center gap-6 text-[10px] font-black uppercase tracking-[0.3em]">
+          <Link to="/privacidade" className="hover:text-white transition-colors underline underline-offset-4">
+            Política de Privacidade (LGPD)
+          </Link>
+          <span aria-hidden="true">•</span>
           <span>Assis, IT</span>
-          <span>•</span>
+          <span aria-hidden="true">•</span>
           <span>Vaticano</span>
         </div>
       </div>

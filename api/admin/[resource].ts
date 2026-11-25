@@ -7,6 +7,7 @@ import {
   jsonResponse,
   parseJsonBody,
   parsePositiveInt,
+  validateSameOrigin,
 } from '../_lib/http.js';
 import type { AnswerOption, PerguntaAdmin, TemporadaAdmin, UserProfile } from '../../src/types/api.types';
 
@@ -124,6 +125,9 @@ export async function GET(request: Request): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const originErr = validateSameOrigin(request);
+  if (originErr) return originErr;
+
   const resource = getLastPathSegment(request);
 
   try {
@@ -231,6 +235,9 @@ export async function POST(request: Request): Promise<Response> {
 }
 
 export async function PATCH(request: Request): Promise<Response> {
+  const originErr = validateSameOrigin(request);
+  if (originErr) return originErr;
+
   const resource = getLastPathSegment(request);
 
   try {
