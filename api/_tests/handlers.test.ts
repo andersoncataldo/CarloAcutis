@@ -1,12 +1,12 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { POST as answerPost } from './quiz/answer';
-import { GET as questionsGet } from './quiz/questions';
-import { GET as seasonsGet } from './quiz/seasons';
-import { GET as leaguesGet, POST as leaguesPost } from './leagues/[action]';
-import { GET as adminGet } from './admin/[resource]';
-import { POST as authPost, PATCH as authPatch, DELETE as authDelete } from './auth/[action]';
-import { hashPassword } from './_lib/auth';
+import { POST as answerPost } from '../quiz/answer';
+import { GET as questionsGet } from '../quiz/questions';
+import { GET as seasonsGet } from '../quiz/seasons';
+import { GET as leaguesGet, POST as leaguesPost } from '../leagues/[action]';
+import { GET as adminGet } from '../admin/[resource]';
+import { POST as authPost, PATCH as authPatch, DELETE as authDelete } from '../auth/[action]';
+import { hashPassword } from '../_lib/auth';
 
 const { sqlResponses, mockSql } = vi.hoisted(() => {
   const responses: unknown[][] = [];
@@ -16,7 +16,7 @@ const { sqlResponses, mockSql } = vi.hoisted(() => {
   return { sqlResponses: responses, mockSql: fn };
 });
 
-vi.mock('./_lib/db', () => ({
+vi.mock('../_lib/db', () => ({
   getSql: () => mockSql,
 }));
 
